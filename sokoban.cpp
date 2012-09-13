@@ -21,6 +21,10 @@ const QChar PUSH_RIGHT = 'R';
 
 int findPlayerPos(const QString & field)
 {
+	int playerCount = field.count(PLAYER_ON_FLOOR) + field.count(PLAYER_ON_SLOT);
+	if(playerCount != 1) {
+		throw Sokoban::InvalidPlayerCountException(playerCount);
+	}
 	int playerPos = field.indexOf(PLAYER_ON_FLOOR);
 	if(playerPos < 0) {
 		playerPos = field.indexOf(PLAYER_ON_SLOT);
@@ -90,16 +94,33 @@ bool isBox(const QString & field, int pos)
 
 int getNewPos(const QString & field, int pos, const QChar & control)
 {
+	int currentLineStart = field.lastIndexOf('\n', pos);
+	int nextLineStart = field.indexOf('\n', currentLineStart + 1);
+	int prevLineStart = field.lastIndexOf('\n', currentLineStart - 1);
+	int relPos = pos - currentLineStart;
+
 	if(control == RIGHT) {
+		bool isLastLine = field.indexOf('\n', pos) < 0;
+		bool crossRightBorder = isLastLine ? (pos + 1 >= field.size()) : (pos + 1 >= nextLineStart);
+		if(crossRightBorder)
+			throw Sokoban::OutOfMapException();
 		return pos + 1;
 	} else if(control == LEFT) {
+		bool isFirstLine = field.lastIndexOf('\n', pos) < 0;
+		bool crossLeftBorder = isFirstLine ? (pos - 1 < 0) : (pos - 1 <= currentLineStart);
+		if(crossLeftBorder)
+			throw Sokoban::OutOfMapException();
 		return pos - 1;
 	} else if(control == DOWN) {
-		return getOneLineLowerPos(field, pos);
+		if(nextLineStart < 0)
+			throw Sokoban::OutOfMapException();
+		return nextLineStart + relPos;
 	} else if(control == UP) {
-		return getOneLineUpperPos(field, pos);
+		if(currentLineStart < 0)
+			throw Sokoban::OutOfMapException();
+		return prevLineStart + relPos;
 	}
-	return pos;
+	throw Sokoban::InvalidControlException(control);
 }
 
 QString Sokoban::process(const QString & field, const QChar & control)
@@ -130,9 +151,54 @@ QString Sokoban::undo(const QString & field, QString * history)
 {
 	if(history == NULL || history->isEmpty())
 		return field;
+
 	QChar control = history->at(history->size() - 1);
-	Q_UNUSED(field); // TODO
-	return QString();
+	QChar reversedControl;
+	bool withPush = false;
+	if(control == 'u') {
+		reversedControl = 'd';
+	} else if(control == 'r') {
+		reversedControl = 'l';
+	} else if(control == 'd') {
+		reversedControl = 'u';
+	} else if(control == 'l') {
+		reversedControl = 'r';
+	} else if(control == 'U') {
+		withPush = true;
+		reversedControl = 'd';
+	} else if(control == 'D') {
+		withPush = true;
+		reversedControl = 'u';
+	} else if(control == 'L') {
+		withPush = true;
+		reversedControl = 'r';
+	} else if(control == 'R') {
+		withPush = true;
+		reversedControl = 'l';
+	} else {
+		throw Sokoban::InvalidUndoException(control);
+	}
+
+	QString result = field;
+	int playerPos = findPlayerPos(field);
+	int oldPlayerPos = playerPos;
+	int newPlayerPos = getNewPos(field, oldPlayerPos, reversedControl);
+	if(isFreeToMove(field, newPlayerPos)) {
+		result[oldPlayerPos] = getFloorSprite(result, oldPlayerPos);
+		result[newPlayerPos] = getPlayerSprite(result, newPlayerPos);
+
+		if(withPush) {
+			QChar boxControl = control.toLower();
+			int newBoxPos = oldPlayerPos;
+			int oldBoxPos = getNewPos(result, newBoxPos, boxControl);
+			result[oldBoxPos] = getFloorSprite(result, oldBoxPos);
+			result[newBoxPos] = getBoxSprite(result, newBoxPos);
+		}
+	} else {
+		throw Sokoban::InvalidUndoException(control);
+	}
+	history->remove(history->size() - 1, 1);
+	return result;
 }
 
 bool Sokoban::isSolved(const QString & field)

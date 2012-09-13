@@ -9,12 +9,12 @@ public:
 	};
 	class InvalidControlException {
 		public:
-			InvalidControlException(int control) : invalidControl(control) {}
+			InvalidControlException(const QChar & control) : invalidControl(control) {}
 			QChar invalidControl;
 	};
 	class InvalidUndoException {
 		public:
-			InvalidUndoException(int control) : invalidUndoControl(control) {}
+			InvalidUndoException(const QChar & control) : invalidUndoControl(control) {}
 			QChar invalidUndoControl;
 	};
 	class OutOfMapException {};

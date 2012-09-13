@@ -97,10 +97,10 @@ private slots:
 		a = Sokoban::undo("#. \n+  ", &history); b = "#. \n.@ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
 		a = Sokoban::undo("#. \n.@ ", &history); b = "#+ \n.  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
 		a = Sokoban::undo("#+ \n.  ", &history); b = "#.@\n.  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#.@\n.  ", &history); b = "#  \n. @"; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
+		a = Sokoban::undo("#.@\n.  ", &history); b = "#. \n. @"; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
 	}
 	void undoMovementWithPush() {
-		QString history = "UDRL";
+		QString history = "UDLR";
 		int historySize = history.size();
 		QString a, b;
 		a = Sokoban::undo(" @$", &history); b = "@$ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
@@ -135,18 +135,18 @@ private slots:
 	void exceptionInvalidControl_data() {
 		QTest::addColumn<QChar>("control");
 		QTest::addColumn<bool>("shouldBeThrown");
-		QTest::newRow("r") << QChar('r') << true;
-		QTest::newRow("l") << QChar('l') << true;
-		QTest::newRow("u") << QChar('u') << true;
-		QTest::newRow("d") << QChar('d') << true;
-		QTest::newRow("R") << QChar('R') << false;
-		QTest::newRow("L") << QChar('L') << false;
-		QTest::newRow("U") << QChar('U') << false;
-		QTest::newRow("D") << QChar('D') << false;
-		QTest::newRow("t") << QChar('t') << false;
-		QTest::newRow("_") << QChar('_') << false;
-		QTest::newRow("0") << QChar('0') << false;
-		QTest::newRow("1") << QChar('1') << false;
+		QTest::newRow("r") << QChar('r') << false;
+		QTest::newRow("l") << QChar('l') << false;
+		QTest::newRow("u") << QChar('u') << false;
+		QTest::newRow("d") << QChar('d') << false;
+		QTest::newRow("R") << QChar('R') << true;
+		QTest::newRow("L") << QChar('L') << true;
+		QTest::newRow("U") << QChar('U') << true;
+		QTest::newRow("D") << QChar('D') << true;
+		QTest::newRow("t") << QChar('t') << true;
+		QTest::newRow("_") << QChar('_') << true;
+		QTest::newRow("0") << QChar('0') << true;
+		QTest::newRow("1") << QChar('1') << true;
 	}
 	void exceptionInvalidControl() {
 		QFETCH(QChar, control);
