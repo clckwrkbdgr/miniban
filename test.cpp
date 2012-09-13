@@ -27,10 +27,10 @@ private slots:
 	}
 	void canMoveFromSlot() {
 		QString a, b;
-		a = Sokoban::process("+ ", 'r');   b = " @";   QCOMPARE(a, b);
-		a = Sokoban::process(" +", 'l');   b = "@ ";   QCOMPARE(a, b);
-		a = Sokoban::process("+\n ", 'd'); b = " \n@"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n+", 'u'); b = "@\n "; QCOMPARE(a, b);
+		a = Sokoban::process("+ ", 'r');   b = ".@";   QCOMPARE(a, b);
+		a = Sokoban::process(" +", 'l');   b = "@.";   QCOMPARE(a, b);
+		a = Sokoban::process("+\n ", 'd'); b = ".\n@"; QCOMPARE(a, b);
+		a = Sokoban::process(" \n+", 'u'); b = "@\n."; QCOMPARE(a, b);
 
 		a = Sokoban::process("+.", 'r');   b = ".+";   QCOMPARE(a, b);
 		a = Sokoban::process(".+", 'l');   b = "+.";   QCOMPARE(a, b);
@@ -54,7 +54,7 @@ private slots:
 		a = Sokoban::process("@* ", 'r');     b = " +$";     QCOMPARE(a, b);
 		a = Sokoban::process(" *@", 'l');     b = "$+ ";     QCOMPARE(a, b);
 		a = Sokoban::process("@\n*\n ", 'd'); b = " \n+\n$"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n$\n@", 'u'); b = "$\n+\n "; QCOMPARE(a, b);
+		a = Sokoban::process(" \n*\n@", 'u'); b = "$\n+\n "; QCOMPARE(a, b);
 
 		a = Sokoban::process("@*.", 'r');     b = " +*";     QCOMPARE(a, b);
 		a = Sokoban::process(".*@", 'l');     b = "*+ ";     QCOMPARE(a, b);

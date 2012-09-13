@@ -1,32 +1,25 @@
-/*
-# - wall
-  - floor
-@ - player on floor
-. - empty slot
-+ - man on slot
-$ - box on floor
-* - box on slot
-movement - udrl for free moves and UDRL for pushes
-*/
+#include <QtCore/QString>
+
 class Sokoban {
 public:
-	class InvalidPlayerCountException { public: int playerCount; };
-	class InvalidControlException { public: QChar invalidControl; };
-	class InvalidUndoException { public: QChar invalidUndoControl; };
+	class InvalidPlayerCountException {
+		public:
+			InvalidPlayerCountException(int wrongPlayerCount) : playerCount(wrongPlayerCount) {}
+			int playerCount;
+	};
+	class InvalidControlException {
+		public:
+			InvalidControlException(int control) : invalidControl(control) {}
+			QChar invalidControl;
+	};
+	class InvalidUndoException {
+		public:
+			InvalidUndoException(int control) : invalidUndoControl(control) {}
+			QChar invalidUndoControl;
+	};
 	class OutOfMapException {};
 
-	static QString process(const QString & field, const QChar & control) {
-		Q_UNUSED(field);
-		Q_UNUSED(control);
-		return QString();
-	}
-	static QString undo(const QString & field, QString * history = NULL) {
-		Q_UNUSED(field);
-		Q_UNUSED(history);
-		return QString();
-	}
-	static bool isSolved(const QString & field) {
-		Q_UNUSED(field);
-		return false;
-	}
+	static QString process(const QString & field, const QChar & control);
+	static QString undo(const QString & field, QString * history = NULL);
+	static bool isSolved(const QString & field);
 };
