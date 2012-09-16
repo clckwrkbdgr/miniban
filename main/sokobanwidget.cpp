@@ -1,5 +1,6 @@
 #include <QtDebug>
 #include <QtGui/QPainter>
+#include <QtGui/QMessageBox>
 #include <QtGui/QKeyEvent>
 #include "sprites.h"
 #include "sokoban.h"
@@ -32,14 +33,12 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 		}
 	}
 
-	originalLevel =
-		"####\n"
-		"#  ############\n"
-		"# $ $ $ $ $ @ #\n"
-		"# .....       #\n"
-		"###############\n"
-		;
-	currentLevel = originalLevel;
+	restartLevel();
+}
+
+void SokobanWidget::restartLevel()
+{
+	currentLevel = levelSet.getCurrentLevel();
 	history.clear();
 }
 
@@ -70,7 +69,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 		case DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
 		case UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
 		case RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
-		case HOME: currentLevel = originalLevel; history.clear(); break;
+		case HOME: restartLevel(); break;
 		case UNDO:
 				   if(!history.isEmpty()) {
 					   currentLevel = Sokoban::undo(currentLevel, &history);
@@ -79,7 +78,23 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 		default: break;
 	}
 
+	if(!levelSet.isOver()) {
+		if(Sokoban::isSolved(currentLevel)) {
+			bool ok = levelSet.moveToNextLevel();
+			if(ok) {
+				restartLevel();
+			} else {
+				showMessage(tr("Levels are over."));
+			}
+		}
+	}
+
 	update();
+}
+
+void SokobanWidget::showMessage(const QString & message)
+{
+	QMessageBox::information(this, tr("Sokoban"), message);
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)

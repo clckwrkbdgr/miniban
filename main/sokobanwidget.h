@@ -1,6 +1,7 @@
 #pragma once
 #include <QtCore/QMap>
 #include <QtGui/QWidget>
+#include "levelset.h"
 
 class SokobanWidget : public QWidget {
 	Q_OBJECT
@@ -16,7 +17,11 @@ protected:
 private:
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;
-	QString originalLevel, currentLevel;
+	QString currentLevel;
 	QString history;
+	LevelSet levelSet;
+
+	void restartLevel();
+	void showMessage(const QString & message);
 };
 
