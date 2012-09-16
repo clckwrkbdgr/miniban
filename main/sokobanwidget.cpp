@@ -22,6 +22,15 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 	foreach(int tileType, tileTypes) {
 		sprites[tileType] = Sprites::getSprite(tileType, SCALE_FACTOR);
 	}
+
+	foreach(const QImage & sprite, sprites) {
+		if(spriteSize.width() < sprite.size().width()) {
+			spriteSize.setWidth(sprite.size().width());
+		}
+		if(spriteSize.height() < sprite.size().height()) {
+			spriteSize.setHeight(sprite.size().height());
+		}
+	}
 }
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
@@ -37,9 +46,29 @@ void SokobanWidget::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::black);
 
-	int xOffset = 0;
-	foreach(const QImage & sprite, sprites) {
-		painter.drawImage(xOffset, 0, sprite);
-		xOffset += sprite.width();
+	QString level = 
+		"####\n"
+		"#  ############\n"
+		"# $ $ $ $ $ @ #\n"
+		"# .....       #\n"
+		"###############\n"
+		;
+
+	QStringList rows = level.split('\n');
+	int levelWidth = 0;
+	int levelHeight = rows.count();
+	foreach(const QString & row, rows) {
+		if(levelWidth < row.length()) {
+			levelWidth = row.length();
+		}
+	}
+
+	QPoint offset = QPoint(width() - levelWidth * spriteSize.width(), height() - levelHeight * spriteSize.height()) / 2;
+	for(int y = 0; y < levelHeight; ++y) {
+		for(int x = 0; x < levelWidth && x < rows[y].length(); ++x) {
+			QChar tileType = sprites.contains(rows[y][x]) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
+			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
+			painter.drawImage(pos, sprites[tileType]);
+		}
 	}
 }

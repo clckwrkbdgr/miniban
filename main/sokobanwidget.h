@@ -15,5 +15,6 @@ protected:
 	virtual void keyPressEvent(QKeyEvent*);
 private:
 	QMap<QChar, QImage> sprites;
+	QSize spriteSize;
 };
 
