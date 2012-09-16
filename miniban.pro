@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = test #main
+SUBDIRS = test main
