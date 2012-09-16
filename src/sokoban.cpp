@@ -2,28 +2,10 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
-namespace Sokoban { // Constants.
-
-const QChar FLOOR           = ' ';
-const QChar WALL            = '#';
-const QChar PLAYER_ON_FLOOR = '@';
-const QChar EMPTY_SLOT      = '.';
-const QChar PLAYER_ON_SLOT  = '+';
-const QChar BOX_ON_FLOOR    = '$';
-const QChar BOX_ON_SLOT     = '*';
-
-const QChar UP         = 'u';
-const QChar DOWN       = 'd';
-const QChar LEFT       = 'l';
-const QChar RIGHT      = 'r';
-const QChar PUSH_UP    = 'U';
-const QChar PUSH_DOWN  = 'D';
-const QChar PUSH_LEFT  = 'L';
-const QChar PUSH_RIGHT = 'R';
-
-};
-
 namespace Sokoban { // Auxiliary functions.
+
+using namespace TileType;
+using namespace Control;
 
 int findPlayerPos(const QString & field)
 {

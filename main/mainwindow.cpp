@@ -4,5 +4,8 @@
 MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent)
 {
-	setCentralWidget(new SokobanWidget());
+	QWidget * widget = new SokobanWidget();
+	connect(widget, SIGNAL(wantsToQuit()), this, SLOT(close()));
+	setCentralWidget(widget);
+	widget->setFocus();
 }

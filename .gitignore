@@ -12,3 +12,6 @@
 *.a
 
 *.swp
+Makefile
+bin/
+tmp/

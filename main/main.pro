@@ -6,8 +6,11 @@ MOC_DIR = ../tmp
 UI_DIR = ../tmp
 
 src_dir = ../src
-HEADERS += $${src_dir}/sokoban.h
-SOURCES += $${src_dir}/sokoban.cpp
+modules = $${src_dir}/sokoban mainwindow sokobanwidget xpm sprites
 
-HEADERS += sokobanwidget.h mainwindow.h
-SOURCES += main.cpp sokobanwidget.cpp mainwindow.cpp
+INCLUDEPATH += $$src_dir
+SOURCES += main.cpp
+for(module, modules) {
+	HEADERS += $${module}.h
+	SOURCES += $${module}.cpp
+}
