@@ -2,6 +2,8 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
+namespace Sokoban { // Constants.
+
 const QChar FLOOR           = ' ';
 const QChar WALL            = '#';
 const QChar PLAYER_ON_FLOOR = '@';
@@ -18,6 +20,10 @@ const QChar PUSH_UP    = 'U';
 const QChar PUSH_DOWN  = 'D';
 const QChar PUSH_LEFT  = 'L';
 const QChar PUSH_RIGHT = 'R';
+
+};
+
+namespace Sokoban { // Auxiliary functions.
 
 int findPlayerPos(const QString & field)
 {
@@ -123,7 +129,11 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 	throw Sokoban::InvalidControlException(control);
 }
 
-QString Sokoban::process(const QString & field, const QChar & control)
+};
+
+namespace Sokoban { // Main functions.
+
+QString process(const QString & field, const QChar & control)
 {
 	QString result = field;
 	int playerPos = findPlayerPos(field);
@@ -147,7 +157,7 @@ QString Sokoban::process(const QString & field, const QChar & control)
 	return result;
 }
 
-QString Sokoban::undo(const QString & field, QString * history)
+QString undo(const QString & field, QString * history)
 {
 	if(history == NULL || history->isEmpty())
 		return field;
@@ -201,9 +211,11 @@ QString Sokoban::undo(const QString & field, QString * history)
 	return result;
 }
 
-bool Sokoban::isSolved(const QString & field)
+bool isSolved(const QString & field)
 {
 	int freeSlotCount = field.count(EMPTY_SLOT) + field.count(PLAYER_ON_SLOT);
 	int freeBoxCount =  field.count(BOX_ON_FLOOR);
 	return (freeSlotCount == 0) && (freeBoxCount == 0);
 }
+
+};

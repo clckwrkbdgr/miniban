@@ -1,7 +1,6 @@
 #include <QtCore/QString>
 
-class Sokoban {
-public:
+namespace Sokoban {
 	class InvalidPlayerCountException {
 		public:
 			InvalidPlayerCountException(int wrongPlayerCount) : playerCount(wrongPlayerCount) {}
@@ -19,7 +18,7 @@ public:
 	};
 	class OutOfMapException {};
 
-	static QString process(const QString & field, const QChar & control);
-	static QString undo(const QString & field, QString * history = NULL);
-	static bool isSolved(const QString & field);
+	QString process(const QString & field, const QChar & control);
+	QString undo(const QString & field, QString * history = NULL);
+	bool isSolved(const QString & field);
 };
