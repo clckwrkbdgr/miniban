@@ -9,6 +9,6 @@ int main(int argc, char ** argv)
 	app.setApplicationName("miniban");
 
 	MainWindow wnd;
-	wnd.show();
+	wnd.showFullScreen();
 	return app.exec();
 }

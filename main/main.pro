@@ -9,5 +9,5 @@ src_dir = ../src
 HEADERS += $${src_dir}/sokoban.h
 SOURCES += $${src_dir}/sokoban.cpp
 
-HEADERS += mainwindow.h
-SOURCES += main.cpp mainwindow.cpp
+HEADERS += sokobanwidget.h mainwindow.h
+SOURCES += main.cpp sokobanwidget.cpp mainwindow.cpp
