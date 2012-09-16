@@ -50,17 +50,17 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	enum { NONE, QUIT, LEFT, RIGHT, UP, DOWN, UNDO, HOME };
 
 	int key = NONE;
-	switch(event->key()) {
-		case Qt::Key_Q: key = QUIT; break;
-		case Qt::Key_Left:  case Qt::Key_H: key = LEFT; break;
-		case Qt::Key_Down:  case Qt::Key_J: key = DOWN; break;
-		case Qt::Key_Up:    case Qt::Key_K: key = UP; break;
-		case Qt::Key_Right: case Qt::Key_L: key = RIGHT; break;
-		case Qt::Key_R:         if(isCtrlDown) key = HOME; break;
-		case Qt::Key_Home:      key = HOME; break;
-		case Qt::Key_U:         key = isShiftDown ? HOME : UNDO; break;
-		case Qt::Key_Z:         if(isCtrlDown) key = UNDO; break;
+	switch(event->key()) {                                   //# CONTROLS
+		case Qt::Key_Q: key = QUIT; break;                      //# 'q' or Ctrl-Q - quit.
+		case Qt::Key_Left:  case Qt::Key_H: key = LEFT; break;  //# Left or 'h' - move left.
+		case Qt::Key_Down:  case Qt::Key_J: key = DOWN; break;  //# Down or 'j' - move down.
+		case Qt::Key_Up:    case Qt::Key_K: key = UP; break;    //# Up or 'k' - move .
+		case Qt::Key_Right: case Qt::Key_L: key = RIGHT; break; //# Right or 'l' - move left.
+		case Qt::Key_Z:    if(isCtrlDown) key = UNDO; break;    //# Ctrl-Z, Backspace or 'u' - undo last action.
 		case Qt::Key_Backspace: key = UNDO; break;
+		case Qt::Key_U:    key = isShiftDown ? HOME : UNDO; break;
+		case Qt::Key_R:    if(isCtrlDown) key = HOME; break;    //# Ctrl-R, Home or 'U' - revert to the starting position.
+		case Qt::Key_Home: key = HOME; break;
 		default: QWidget::keyPressEvent(event); return;
 	}
 
