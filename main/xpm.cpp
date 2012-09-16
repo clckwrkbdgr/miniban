@@ -21,6 +21,22 @@ QList<int> extractValues(const QString & valuesString)
 	return result;
 }
 
+struct XPMInfo {
+	int width, height, colors, charOnPixel;
+	XPMInfo() : width(0), height(0), colors(0), charOnPixel(0) {}
+	static XPMInfo fromString(const QString & string) {
+		XPMInfo result;
+		QList<int> values = extractValues(string);
+		if(values.count() < 4)
+			return result;
+		result.width = values[0];
+		result.height = values[1];
+		result.colors = values[2];
+		result.charOnPixel = values[3];
+		return result;
+	}
+};
+
 };
 
 namespace XPM { // Main.
@@ -31,20 +47,14 @@ QImage toQImage(const char ** xpm)
 		return QImage();
 	const char ** p = xpm;
 
-	QList<int> values = extractValues(*p);
-	if(values.count() < 4)
-		return QImage();
-	int width = values[0];
-	int height = values[1];
-	int colors = values[2];
-	int charOnPixel = values[3];
+	XPMInfo values = XPMInfo::fromString(*p);
 
 	QMap<QString, QColor> colorMap;
-	while(colors--) {
+	while(values.colors--) {
 		p++;
 		QString colorLine = QString(*p);
-		QString name = colorLine.left(charOnPixel);
-		colorLine.remove(0, charOnPixel);
+		QString name = colorLine.left(values.charOnPixel);
+		colorLine.remove(0, values.charOnPixel);
 		QStringList color = colorLine.split(' ', QString::SkipEmptyParts);
 		if(color.count() < 2) {
 			return QImage();
@@ -55,16 +65,16 @@ QImage toQImage(const char ** xpm)
 		colorMap[name] = colorValue;
 	}
 
-	QImage image(width, height, QImage::Format_RGB32);
+	QImage image(values.width, values.height, QImage::Format_RGB32);
 	QPoint pos;
-	while(height--) {
+	while(values.height--) {
 		p++;
 		QString row = *p;
 		while(!row.isEmpty()) {
-			QString color = row.left(charOnPixel);
+			QString color = row.left(values.charOnPixel);
 			image.setPixel(pos.x(), pos.y(), colorMap[color].rgb());
 			pos.rx()++;
-			row.remove(0, charOnPixel);
+			row.remove(0, values.charOnPixel);
 		}
 		pos.ry()++;
 		pos.rx() = 0;

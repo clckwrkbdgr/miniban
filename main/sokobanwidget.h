@@ -14,6 +14,7 @@ signals:
 protected:
 	virtual void paintEvent(QPaintEvent*);
 	virtual void keyPressEvent(QKeyEvent*);
+	virtual void resizeEvent(QResizeEvent*);
 private:
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;

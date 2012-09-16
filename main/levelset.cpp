@@ -15,7 +15,7 @@ QString trimLN(const QString & string)
 		result.remove(0, 1);
 	}
 	while(result.endsWith('\n')) {
-		result.remove(result.length() - 1, 1);
+		result.chop(1);
 	}
 	return result;
 }

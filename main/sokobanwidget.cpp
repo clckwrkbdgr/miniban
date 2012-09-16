@@ -11,29 +11,38 @@ const int SCALE_FACTOR = 4;
 SokobanWidget::SokobanWidget(QWidget * parent)
 	: QWidget(parent)
 {
-	QList<int> tileTypes;
-	tileTypes << Sokoban::TileType::FLOOR;
-	tileTypes << Sokoban::TileType::WALL;
-	tileTypes << Sokoban::TileType::EMPTY_SLOT;
-	tileTypes << Sokoban::TileType::PLAYER_ON_FLOOR;
-	tileTypes << Sokoban::TileType::PLAYER_ON_SLOT;
-	tileTypes << Sokoban::TileType::BOX_ON_FLOOR;
-	tileTypes << Sokoban::TileType::BOX_ON_SLOT;
+	restartLevel();
+}
 
-	foreach(int tileType, tileTypes) {
+const QList<int> & getAllTileTypes()
+{
+	static QList<int> tileTypes = QList<int>()
+		<< Sokoban::TileType::FLOOR
+		<< Sokoban::TileType::WALL
+		<< Sokoban::TileType::EMPTY_SLOT
+		<< Sokoban::TileType::PLAYER_ON_FLOOR
+		<< Sokoban::TileType::PLAYER_ON_SLOT
+		<< Sokoban::TileType::BOX_ON_FLOOR
+		<< Sokoban::TileType::BOX_ON_SLOT;
+	return tileTypes;
+}
+
+void SokobanWidget::resizeEvent(QResizeEvent*)
+{
+	foreach(int tileType, getAllTileTypes()) {
 		sprites[tileType] = Sprites::getSprite(tileType, SCALE_FACTOR);
 	}
 
 	foreach(const QImage & sprite, sprites) {
-		if(spriteSize.width() < sprite.size().width()) {
-			spriteSize.setWidth(sprite.size().width());
+		int width = sprite.width();
+		int height = sprite.height();
+		if(spriteSize.width() < width) {
+			spriteSize.setWidth(width);
 		}
-		if(spriteSize.height() < sprite.size().height()) {
-			spriteSize.setHeight(sprite.size().height());
+		if(spriteSize.height() < height) {
+			spriteSize.setHeight(height);
 		}
 	}
-
-	restartLevel();
 }
 
 void SokobanWidget::restartLevel()
