@@ -2,6 +2,6 @@
 
 namespace Sprites {
 
-QImage getSprite(int tileType);
+QImage getSprite(int tileType, int scaleFactor = 1);
 
 };

@@ -126,18 +126,21 @@ static const char * BOX_ON_SLOT[] = {
 
 namespace Sprites { // Main.
 
-QImage getSprite(int tileType)
+QImage getSprite(int tileType, int scaleFactor)
 {
+	scaleFactor = (scaleFactor < 1) ? 1 : scaleFactor;
+	QImage result;
 	switch(tileType) {
-		case Sokoban::TileType::FLOOR:           return XPM::toQImage(XPMSprites::FLOOR);
-		case Sokoban::TileType::WALL:            return XPM::toQImage(XPMSprites::WALL);
-		case Sokoban::TileType::EMPTY_SLOT:      return XPM::toQImage(XPMSprites::EMPTY_SLOT);
-		case Sokoban::TileType::PLAYER_ON_FLOOR: return XPM::toQImage(XPMSprites::PLAYER_ON_FLOOR);
-		case Sokoban::TileType::PLAYER_ON_SLOT:  return XPM::toQImage(XPMSprites::PLAYER_ON_SLOT);
-		case Sokoban::TileType::BOX_ON_FLOOR:    return XPM::toQImage(XPMSprites::BOX_ON_FLOOR);
-		case Sokoban::TileType::BOX_ON_SLOT:     return XPM::toQImage(XPMSprites::BOX_ON_SLOT);
-		default: return QImage();
+		case Sokoban::TileType::FLOOR:           result = XPM::toQImage(XPMSprites::FLOOR); break;
+		case Sokoban::TileType::WALL:            result = XPM::toQImage(XPMSprites::WALL); break;
+		case Sokoban::TileType::EMPTY_SLOT:      result = XPM::toQImage(XPMSprites::EMPTY_SLOT); break;
+		case Sokoban::TileType::PLAYER_ON_FLOOR: result = XPM::toQImage(XPMSprites::PLAYER_ON_FLOOR); break;
+		case Sokoban::TileType::PLAYER_ON_SLOT:  result = XPM::toQImage(XPMSprites::PLAYER_ON_SLOT); break;
+		case Sokoban::TileType::BOX_ON_FLOOR:    result = XPM::toQImage(XPMSprites::BOX_ON_FLOOR); break;
+		case Sokoban::TileType::BOX_ON_SLOT:     result = XPM::toQImage(XPMSprites::BOX_ON_SLOT); break;
+		default: return result;
 	}
+	return result.scaled(result.size() * scaleFactor);
 }
 
 };

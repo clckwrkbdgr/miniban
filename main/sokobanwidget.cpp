@@ -5,6 +5,8 @@
 #include "sokoban.h"
 #include "sokobanwidget.h"
 
+const int SCALE_FACTOR = 4;
+
 SokobanWidget::SokobanWidget(QWidget * parent)
 	: QWidget(parent)
 {
@@ -18,7 +20,7 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 	tileTypes << Sokoban::TileType::BOX_ON_SLOT;
 
 	foreach(int tileType, tileTypes) {
-		sprites[tileType] = Sprites::getSprite(tileType);
+		sprites[tileType] = Sprites::getSprite(tileType, SCALE_FACTOR);
 	}
 }
 
