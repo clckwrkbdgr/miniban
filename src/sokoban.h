@@ -13,6 +13,7 @@ namespace TileType { enum TileTypes {
 }; };
 
 namespace Control { enum Controls {
+	NONE       = 0,
 	UP         = 'u',
 	DOWN       = 'd',
 	LEFT       = 'l',
@@ -40,7 +41,7 @@ class InvalidUndoException {
 };
 class OutOfMapException {};
 
-QString process(const QString & field, const QChar & control);
+QString process(const QString & field, const QChar & control, QString * history = NULL);
 QString undo(const QString & field, QString * history = NULL);
 bool isSolved(const QString & field);
 

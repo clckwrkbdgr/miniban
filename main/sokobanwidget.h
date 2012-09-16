@@ -16,5 +16,7 @@ protected:
 private:
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;
+	QString originalLevel, currentLevel;
+	QString history;
 };
 

@@ -61,6 +61,19 @@ private slots:
 		a = Sokoban::process("@\n*\n.", 'd'); b = " \n+\n*"; QCOMPARE(a, b);
 		a = Sokoban::process(".\n*\n@", 'u'); b = "*\n+\n "; QCOMPARE(a, b);
 	}
+	void historyIsTracked() {
+		QString a, b;
+		QString history;
+		a = Sokoban::process("#.@",     'l', NULL);     b = "#+ ";     QCOMPARE(a, b); QVERIFY(history.isEmpty());
+		a = Sokoban::process("#.@",     'l', &history); b = "#+ ";     QCOMPARE(a, b); QCOMPARE(history, QString("l"));
+		a = Sokoban::process("#+ ",     'l', &history); b = "#+ ";     QCOMPARE(a, b); QCOMPARE(history, QString("l"));
+		a = Sokoban::process(".$@",     'l', &history); b = "*@ ";     QCOMPARE(a, b); QCOMPARE(history, QString("lL"));
+		a = Sokoban::process(" $$@",    'l', &history); b = " $$@";    QCOMPARE(a, b); QCOMPARE(history, QString("lL"));
+		a = Sokoban::process("$.*@",    'l', &history); b = "$*+ ";    QCOMPARE(a, b); QCOMPARE(history, QString("lLL"));
+		a = Sokoban::process("@$.",     'r', &history); b = " @*";     QCOMPARE(a, b); QCOMPARE(history, QString("lLLR"));
+		a = Sokoban::process(".\n$\n@", 'u', &history); b = "*\n@\n "; QCOMPARE(a, b); QCOMPARE(history, QString("lLLRU"));
+		a = Sokoban::process("@\n$\n.", 'd', &history); b = " \n@\n*"; QCOMPARE(a, b); QCOMPARE(history, QString("lLLRUD"));
+	}
 	void cannotMoveTwoBoxesInRow() {
 		QString a, b;
 		a = Sokoban::process("@$$ ", 'r');       b = "@$$ ";       QCOMPARE(a, b);

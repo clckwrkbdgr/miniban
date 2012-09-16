@@ -31,14 +31,55 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 			spriteSize.setHeight(sprite.size().height());
 		}
 	}
+
+	originalLevel =
+		"####\n"
+		"#  ############\n"
+		"# $ $ $ $ $ @ #\n"
+		"# .....       #\n"
+		"###############\n"
+		;
+	currentLevel = originalLevel;
+	history.clear();
 }
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
 {
+	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
+	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
+	enum { NONE, QUIT, LEFT, RIGHT, UP, DOWN, UNDO, HOME };
+
+	int key = NONE;
 	switch(event->key()) {
-		case Qt::Key_Q: emit wantsToQuit(); break;
-		default: QWidget::keyPressEvent(event);
+		case Qt::Key_Q: key = QUIT; break;
+		case Qt::Key_Left:  case Qt::Key_H: key = LEFT; break;
+		case Qt::Key_Down:  case Qt::Key_J: key = DOWN; break;
+		case Qt::Key_Up:    case Qt::Key_K: key = UP; break;
+		case Qt::Key_Right: case Qt::Key_L: key = RIGHT; break;
+		case Qt::Key_R:         if(isCtrlDown) key = HOME; break;
+		case Qt::Key_Home:      key = HOME; break;
+		case Qt::Key_U:         key = isShiftDown ? HOME : UNDO; break;
+		case Qt::Key_Z:         if(isCtrlDown) key = UNDO; break;
+		case Qt::Key_Backspace: key = UNDO; break;
+		default: QWidget::keyPressEvent(event); return;
 	}
+
+	switch(key) {
+		case QUIT: emit wantsToQuit(); break;
+		case LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
+		case DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
+		case UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
+		case RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
+		case HOME: currentLevel = originalLevel; history.clear(); break;
+		case UNDO:
+				   if(!history.isEmpty()) {
+					   currentLevel = Sokoban::undo(currentLevel, &history);
+				   }
+				   break;
+		default: break;
+	}
+
+	update();
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)
@@ -46,15 +87,7 @@ void SokobanWidget::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::black);
 
-	QString level = 
-		"####\n"
-		"#  ############\n"
-		"# $ $ $ $ $ @ #\n"
-		"# .....       #\n"
-		"###############\n"
-		;
-
-	QStringList rows = level.split('\n');
+	QStringList rows = currentLevel.split('\n');
 	int levelWidth = 0;
 	int levelHeight = rows.count();
 	foreach(const QString & row, rows) {

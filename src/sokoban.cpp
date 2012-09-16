@@ -115,12 +115,13 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 
 namespace Sokoban { // Main functions.
 
-QString process(const QString & field, const QChar & control)
+QString process(const QString & field, const QChar & control, QString * history)
 {
 	QString result = field;
 	int playerPos = findPlayerPos(field);
 	int oldPlayerPos = playerPos;
 	int newPlayerPos = getNewPos(field, oldPlayerPos, control);
+	bool withPush = false;
 	if(isFreeToMove(field, newPlayerPos)) {
 		if(isBox(field, newPlayerPos)) {
 			int oldBoxPos = newPlayerPos;
@@ -128,6 +129,7 @@ QString process(const QString & field, const QChar & control)
 			if(isFreeToMove(field, newBoxPos) && !isBox(field, newBoxPos)) {
 				result[oldBoxPos] = getFloorSprite(field, oldBoxPos);
 				result[newBoxPos] = getBoxSprite(field, newBoxPos);
+				withPush = true;
 			} else {
 				return result;
 			}
@@ -135,6 +137,9 @@ QString process(const QString & field, const QChar & control)
 
 		result[oldPlayerPos] = getFloorSprite(result, oldPlayerPos);
 		result[newPlayerPos] = getPlayerSprite(result, newPlayerPos);
+		if(history) {
+			*history += withPush ? control.toUpper() : control;
+		}
 	}
 	return result;
 }
