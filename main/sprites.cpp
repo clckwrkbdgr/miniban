@@ -1,3 +1,4 @@
+#include <QtCore/QMap>
 #include <QtGui/QImage>
 #include "sokoban.h"
 #include "sprites.h"
@@ -124,23 +125,58 @@ static const char * BOX_ON_SLOT[] = {
 
 };
 
+namespace Sprites { // Aux functions and cached sprites.
+
+QMap<int, QImage> getAllConvertedSprites()
+{
+	QMap<int, QImage> result;
+	result[Sokoban::TileType::FLOOR]           = XPM::toQImage(XPMSprites::FLOOR);
+	result[Sokoban::TileType::WALL]            = XPM::toQImage(XPMSprites::WALL);
+	result[Sokoban::TileType::EMPTY_SLOT]      = XPM::toQImage(XPMSprites::EMPTY_SLOT);
+	result[Sokoban::TileType::PLAYER_ON_FLOOR] = XPM::toQImage(XPMSprites::PLAYER_ON_FLOOR);
+	result[Sokoban::TileType::PLAYER_ON_SLOT]  = XPM::toQImage(XPMSprites::PLAYER_ON_SLOT);
+	result[Sokoban::TileType::BOX_ON_FLOOR]    = XPM::toQImage(XPMSprites::BOX_ON_FLOOR);
+	result[Sokoban::TileType::BOX_ON_SLOT]     = XPM::toQImage(XPMSprites::BOX_ON_SLOT);
+	return result;
+}
+
+static const QMap<int, QImage> cachedSprites = getAllConvertedSprites();
+
+QSize calculateSpritesBounds()
+{
+	QSize spriteSize;
+	foreach(const QImage & sprite, cachedSprites) {
+		int width = sprite.width();
+		int height = sprite.height();
+		if(spriteSize.width() < width) {
+			spriteSize.setWidth(width);
+		}
+		if(spriteSize.height() < height) {
+			spriteSize.setHeight(height);
+		}
+	}
+	return spriteSize;
+}
+
+static const QSize spritesBounds = calculateSpritesBounds();
+
+};
+
 namespace Sprites { // Main.
+
+QSize getSpritesBounds()
+{
+	return spritesBounds;
+}
 
 QImage getSprite(int tileType, int scaleFactor)
 {
 	scaleFactor = (scaleFactor < 1) ? 1 : scaleFactor;
-	QImage result;
-	switch(tileType) {
-		case Sokoban::TileType::FLOOR:           result = XPM::toQImage(XPMSprites::FLOOR); break;
-		case Sokoban::TileType::WALL:            result = XPM::toQImage(XPMSprites::WALL); break;
-		case Sokoban::TileType::EMPTY_SLOT:      result = XPM::toQImage(XPMSprites::EMPTY_SLOT); break;
-		case Sokoban::TileType::PLAYER_ON_FLOOR: result = XPM::toQImage(XPMSprites::PLAYER_ON_FLOOR); break;
-		case Sokoban::TileType::PLAYER_ON_SLOT:  result = XPM::toQImage(XPMSprites::PLAYER_ON_SLOT); break;
-		case Sokoban::TileType::BOX_ON_FLOOR:    result = XPM::toQImage(XPMSprites::BOX_ON_FLOOR); break;
-		case Sokoban::TileType::BOX_ON_SLOT:     result = XPM::toQImage(XPMSprites::BOX_ON_SLOT); break;
-		default: return result;
+	if(cachedSprites.contains(tileType)) {
+		QImage result = cachedSprites[tileType];
+		return result.scaled(result.size() * scaleFactor);
 	}
-	return result.scaled(result.size() * scaleFactor);
+	return QImage();
 }
 
 };

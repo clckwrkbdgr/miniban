@@ -21,8 +21,11 @@ private:
 	QString currentLevel;
 	QString history;
 	LevelSet levelSet;
+	QSize currentLevelSize;
 
 	void restartLevel();
+	void resizeSpritesForLevel(const QSize & levelSize);
 	void showMessage(const QString & message);
+	void loadNextLevel();
 };
 

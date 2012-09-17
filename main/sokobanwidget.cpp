@@ -6,7 +6,8 @@
 #include "sokoban.h"
 #include "sokobanwidget.h"
 
-const int SCALE_FACTOR = 4;
+const int MIN_SCALE_FACTOR = 1;
+const int MAX_SCALE_FACTOR = 8;
 
 SokobanWidget::SokobanWidget(QWidget * parent)
 	: QWidget(parent)
@@ -29,26 +30,41 @@ const QList<int> & getAllTileTypes()
 
 void SokobanWidget::resizeEvent(QResizeEvent*)
 {
+	resizeSpritesForLevel(currentLevelSize);
+}
+
+void SokobanWidget::resizeSpritesForLevel(const QSize & levelSize)
+{
+	QSize originalSize = Sprites::getSpritesBounds();
+	int scaleFactor = qMin(
+			rect().width() / (levelSize.width() * originalSize.width()),
+			rect().height() / (levelSize.height() * originalSize.height())
+			);
+	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
+	qDebug() << rect() << originalSize << levelSize << scaleFactor;
+
 	foreach(int tileType, getAllTileTypes()) {
-		sprites[tileType] = Sprites::getSprite(tileType, SCALE_FACTOR);
+		sprites[tileType] = Sprites::getSprite(tileType, scaleFactor);
 	}
 
-	foreach(const QImage & sprite, sprites) {
-		int width = sprite.width();
-		int height = sprite.height();
-		if(spriteSize.width() < width) {
-			spriteSize.setWidth(width);
-		}
-		if(spriteSize.height() < height) {
-			spriteSize.setHeight(height);
-		}
-	}
+	spriteSize = originalSize * scaleFactor;
 }
 
 void SokobanWidget::restartLevel()
 {
 	currentLevel = levelSet.getCurrentLevel();
 	history.clear();
+
+	QStringList rows = currentLevel.split('\n');
+	int levelWidth = 0;
+	int levelHeight = rows.count();
+	foreach(const QString & row, rows) {
+		if(levelWidth < row.length()) {
+			levelWidth = row.length();
+		}
+	}
+	currentLevelSize = QSize(levelWidth, levelHeight);
+	resizeSpritesForLevel(currentLevelSize);
 }
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
@@ -57,8 +73,10 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
 	enum { NONE, QUIT, LEFT, RIGHT, UP, DOWN, UNDO, HOME };
 
+	//# CONTROLS
 	int key = NONE;
-	switch(event->key()) {                                   //# CONTROLS
+	switch(event->key()) { //#
+		case Qt::Key_Space: loadNextLevel(); update(); return; //TODO temp only
 		case Qt::Key_Q: key = QUIT; break;                      //# 'q' or Ctrl-Q - quit.
 		case Qt::Key_Left:  case Qt::Key_H: key = LEFT; break;  //# Left or 'h' - move left.
 		case Qt::Key_Down:  case Qt::Key_J: key = DOWN; break;  //# Down or 'j' - move down.
@@ -70,7 +88,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 		case Qt::Key_R:    if(isCtrlDown) key = HOME; break;    //# Ctrl-R, Home or 'U' - revert to the starting position.
 		case Qt::Key_Home: key = HOME; break;
 		default: QWidget::keyPressEvent(event); return;
-	}
+	} //#
 
 	switch(key) {
 		case QUIT: emit wantsToQuit(); break;
@@ -89,16 +107,21 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 
 	if(!levelSet.isOver()) {
 		if(Sokoban::isSolved(currentLevel)) {
-			bool ok = levelSet.moveToNextLevel();
-			if(ok) {
-				restartLevel();
-			} else {
-				showMessage(tr("Levels are over."));
-			}
+			loadNextLevel();
 		}
 	}
 
 	update();
+}
+
+void SokobanWidget::loadNextLevel()
+{
+	bool ok = levelSet.moveToNextLevel();
+	if(ok) {
+		restartLevel();
+	} else {
+		showMessage(tr("Levels are over."));
+	}
 }
 
 void SokobanWidget::showMessage(const QString & message)
@@ -122,10 +145,15 @@ void SokobanWidget::paintEvent(QPaintEvent*)
 
 	QPoint offset = QPoint(width() - levelWidth * spriteSize.width(), height() - levelHeight * spriteSize.height()) / 2;
 	for(int y = 0; y < levelHeight; ++y) {
-		for(int x = 0; x < levelWidth && x < rows[y].length(); ++x) {
+		int x = 0;
+		for(; x < levelWidth && x < rows[y].length(); ++x) {
 			QChar tileType = sprites.contains(rows[y][x]) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
 			painter.drawImage(pos, sprites[tileType]);
+		}
+		for(; x < levelWidth; ++x) {
+			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
+			painter.drawImage(pos, sprites[Sokoban::TileType::FLOOR]);
 		}
 	}
 }
