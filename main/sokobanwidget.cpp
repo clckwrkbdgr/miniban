@@ -6,14 +6,10 @@
 #include "sokoban.h"
 #include "sokobanwidget.h"
 
+namespace { // Aux functions.
+
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
-
-SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent)
-{
-	restartLevel();
-}
 
 const QList<int> & getAllTileTypes()
 {
@@ -26,6 +22,33 @@ const QList<int> & getAllTileTypes()
 		<< Sokoban::TileType::BOX_ON_FLOOR
 		<< Sokoban::TileType::BOX_ON_SLOT;
 	return tileTypes;
+}
+
+QSize calculateLevelSize(const QString & level)
+{
+	int levelWidth = 0;
+	int levelHeight = 1;
+	int lineWidth = 0;
+	foreach(const QChar & c, level) {
+		if(c == '\n') {
+			++levelHeight;
+			if(levelWidth < lineWidth) {
+				levelWidth = lineWidth;
+			}
+			lineWidth = 0;
+		} else {
+			++lineWidth;
+		}
+	}
+	return QSize(levelWidth, levelHeight);
+}
+
+}
+
+SokobanWidget::SokobanWidget(QWidget * parent)
+	: QWidget(parent)
+{
+	restartLevel();
 }
 
 void SokobanWidget::resizeEvent(QResizeEvent*)
@@ -41,7 +64,6 @@ void SokobanWidget::resizeSpritesForLevel(const QSize & levelSize)
 			rect().height() / (levelSize.height() * originalSize.height())
 			);
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
-	qDebug() << rect() << originalSize << levelSize << scaleFactor;
 
 	foreach(int tileType, getAllTileTypes()) {
 		sprites[tileType] = Sprites::getSprite(tileType, scaleFactor);
@@ -54,55 +76,27 @@ void SokobanWidget::restartLevel()
 {
 	currentLevel = levelSet.getCurrentLevel();
 	history.clear();
-
-	QStringList rows = currentLevel.split('\n');
-	int levelWidth = 0;
-	int levelHeight = rows.count();
-	foreach(const QString & row, rows) {
-		if(levelWidth < row.length()) {
-			levelWidth = row.length();
-		}
-	}
-	currentLevelSize = QSize(levelWidth, levelHeight);
+	currentLevelSize = calculateLevelSize(currentLevel);
 	resizeSpritesForLevel(currentLevelSize);
 }
 
-void SokobanWidget::keyPressEvent(QKeyEvent * event)
+enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
+
+void SokobanWidget::processControl(int control)
 {
-	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
-	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
-	enum { NONE, QUIT, LEFT, RIGHT, UP, DOWN, UNDO, HOME };
-
-	//# CONTROLS
-	int key = NONE;
-	switch(event->key()) { //#
-		case Qt::Key_Space: loadNextLevel(); update(); return; //TODO temp only
-		case Qt::Key_Q: key = QUIT; break;                      //# 'q' or Ctrl-Q - quit.
-		case Qt::Key_Left:  case Qt::Key_H: key = LEFT; break;  //# Left or 'h' - move left.
-		case Qt::Key_Down:  case Qt::Key_J: key = DOWN; break;  //# Down or 'j' - move down.
-		case Qt::Key_Up:    case Qt::Key_K: key = UP; break;    //# Up or 'k' - move .
-		case Qt::Key_Right: case Qt::Key_L: key = RIGHT; break; //# Right or 'l' - move left.
-		case Qt::Key_Z:    if(isCtrlDown) key = UNDO; break;    //# Ctrl-Z, Backspace or 'u' - undo last action.
-		case Qt::Key_Backspace: key = UNDO; break;
-		case Qt::Key_U:    key = isShiftDown ? HOME : UNDO; break;
-		case Qt::Key_R:    if(isCtrlDown) key = HOME; break;    //# Ctrl-R, Home or 'U' - revert to the starting position.
-		case Qt::Key_Home: key = HOME; break;
-		default: QWidget::keyPressEvent(event); return;
-	} //#
-
-	switch(key) {
-		case QUIT: emit wantsToQuit(); break;
-		case LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
-		case DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
-		case UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
-		case RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
-		case HOME: restartLevel(); break;
-		case UNDO:
+	switch(control) {
+		case CONTROL_QUIT: emit wantsToQuit(); return;
+		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
+		case CONTROL_DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
+		case CONTROL_UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
+		case CONTROL_RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
+		case CONTROL_HOME: restartLevel(); break;
+		case CONTROL_UNDO:
 				   if(!history.isEmpty()) {
 					   currentLevel = Sokoban::undo(currentLevel, &history);
 				   }
 				   break;
-		default: break;
+		default: return;
 	}
 
 	if(!levelSet.isOver()) {
@@ -110,7 +104,37 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 			loadNextLevel();
 		}
 	}
+}
 
+void SokobanWidget::keyPressEvent(QKeyEvent * event)
+{
+	//TODO temp only: a debug command to flip levels.
+	if(event->key() == Qt::Key_Space) {
+		loadNextLevel();
+		update();
+		return;
+	}
+
+	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
+	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
+
+	//# CONTROLS
+	int control = CONTROL_NONE;
+	switch(event->key()) { //#
+		case Qt::Key_Q: control = CONTROL_QUIT; break;                      //# 'q' or Ctrl-Q - quit.
+		case Qt::Key_Left:  case Qt::Key_H: control = CONTROL_LEFT; break;  //# Left or 'h' - move left.
+		case Qt::Key_Down:  case Qt::Key_J: control = CONTROL_DOWN; break;  //# Down or 'j' - move down.
+		case Qt::Key_Up:    case Qt::Key_K: control = CONTROL_UP; break;    //# Up or 'k' - move .
+		case Qt::Key_Right: case Qt::Key_L: control = CONTROL_RIGHT; break; //# Right or 'l' - move left.
+		case Qt::Key_Z:    if(isCtrlDown) control = CONTROL_UNDO; break;    //# Ctrl-Z, Backspace or 'u' - undo last action.
+		case Qt::Key_Backspace: control = CONTROL_UNDO; break;
+		case Qt::Key_U:    control = isShiftDown ? CONTROL_HOME : CONTROL_UNDO; break;
+		case Qt::Key_R:    if(isCtrlDown) control = CONTROL_HOME; break;    //# Ctrl-R, Home or 'U' - revert to the starting position.
+		case Qt::Key_Home: control = CONTROL_HOME; break;
+		default: QWidget::keyPressEvent(event); return;
+	} //#
+
+	processControl(control);
 	update();
 }
 
@@ -135,17 +159,13 @@ void SokobanWidget::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::black);
 
 	QStringList rows = currentLevel.split('\n');
-	int levelWidth = 0;
-	int levelHeight = rows.count();
-	foreach(const QString & row, rows) {
-		if(levelWidth < row.length()) {
-			levelWidth = row.length();
-		}
-	}
 
-	QPoint offset = QPoint(width() - levelWidth * spriteSize.width(), height() - levelHeight * spriteSize.height()) / 2;
-	for(int y = 0; y < levelHeight; ++y) {
-		for(int x = 0; x < levelWidth; ++x) {
+	QPoint offset = QPoint(
+			width() - currentLevelSize.width() * spriteSize.width(),
+			height() - currentLevelSize.height() * spriteSize.height()
+			) / 2;
+	for(int y = 0; y < currentLevelSize.height(); ++y) {
+		for(int x = 0; x < currentLevelSize.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
 			bool validSprite = sprites.contains(rows[y][x]);
 			bool stillInRow = x < rows[y].length();

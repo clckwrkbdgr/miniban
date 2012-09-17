@@ -27,5 +27,6 @@ private:
 	void resizeSpritesForLevel(const QSize & levelSize);
 	void showMessage(const QString & message);
 	void loadNextLevel();
+	void processControl(int control);
 };
 

@@ -37,6 +37,27 @@ struct XPMInfo {
 	}
 };
 
+QMap<QString, QColor> getColorMap(const char ** colorTable, int colorCount, int charOnPixel)
+{
+	QMap<QString, QColor> colorMap;
+	while(colorCount--) {
+		QString colorLine = QString(*colorTable);
+		QString name = colorLine.left(charOnPixel);
+		colorLine.remove(0, charOnPixel);
+		QStringList color = colorLine.split(' ', QString::SkipEmptyParts);
+		if(color.count() < 2) {
+			return QMap<QString, QColor>();
+		}
+		QString c = color[0];
+		QString colorValue = color[1];
+
+		colorMap[name] = colorValue;
+
+		colorTable++;
+	}
+	return colorMap;
+}
+
 };
 
 namespace XPM { // Main.
@@ -45,31 +66,20 @@ QImage toQImage(const char ** xpm)
 {
 	if(xpm == NULL)
 		return QImage();
-	const char ** p = xpm;
 
-	XPMInfo values = XPMInfo::fromString(*p);
+	XPMInfo values = XPMInfo::fromString(*xpm);
+	xpm += 1;
 
-	QMap<QString, QColor> colorMap;
-	while(values.colors--) {
-		p++;
-		QString colorLine = QString(*p);
-		QString name = colorLine.left(values.charOnPixel);
-		colorLine.remove(0, values.charOnPixel);
-		QStringList color = colorLine.split(' ', QString::SkipEmptyParts);
-		if(color.count() < 2) {
-			return QImage();
-		}
-		QString c = color[0];
-		QString colorValue = color[1];
-
-		colorMap[name] = colorValue;
+	QMap<QString, QColor> colorMap = getColorMap(xpm, values.colors, values.charOnPixel);
+	xpm += values.colors;
+	if(colorMap.isEmpty()) {
+		return QImage();
 	}
 
 	QImage image(values.width, values.height, QImage::Format_RGB32);
 	QPoint pos;
 	while(values.height--) {
-		p++;
-		QString row = *p;
+		QString row = *xpm;
 		while(!row.isEmpty()) {
 			QString color = row.left(values.charOnPixel);
 			image.setPixel(pos.x(), pos.y(), colorMap[color].rgb());
@@ -78,6 +88,8 @@ QImage toQImage(const char ** xpm)
 		}
 		pos.ry()++;
 		pos.rx() = 0;
+
+		p++;
 	}
 
 	return image;
