@@ -145,15 +145,12 @@ void SokobanWidget::paintEvent(QPaintEvent*)
 
 	QPoint offset = QPoint(width() - levelWidth * spriteSize.width(), height() - levelHeight * spriteSize.height()) / 2;
 	for(int y = 0; y < levelHeight; ++y) {
-		int x = 0;
-		for(; x < levelWidth && x < rows[y].length(); ++x) {
-			QChar tileType = sprites.contains(rows[y][x]) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
+		for(int x = 0; x < levelWidth; ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
+			bool validSprite = sprites.contains(rows[y][x]);
+			bool stillInRow = x < rows[y].length();
+			QChar tileType = (validSprite && stillInRow) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
 			painter.drawImage(pos, sprites[tileType]);
-		}
-		for(; x < levelWidth; ++x) {
-			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
-			painter.drawImage(pos, sprites[Sokoban::TileType::FLOOR]);
 		}
 	}
 }
