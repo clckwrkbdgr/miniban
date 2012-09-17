@@ -49,23 +49,12 @@ enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONT
 
 }
 
-SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), mode(MODE_GAME)
-{
-	restartLevel();
-}
-
-void SokobanWidget::resizeEvent(QResizeEvent*)
-{
-	resizeSpritesForLevel(currentLevelSize);
-}
-
-void SokobanWidget::resizeSpritesForLevel(const QSize & levelSize)
+void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & rect)
 {
 	QSize originalSize = Sprites::getSpritesBounds();
 	int scaleFactor = qMin(
-			rect().width() / (levelSize.width() * originalSize.width()),
-			rect().height() / (levelSize.height() * originalSize.height())
+			rect.width() / (levelSize.width() * originalSize.width()),
+			rect.height() / (levelSize.height() * originalSize.height())
 			);
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
@@ -76,30 +65,26 @@ void SokobanWidget::resizeSpritesForLevel(const QSize & levelSize)
 	spriteSize = originalSize * scaleFactor;
 }
 
-void SokobanWidget::restartLevel()
-{
-	currentLevel = levelSet.getCurrentLevel();
-	history.clear();
-	currentLevelSize = calculateLevelSize(currentLevel);
-	resizeSpritesForLevel(currentLevelSize);
+PlayingMode::PlayingMode(const QString & level) : toInvalidate(true) {
+	restartLevel(level);
 }
 
-void SokobanWidget::processControl(int control)
+void PlayingMode::restartLevel(const QString & level)
 {
-	if(mode == MODE_MESSAGE) {
-		if(control == CONTROL_QUIT) {
-			wantsToQuit();
-		}
-		return;
-	}
+	currentLevel = level;
+	history.clear();
+	currentLevelSize = calculateLevelSize(currentLevel);
+	invalidateRect();
+}
 
+void PlayingMode::processControl(int control, const LevelSet & levelSet)
+{
 	switch(control) {
-		case CONTROL_QUIT: emit wantsToQuit(); return;
 		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
 		case CONTROL_DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
 		case CONTROL_UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
 		case CONTROL_RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
-		case CONTROL_HOME: restartLevel(); break;
+		case CONTROL_HOME: restartLevel(levelSet.getCurrentLevel()); break;
 		case CONTROL_UNDO:
 				   if(!history.isEmpty()) {
 					   currentLevel = Sokoban::undo(currentLevel, &history);
@@ -107,12 +92,74 @@ void SokobanWidget::processControl(int control)
 				   break;
 		default: return;
 	}
+}
 
-	if(!levelSet.isOver()) {
-		if(Sokoban::isSolved(currentLevel)) {
-			loadNextLevel();
+void PlayingMode::invalidateRect()
+{
+	toInvalidate = true;
+}
+
+void PlayingMode::paint(QPainter * painter, const QRect & rect)
+{
+	if(toInvalidate) {
+		resizeSpritesForLevel(currentLevelSize, rect);
+		toInvalidate = false;
+	}
+
+	painter->fillRect(rect, Qt::black);
+	QStringList rows = currentLevel.split('\n');
+
+	QPoint offset = QPoint(
+			rect.width() - currentLevelSize.width() * spriteSize.width(),
+			rect.height() - currentLevelSize.height() * spriteSize.height()
+			) / 2;
+	for(int y = 0; y < currentLevelSize.height(); ++y) {
+		for(int x = 0; x < currentLevelSize.width(); ++x) {
+			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
+			bool validSprite = sprites.contains(rows[y][x]);
+			bool stillInRow = x < rows[y].length();
+			QChar tileType = (validSprite && stillInRow) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
+			painter->drawImage(pos, sprites[tileType]);
 		}
 	}
+}
+
+//--
+
+MessageMode::MessageMode(const QString & message)
+	: toInvalidate(false), messageToShow(message)
+{
+}
+
+void MessageMode::invalidateRect()
+{
+	toInvalidate = true;
+}
+
+void MessageMode::processControl(int)
+{
+}
+
+void MessageMode::paint(QPainter * painter, const QRect & rect)
+{
+	painter->fillRect(rect, Qt::black);
+	painter->setPen(Qt::white);
+	QFont f = painter->font();
+	f.setPixelSize(rect.width() / MAX_CHAR_COUNT_IN_MESSAGE);
+	painter->setFont(f);
+	painter->drawText(rect, Qt::AlignCenter, messageToShow);
+}
+
+//--
+
+SokobanWidget::SokobanWidget(QWidget * parent)
+	: QWidget(parent), mode(MODE_GAME), playingMode(levelSet.getCurrentLevel()), messageMode(QString())
+{
+}
+
+void SokobanWidget::resizeEvent(QResizeEvent*)
+{
+	playingMode.invalidateRect();
 }
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
@@ -130,7 +177,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	//# CONTROLS
 	int control = CONTROL_NONE;
 	switch(event->key()) { //#
-		case Qt::Key_Q: control = CONTROL_QUIT; break;                      //# 'q' or Ctrl-Q - quit.
+		case Qt::Key_Q: emit wantsToQuit(); return;                         //# 'q' or Ctrl-Q - quit.
 		case Qt::Key_Left:  case Qt::Key_H: control = CONTROL_LEFT; break;  //# Left or 'h' - move left.
 		case Qt::Key_Down:  case Qt::Key_J: control = CONTROL_DOWN; break;  //# Down or 'j' - move down.
 		case Qt::Key_Up:    case Qt::Key_K: control = CONTROL_UP; break;    //# Up or 'k' - move .
@@ -143,7 +190,17 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 		default: QWidget::keyPressEvent(event); return;
 	} //#
 
-	processControl(control);
+	if(mode == MODE_MESSAGE) {
+		messageMode.processControl(control);
+	} else {
+		playingMode.processControl(control, levelSet);
+
+		if(!levelSet.isOver()) {
+			if(Sokoban::isSolved(playingMode.currentLevel)) {
+				loadNextLevel();
+			}
+		}
+	}
 	update();
 }
 
@@ -151,46 +208,21 @@ void SokobanWidget::loadNextLevel()
 {
 	bool ok = levelSet.moveToNextLevel();
 	if(ok) {
-		restartLevel();
+		mode = MODE_GAME;
+		playingMode = PlayingMode(levelSet.getCurrentLevel());
 	} else {
-		showMessage(tr("Levels are over."));
+		mode = MODE_MESSAGE;
+		messageMode = MessageMode(tr("Levels are over"));
 	}
-}
-
-void SokobanWidget::showMessage(const QString & message)
-{
-	mode = MODE_MESSAGE;
-	messageToShow = message;
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
-	painter.fillRect(rect(), Qt::black);
 
 	if(mode == MODE_MESSAGE) {
-		painter.setPen(Qt::white);
-		QFont f = painter.font();
-		f.setPixelSize(rect().width() / MAX_CHAR_COUNT_IN_MESSAGE);
-		qDebug() << rect().width() << MAX_CHAR_COUNT_IN_MESSAGE << (rect().width() / MAX_CHAR_COUNT_IN_MESSAGE);
-		painter.setFont(f);
-		painter.drawText(rect(), Qt::AlignCenter, messageToShow);
-		return;
-	}
-
-	QStringList rows = currentLevel.split('\n');
-
-	QPoint offset = QPoint(
-			width() - currentLevelSize.width() * spriteSize.width(),
-			height() - currentLevelSize.height() * spriteSize.height()
-			) / 2;
-	for(int y = 0; y < currentLevelSize.height(); ++y) {
-		for(int x = 0; x < currentLevelSize.width(); ++x) {
-			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
-			bool validSprite = sprites.contains(rows[y][x]);
-			bool stillInRow = x < rows[y].length();
-			QChar tileType = (validSprite && stillInRow) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
-			painter.drawImage(pos, sprites[tileType]);
-		}
+		messageMode.paint(&painter, rect());
+	} else {
+		playingMode.paint(&painter, rect());
 	}
 }

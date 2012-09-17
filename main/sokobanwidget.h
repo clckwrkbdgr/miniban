@@ -3,6 +3,36 @@
 #include <QtGui/QWidget>
 #include "levelset.h"
 
+struct PlayingMode {
+	QString currentLevel;
+
+	PlayingMode(const QString & level);
+	
+	void invalidateRect();
+	void paint(QPainter * painter, const QRect & rect);
+	void processControl(int control, const LevelSet & levelSet);
+private:
+	QSize currentLevelSize;
+	QString history;
+	QMap<QChar, QImage> sprites;
+	QSize spriteSize;
+	bool toInvalidate;
+
+	void resizeSpritesForLevel(const QSize & levelSize, const QRect & rect);
+	void restartLevel(const QString & level);
+};
+
+struct MessageMode {
+	bool toInvalidate;
+	QString messageToShow;
+
+	MessageMode(const QString & message);
+
+	void invalidateRect();
+	void paint(QPainter * painter, const QRect & rect);
+	void processControl(int control);
+};
+
 class SokobanWidget : public QWidget {
 	Q_OBJECT
 	Q_DISABLE_COPY(SokobanWidget);
@@ -16,18 +46,11 @@ protected:
 	virtual void keyPressEvent(QKeyEvent*);
 	virtual void resizeEvent(QResizeEvent*);
 private:
-	QMap<QChar, QImage> sprites;
-	QSize spriteSize;
-	QString currentLevel;
-	QString history;
 	LevelSet levelSet;
-	QSize currentLevelSize;
 	int mode;
-	QString messageToShow;
+	PlayingMode playingMode;
+	MessageMode messageMode;
 
-	void restartLevel();
-	void resizeSpritesForLevel(const QSize & levelSize);
-	void showMessage(const QString & message);
 	void loadNextLevel();
 	void processControl(int control);
 };
