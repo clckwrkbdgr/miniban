@@ -22,6 +22,8 @@ private:
 	QString history;
 	LevelSet levelSet;
 	QSize currentLevelSize;
+	int mode;
+	QString messageToShow;
 
 	void restartLevel();
 	void resizeSpritesForLevel(const QSize & levelSize);

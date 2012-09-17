@@ -10,6 +10,7 @@ namespace { // Aux functions.
 
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
+const int MAX_CHAR_COUNT_IN_MESSAGE = 60;
 
 const QList<int> & getAllTileTypes()
 {
@@ -43,10 +44,14 @@ QSize calculateLevelSize(const QString & level)
 	return QSize(levelWidth, levelHeight);
 }
 
+enum { MODE_GAME, MODE_MESSAGE };
+enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
+
+
 }
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent)
+	: QWidget(parent), mode(MODE_GAME)
 {
 	restartLevel();
 }
@@ -80,10 +85,15 @@ void SokobanWidget::restartLevel()
 	resizeSpritesForLevel(currentLevelSize);
 }
 
-enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
-
 void SokobanWidget::processControl(int control)
 {
+	if(mode == MODE_MESSAGE) {
+		if(control == CONTROL_QUIT) {
+			wantsToQuit();
+		}
+		return;
+	}
+
 	switch(control) {
 		case CONTROL_QUIT: emit wantsToQuit(); return;
 		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
@@ -109,7 +119,7 @@ void SokobanWidget::processControl(int control)
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
 {
 	//TODO temp only: a debug command to flip levels.
-	if(event->key() == Qt::Key_Space) {
+	if(mode == MODE_GAME && event->key() == Qt::Key_Space) {
 		loadNextLevel();
 		update();
 		return;
@@ -150,13 +160,24 @@ void SokobanWidget::loadNextLevel()
 
 void SokobanWidget::showMessage(const QString & message)
 {
-	QMessageBox::information(this, tr("Sokoban"), message);
+	mode = MODE_MESSAGE;
+	messageToShow = message;
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::black);
+
+	if(mode == MODE_MESSAGE) {
+		painter.setPen(Qt::white);
+		QFont f = painter.font();
+		f.setPixelSize(rect().width() / MAX_CHAR_COUNT_IN_MESSAGE);
+		qDebug() << rect().width() << MAX_CHAR_COUNT_IN_MESSAGE << (rect().width() / MAX_CHAR_COUNT_IN_MESSAGE);
+		painter.setFont(f);
+		painter.drawText(rect(), Qt::AlignCenter, messageToShow);
+		return;
+	}
 
 	QStringList rows = currentLevel.split('\n');
 
