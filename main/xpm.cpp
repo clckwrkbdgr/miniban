@@ -89,7 +89,7 @@ QImage toQImage(const char ** xpm)
 		pos.ry()++;
 		pos.rx() = 0;
 
-		p++;
+		xpm++;
 	}
 
 	return image;
