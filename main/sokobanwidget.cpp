@@ -47,7 +47,6 @@ QSize calculateLevelSize(const QString & level)
 enum { MODE_GAME, MODE_MESSAGE };
 enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
 
-
 }
 
 SokobanWidget::SokobanWidget(QWidget * parent)
