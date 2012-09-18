@@ -9,7 +9,9 @@ src_dir = ../src
 INCLUDEPATH += $$src_dir
 HEADERS += abstractgamemode.h
 SOURCES += main.cpp levels.cpp
-modules = $${src_dir}/sokoban mainwindow sokobanwidget xpm sprites levelset playingmode messagemode
+modules = $${src_dir}/sokoban mainwindow sokobanwidget
+modules += xpm sprites levelset
+modules += playingmode messagemode
 for(module, modules) {
 	HEADERS += $${module}.h
 	SOURCES += $${module}.cpp

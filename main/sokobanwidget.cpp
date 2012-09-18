@@ -27,7 +27,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	int control = AbstractGameMode::CONTROL_NONE;
 	switch(event->key()) { //#
 		case Qt::Key_Q: emit wantsToQuit(); return;                         //# 'q' or Ctrl-Q - quit.
-		case Qt::Key_Space: control = AbstractGameMode::CONTROL_CHEAT; break;
+		case Qt::Key_Space: control = AbstractGameMode::CONTROL_SKIP; break;                  //# Space - skip intelevel message.
 		case Qt::Key_Left:  case Qt::Key_H: control = AbstractGameMode::CONTROL_LEFT; break;  //# Left or 'h' - move left.
 		case Qt::Key_Down:  case Qt::Key_J: control = AbstractGameMode::CONTROL_DOWN; break;  //# Down or 'j' - move down.
 		case Qt::Key_Up:    case Qt::Key_K: control = AbstractGameMode::CONTROL_UP; break;    //# Up or 'k' - move .
@@ -46,16 +46,21 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 
 void SokobanWidget::loadNextLevel()
 {
-	if(levelSet.isOver())
-		return;
-
 	bool ok = levelSet.moveToNextLevel();
 	if(ok) {
-		gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
-		connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
+		gameMode = new MessageMode(true, tr("Next level"), this);
+		connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startGame()));
 	} else {
-		gameMode = new MessageMode(tr("Levels are over"), this);
+		gameMode = new MessageMode(false, tr("Levels are over"), this);
 	}
+	update();
+}
+
+void SokobanWidget::startGame()
+{
+	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
+	update();
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)
