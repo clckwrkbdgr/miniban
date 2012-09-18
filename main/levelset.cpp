@@ -2,22 +2,17 @@
 #include "levelset.h"
 #include "levels.cpp"
 
-LevelSet::LevelSet()
-	: over(false), currentSetPos(0)
+LevelSet::LevelSet(int startLevelIndex)
+	: over(false), currentLevelIndex(-1), levelCount(0), currentSetPos(0)
 {
-	moveToNextLevel();
-}
+	levelCount = LEVELS.count("\n\n") + 1;
+	startLevelIndex = qBound(0, startLevelIndex, levelCount - 1);
+	currentLevelIndex = startLevelIndex - 1;
+	while(startLevelIndex--) {
+		currentSetPos = LEVELS.indexOf("\n\n", currentSetPos + 1);
+	}
 
-QString trimLN(const QString & string)
-{
-	QString result = string;
-	while(result.startsWith('\n')) {
-		result.remove(0, 1);
-	}
-	while(result.endsWith('\n')) {
-		result.chop(1);
-	}
-	return result;
+	moveToNextLevel();
 }
 
 bool LevelSet::moveToNextLevel()
@@ -28,16 +23,15 @@ bool LevelSet::moveToNextLevel()
 		return false;
 	}
 
-	while(currentSetPos > -1) {
-		int newPos = LEVELS.indexOf('\n', currentSetPos + 1);
-		bool endOfLevel = (newPos <= currentSetPos + 1);
-		currentLevel += trimLN(LEVELS.mid(currentSetPos, newPos - currentSetPos)) + '\n';
-		currentSetPos = newPos;
-		if(endOfLevel) {
-			break;
-		}
+	++currentLevelIndex;
+	if(currentLevelIndex > 0) {
+		currentSetPos += 2;
 	}
-	currentLevel = trimLN(currentLevel);
+	int endOfLevel = LEVELS.indexOf("\n\n", currentSetPos);
+	int levelLength = (endOfLevel < 0) ? (LEVELS.length() - currentSetPos) : (endOfLevel - currentSetPos);
+	currentLevel = LEVELS.mid(currentSetPos, levelLength);
+	currentSetPos = endOfLevel;
+
 	return true;
 }
 

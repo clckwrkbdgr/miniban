@@ -8,7 +8,7 @@
 #include "sokobanwidget.h"
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), gameMode(0), prematurePlayingMode(0)
+	: QWidget(parent), levelSet(0), gameMode(0), prematurePlayingMode(0)
 {
 	startFadeIn();
 }
@@ -60,7 +60,7 @@ void SokobanWidget::showMessage()
 {
 	levelSet.moveToNextLevel();
 
-	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Next level");
+	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Next level: %1").arg(levelSet.getCurrentLevelIndex());
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
 	update();
