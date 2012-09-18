@@ -1,4 +1,5 @@
 #pragma once
+#include <QtGui/QImage>
 
 namespace Sprites {
 
