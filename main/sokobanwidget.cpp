@@ -45,8 +45,16 @@ QSize calculateLevelSize(const QString & level)
 }
 
 enum { MODE_GAME, MODE_MESSAGE };
-enum { CONTROL_NONE, CONTROL_QUIT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
+enum { CONTROL_NONE, CONTROL_CHEAT, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME };
 
+}
+
+//--
+
+PlayingMode::PlayingMode(const QString & level, QObject * parent)
+	: GameMode(parent), toInvalidate(true)
+{
+	restartLevel(level);
 }
 
 void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & rect)
@@ -65,32 +73,33 @@ void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & r
 	spriteSize = originalSize * scaleFactor;
 }
 
-PlayingMode::PlayingMode(const QString & level) : toInvalidate(true) {
-	restartLevel(level);
-}
-
 void PlayingMode::restartLevel(const QString & level)
 {
-	currentLevel = level;
+	originalLevel = level;
+	currentLevel = originalLevel;
 	history.clear();
 	currentLevelSize = calculateLevelSize(currentLevel);
 	invalidateRect();
 }
 
-void PlayingMode::processControl(int control, const LevelSet & levelSet)
+void PlayingMode::processControl(int control)
 {
 	switch(control) {
+		case CONTROL_CHEAT: emit levelIsSolved(); return;
 		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
 		case CONTROL_DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
 		case CONTROL_UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
 		case CONTROL_RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
-		case CONTROL_HOME: restartLevel(levelSet.getCurrentLevel()); break;
+		case CONTROL_HOME: restartLevel(originalLevel); break;
 		case CONTROL_UNDO:
 				   if(!history.isEmpty()) {
 					   currentLevel = Sokoban::undo(currentLevel, &history);
 				   }
 				   break;
 		default: return;
+	}
+	if(Sokoban::isSolved(currentLevel)) {
+		emit levelIsSolved();
 	}
 }
 
@@ -126,14 +135,13 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 
 //--
 
-MessageMode::MessageMode(const QString & message)
-	: toInvalidate(false), messageToShow(message)
+MessageMode::MessageMode(const QString & message, QObject * parent)
+	: GameMode(parent), messageToShow(message)
 {
 }
 
 void MessageMode::invalidateRect()
 {
-	toInvalidate = true;
 }
 
 void MessageMode::processControl(int)
@@ -153,24 +161,19 @@ void MessageMode::paint(QPainter * painter, const QRect & rect)
 //--
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), mode(MODE_GAME), playingMode(levelSet.getCurrentLevel()), messageMode(QString())
+	: QWidget(parent), gameMode(0)
 {
+	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 }
 
 void SokobanWidget::resizeEvent(QResizeEvent*)
 {
-	playingMode.invalidateRect();
+	gameMode->invalidateRect();
 }
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
 {
-	//TODO temp only: a debug command to flip levels.
-	if(mode == MODE_GAME && event->key() == Qt::Key_Space) {
-		loadNextLevel();
-		update();
-		return;
-	}
-
 	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
 	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
@@ -178,6 +181,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	int control = CONTROL_NONE;
 	switch(event->key()) { //#
 		case Qt::Key_Q: emit wantsToQuit(); return;                         //# 'q' or Ctrl-Q - quit.
+		case Qt::Key_Space: control = CONTROL_CHEAT; break;
 		case Qt::Key_Left:  case Qt::Key_H: control = CONTROL_LEFT; break;  //# Left or 'h' - move left.
 		case Qt::Key_Down:  case Qt::Key_J: control = CONTROL_DOWN; break;  //# Down or 'j' - move down.
 		case Qt::Key_Up:    case Qt::Key_K: control = CONTROL_UP; break;    //# Up or 'k' - move .
@@ -190,39 +194,26 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 		default: QWidget::keyPressEvent(event); return;
 	} //#
 
-	if(mode == MODE_MESSAGE) {
-		messageMode.processControl(control);
-	} else {
-		playingMode.processControl(control, levelSet);
-
-		if(!levelSet.isOver()) {
-			if(Sokoban::isSolved(playingMode.currentLevel)) {
-				loadNextLevel();
-			}
-		}
-	}
+	gameMode->processControl(control);
 	update();
 }
 
 void SokobanWidget::loadNextLevel()
 {
+	if(levelSet.isOver())
+		return;
+
 	bool ok = levelSet.moveToNextLevel();
 	if(ok) {
-		mode = MODE_GAME;
-		playingMode = PlayingMode(levelSet.getCurrentLevel());
+		gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+		connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	} else {
-		mode = MODE_MESSAGE;
-		messageMode = MessageMode(tr("Levels are over"));
+		gameMode = new MessageMode(tr("Levels are over"), this);
 	}
 }
 
 void SokobanWidget::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
-
-	if(mode == MODE_MESSAGE) {
-		messageMode.paint(&painter, rect());
-	} else {
-		playingMode.paint(&painter, rect());
-	}
+	gameMode->paint(&painter, rect());
 }

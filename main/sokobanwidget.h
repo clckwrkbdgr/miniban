@@ -3,15 +3,32 @@
 #include <QtGui/QWidget>
 #include "levelset.h"
 
-struct PlayingMode {
+class GameMode : public QObject {
+	Q_OBJECT
+public:
+	GameMode(QObject * parent = 0) : QObject(parent) {}
+	virtual ~GameMode() {}
+
+	virtual void invalidateRect() = 0;
+	virtual void paint(QPainter * painter, const QRect & rect) = 0;
+	virtual void processControl(int control) = 0;
+};
+
+class PlayingMode : public GameMode {
+	Q_OBJECT
+public:
 	QString currentLevel;
 
-	PlayingMode(const QString & level);
+	PlayingMode(const QString & level, QObject * parent = 0);
+	virtual ~PlayingMode() {}
 	
-	void invalidateRect();
-	void paint(QPainter * painter, const QRect & rect);
-	void processControl(int control, const LevelSet & levelSet);
+	virtual void invalidateRect();
+	virtual void paint(QPainter * painter, const QRect & rect);
+	virtual void processControl(int control);
+signals:
+	void levelIsSolved();
 private:
+	QString originalLevel;
 	QSize currentLevelSize;
 	QString history;
 	QMap<QChar, QImage> sprites;
@@ -22,15 +39,18 @@ private:
 	void restartLevel(const QString & level);
 };
 
-struct MessageMode {
-	bool toInvalidate;
+class MessageMode : public GameMode {
+	Q_OBJECT
+public:
+	MessageMode(const QString & message, QObject * parent = 0);
+	virtual ~MessageMode() {}
+
+	virtual void invalidateRect();
+	virtual void paint(QPainter * painter, const QRect & rect);
+	virtual void processControl(int control);
+private:
 	QString messageToShow;
 
-	MessageMode(const QString & message);
-
-	void invalidateRect();
-	void paint(QPainter * painter, const QRect & rect);
-	void processControl(int control);
 };
 
 class SokobanWidget : public QWidget {
@@ -45,13 +65,17 @@ protected:
 	virtual void paintEvent(QPaintEvent*);
 	virtual void keyPressEvent(QKeyEvent*);
 	virtual void resizeEvent(QResizeEvent*);
+private slots:
+	void loadNextLevel();
 private:
 	LevelSet levelSet;
+	GameMode * gameMode;
+	/*
 	int mode;
-	PlayingMode playingMode;
-	MessageMode messageMode;
+	GameMode * playingMode;
+	GameMode * messageMode;
+	*/
 
-	void loadNextLevel();
 	void processControl(int control);
 };
 
