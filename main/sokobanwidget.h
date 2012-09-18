@@ -18,9 +18,11 @@ protected:
 	virtual void resizeEvent(QResizeEvent*);
 private slots:
 	void loadNextLevel();
+	void showMessage();
+	void startFadeIn();
 	void startGame();
 private:
 	LevelSet levelSet;
-	AbstractGameMode * gameMode;
+	AbstractGameMode * gameMode, *prematurePlayingMode;
 };
 

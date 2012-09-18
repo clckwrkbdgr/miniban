@@ -19,5 +19,3 @@ private:
 	bool isPassable;
 	QString messageToShow;
 };
-
-

@@ -7,8 +7,6 @@
 class PlayingMode : public AbstractGameMode {
 	Q_OBJECT
 public:
-	QString currentLevel;
-
 	PlayingMode(const QString & level, QObject * parent = 0);
 	virtual ~PlayingMode() {}
 	
@@ -19,6 +17,7 @@ signals:
 	void levelIsSolved();
 private:
 	QString originalLevel;
+	QString currentLevel;
 	QSize currentLevelSize;
 	QString history;
 	QMap<QChar, QImage> sprites;

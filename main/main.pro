@@ -11,7 +11,7 @@ HEADERS += abstractgamemode.h
 SOURCES += main.cpp levels.cpp
 modules = $${src_dir}/sokoban mainwindow sokobanwidget
 modules += xpm sprites levelset
-modules += playingmode messagemode
+modules += playingmode messagemode fademode
 for(module, modules) {
 	HEADERS += $${module}.h
 	SOURCES += $${module}.cpp

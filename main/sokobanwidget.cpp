@@ -4,13 +4,13 @@
 #include <QtGui/QKeyEvent>
 #include "playingmode.h"
 #include "messagemode.h"
+#include "fademode.h"
 #include "sokobanwidget.h"
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), gameMode(0)
+	: QWidget(parent), gameMode(0), prematurePlayingMode(0)
 {
-	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
-	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
+	startFadeIn();
 }
 
 void SokobanWidget::resizeEvent(QResizeEvent*)
@@ -46,19 +46,42 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 
 void SokobanWidget::loadNextLevel()
 {
-	bool ok = levelSet.moveToNextLevel();
-	if(ok) {
-		gameMode = new MessageMode(true, tr("Next level"), this);
-		connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startGame()));
-	} else {
-		gameMode = new MessageMode(false, tr("Levels are over"), this);
-	}
+	QImage snapshot = QImage(size(), QImage::Format_RGB32);
+	QPainter painter(&snapshot);
+	gameMode->paint(&painter, snapshot.rect());
+
+	gameMode = new FadeMode(snapshot, true, this);
+	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showMessage()));
+	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
+	update();
+}
+
+void SokobanWidget::showMessage()
+{
+	levelSet.moveToNextLevel();
+
+	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Next level");
+	gameMode = new MessageMode(!levelSet.isOver(), message, this);
+	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
+	update();
+}
+
+void SokobanWidget::startFadeIn()
+{
+	QImage snapshot = QImage(size(), QImage::Format_RGB32);
+	prematurePlayingMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+	QPainter painter(&snapshot);
+	prematurePlayingMode->paint(&painter, snapshot.rect());
+
+	gameMode = new FadeMode(snapshot, false, this);
+	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(startGame()));
+	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
 }
 
 void SokobanWidget::startGame()
 {
-	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+	gameMode = prematurePlayingMode;// PlayingMode(levelSet.getCurrentLevel(), this);
 	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
 }

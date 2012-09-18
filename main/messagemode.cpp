@@ -11,7 +11,9 @@ const int MESSAGE_DELAY = 1000;
 MessageMode::MessageMode(bool passable, const QString & message, QObject * parent)
 	: AbstractGameMode(parent), timerId(0), isPassable(passable), messageToShow(message)
 {
-	timerId = startTimer(MESSAGE_DELAY);
+	if(isPassable) {
+		timerId = startTimer(MESSAGE_DELAY);
+	}
 }
 
 MessageMode::~MessageMode()
@@ -38,6 +40,8 @@ void MessageMode::processControl(int control)
 {
 	if(isPassable && control == CONTROL_SKIP) {
 		emit messageIsEnded();
+		killTimer(timerId);
+		timerId = 0;
 	}
 }
 
@@ -50,5 +54,4 @@ void MessageMode::paint(QPainter * painter, const QRect & rect)
 	painter->setFont(f);
 	painter->drawText(rect, Qt::AlignCenter, messageToShow);
 }
-
 
