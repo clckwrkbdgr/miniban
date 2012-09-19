@@ -1,6 +1,7 @@
 #include <QtDebug>
 #include <QtGui/QImage>
 #include <QtGui/QPainter>
+#include "playingmode.h"
 #include "fademode.h"
 
 namespace { // Aux.
@@ -11,10 +12,11 @@ const int FADE_COUNT = 200;
 
 };
 
-FadeMode::FadeMode(const QImage & snapshotToFade, bool fadeOut, QObject * parent)
-	: AbstractGameMode(parent), snapshot(snapshotToFade), isFadeOut(fadeOut), currentFade(isFadeOut ? FADE_COUNT : 0)
+FadeMode::FadeMode(const QString & levelToFade, bool fadeOut, QObject * parent)
+	: AbstractGameMode(parent), level(levelToFade), isFadeOut(fadeOut), currentFade(isFadeOut ? FADE_COUNT : 0)
 {
 	timerId = startTimer(FADE_DELAY);
+	invalidateRect();
 }
 
 FadeMode::~FadeMode()
@@ -22,6 +24,11 @@ FadeMode::~FadeMode()
 	if(timerId) {
 		killTimer(timerId);
 	}
+}
+
+void FadeMode::invalidateRect()
+{
+	snapshot = QImage();
 }
 
 void FadeMode::timerEvent(QTimerEvent*)
@@ -38,6 +45,12 @@ void FadeMode::timerEvent(QTimerEvent*)
 
 void FadeMode::paint(QPainter * painter, const QRect & rect)
 {
+	if(snapshot.isNull()) {
+		snapshot = QImage(rect.size(), QImage::Format_RGB32);
+		QPainter painter(&snapshot);
+		PlayingMode(level).paint(&painter, snapshot.rect());
+	}
+
 	painter->fillRect(rect, Qt::black);
 	painter->setOpacity(double(currentFade) / double(FADE_COUNT));
 	QPoint offset = QPoint(rect.width() - snapshot.width(), rect.height() - snapshot.height()) / 2;

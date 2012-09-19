@@ -1,4 +1,5 @@
 #include <QtDebug>
+#include <QtCore/QSettings>
 #include <QtGui/QPainter>
 #include <QtGui/QMessageBox>
 #include <QtGui/QKeyEvent>
@@ -8,9 +9,21 @@
 #include "sokobanwidget.h"
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), levelSet(0), gameMode(0), prematurePlayingMode(0)
+	: QWidget(parent), gameMode(0)
 {
+	QSettings settings;
+	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
+	if(lastLevelIndex) {
+		levelSet = LevelSet(lastLevelIndex);
+	}
+
 	startFadeIn();
+}
+
+SokobanWidget::~SokobanWidget()
+{
+	QSettings settings;
+	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
 }
 
 void SokobanWidget::resizeEvent(QResizeEvent*)
@@ -26,6 +39,8 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	//# CONTROLS
 	int control = AbstractGameMode::CONTROL_NONE;
 	switch(event->key()) { //#
+		case Qt::Key_0: levelSet = LevelSet(0); startFadeIn(); return; // CHEAT CODE: restart leveset.
+		case Qt::Key_1: loadNextLevel(); return; // CHEAT CODE: go to next level.
 		case Qt::Key_Q: emit wantsToQuit(); return;                         //# 'q' or Ctrl-Q - quit.
 		case Qt::Key_Space: control = AbstractGameMode::CONTROL_SKIP; break;                  //# Space - skip intelevel message.
 		case Qt::Key_Left:  case Qt::Key_H: control = AbstractGameMode::CONTROL_LEFT; break;  //# Left or 'h' - move left.
@@ -46,11 +61,9 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 
 void SokobanWidget::loadNextLevel()
 {
-	QImage snapshot = QImage(size(), QImage::Format_RGB32);
-	QPainter painter(&snapshot);
-	gameMode->paint(&painter, snapshot.rect());
-
-	gameMode = new FadeMode(snapshot, true, this);
+	if(levelSet.isOver())
+		return;
+	gameMode = new FadeMode(levelSet.getCurrentLevel(), true, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showMessage()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -60,7 +73,7 @@ void SokobanWidget::showMessage()
 {
 	levelSet.moveToNextLevel();
 
-	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Next level: %1").arg(levelSet.getCurrentLevelIndex());
+	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Level: %1").arg(levelSet.getCurrentLevelIndex());
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
 	update();
@@ -68,12 +81,7 @@ void SokobanWidget::showMessage()
 
 void SokobanWidget::startFadeIn()
 {
-	QImage snapshot = QImage(size(), QImage::Format_RGB32);
-	prematurePlayingMode = new PlayingMode(levelSet.getCurrentLevel(), this);
-	QPainter painter(&snapshot);
-	prematurePlayingMode->paint(&painter, snapshot.rect());
-
-	gameMode = new FadeMode(snapshot, false, this);
+	gameMode = new FadeMode(levelSet.getCurrentLevel(), false, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(startGame()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -81,7 +89,7 @@ void SokobanWidget::startFadeIn()
 
 void SokobanWidget::startGame()
 {
-	gameMode = prematurePlayingMode;// PlayingMode(levelSet.getCurrentLevel(), this);
+	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
 	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
 }

@@ -9,7 +9,7 @@ class SokobanWidget : public QWidget {
 	Q_DISABLE_COPY(SokobanWidget);
 public:
 	SokobanWidget(QWidget * parent = 0);
-	virtual ~SokobanWidget() {}
+	virtual ~SokobanWidget();
 signals:
 	void wantsToQuit();
 protected:
@@ -22,7 +22,8 @@ private slots:
 	void startFadeIn();
 	void startGame();
 private:
+	QImage snapshot;
 	LevelSet levelSet;
-	AbstractGameMode * gameMode, *prematurePlayingMode;
+	AbstractGameMode * gameMode;
 };
 

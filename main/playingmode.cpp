@@ -1,3 +1,4 @@
+#include <QtDebug>
 #include <QtGui/QPainter>
 #include "sokoban.h"
 #include "sprites.h"
@@ -76,7 +77,6 @@ void PlayingMode::restartLevel(const QString & level)
 void PlayingMode::processControl(int control)
 {
 	switch(control) {
-		case CONTROL_SKIP:  emit levelIsSolved(); return;
 		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
 		case CONTROL_DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
 		case CONTROL_UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
