@@ -2,6 +2,13 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
+//# Miniban - a clone of Sokoban game.
+//#
+//# Developed using C++/Qt4.
+//#
+//# THE GAME
+//#
+
 namespace Sokoban { // Auxiliary functions.
 
 using namespace TileType;
@@ -34,11 +41,6 @@ int getOneLineLowerPos(const QString & field, int playerPos)
 	int nextLineStart = field.indexOf('\n', currentLineStart + 1);
 	int relPlayerPos = playerPos - currentLineStart;
 	return (nextLineStart + relPlayerPos);
-}
-
-bool isFreeToMove(const QString & field, int pos)
-{
-	return field[pos] != WALL;
 }
 
 QChar getFloorSprite(const QString & field, int pos)
@@ -87,6 +89,7 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 	int prevLineStart = field.lastIndexOf('\n', currentLineStart - 1);
 	int relPos = pos - currentLineStart;
 
+	//# Player can move in four directions (up, down, left, right).
 	if(control == RIGHT) {
 		bool isLastLine = field.indexOf('\n', pos) < 0;
 		bool crossRightBorder = isLastLine ? (pos + 1 >= field.size()) : (pos + 1 >= nextLineStart);
@@ -111,6 +114,12 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 	throw Sokoban::InvalidControlException(control);
 }
 
+bool isFreeToMove(const QString & field, int pos)
+{
+	//# Player cannot move through walls.
+	return field[pos] != WALL;
+}
+
 };
 
 namespace Sokoban { // Main functions.
@@ -123,9 +132,12 @@ QString process(const QString & field, const QChar & control, QString * history)
 	int newPlayerPos = getNewPos(field, oldPlayerPos, control);
 	bool withPush = false;
 	if(isFreeToMove(field, newPlayerPos)) {
+		//# Player can push box if there is a free cell behind it.
 		if(isBox(field, newPlayerPos)) {
 			int oldBoxPos = newPlayerPos;
 			int newBoxPos = getNewPos(field, oldBoxPos, control);
+			//# Only one box can be pushed at a time.
+			//# Boxes cannot be pulled.
 			if(isFreeToMove(field, newBoxPos) && !isBox(field, newBoxPos)) {
 				result[oldBoxPos] = getFloorSprite(field, oldBoxPos);
 				result[newBoxPos] = getBoxSprite(field, newBoxPos);
@@ -200,9 +212,12 @@ QString undo(const QString & field, QString * history)
 
 bool isSolved(const QString & field)
 {
+	//# The goal of the game is to move all the boxes into all slots.
 	int freeSlotCount = field.count(EMPTY_SLOT) + field.count(PLAYER_ON_SLOT);
 	int freeBoxCount =  field.count(BOX_ON_FLOOR);
 	return (freeSlotCount == 0) && (freeBoxCount == 0);
 }
 
 };
+
+//#
