@@ -19,6 +19,9 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 		levelSet = LevelSet(lastLevelIndex);
 	} else {
 		levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+		if(levelSet.isOver()) {
+			levelSet = LevelSet();
+		}
 	}
 
 	startFadeIn();
