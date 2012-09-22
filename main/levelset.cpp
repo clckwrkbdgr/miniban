@@ -39,6 +39,7 @@ bool LevelSet::loadFromFile(const QString & fileName)
 		xmlLevels << qMakePair(title.text() + '/' + level.attribute("Id"), levelData);
 		level = level.nextSiblingElement();
 	}
+	this->fileName = fileName;
 	return true;
 }
 
@@ -75,6 +76,15 @@ QString LevelSet::getCurrentLevelName() const
 			return QString();
 		}
 		return xmlLevels[currentLevelIndex].first;
+	}
+}
+
+QString LevelSet::getCurrentLevelSet() const
+{
+	if(usingEmbedded) {
+		return QString();
+	} else {
+		return fileName;
 	}
 }
 

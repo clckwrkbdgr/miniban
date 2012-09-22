@@ -14,8 +14,11 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 {
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
-	if(lastLevelIndex) {
+	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
+	if(lastLevelSet.isEmpty()) {
 		levelSet = LevelSet(lastLevelIndex);
+	} else {
+		levelSet = LevelSet(lastLevelSet, lastLevelIndex);
 	}
 
 	startFadeIn();
@@ -25,6 +28,7 @@ SokobanWidget::~SokobanWidget()
 {
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+	settings.setValue("levels/levelset", levelSet.getCurrentLevelSet());
 }
 
 void SokobanWidget::resizeEvent(QResizeEvent*)

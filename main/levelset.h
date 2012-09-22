@@ -12,6 +12,7 @@ public:
 
 	int getCurrentLevelIndex() const { return currentLevelIndex; }
 	QString getCurrentLevelName() const;
+	QString getCurrentLevelSet() const;
 	const QString & getCurrentLevel() const { return currentLevel; }
 	bool isOver() const { return over; }
 private:
@@ -22,6 +23,7 @@ private:
 	QString currentLevel;
 	int currentSetPos;
 
+	QString fileName;
 	QList<QPair<QString, QString> > xmlLevels;
 
 	bool loadFromFile(const QString & fileName);
