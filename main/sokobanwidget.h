@@ -21,6 +21,8 @@ private slots:
 	void showMessage();
 	void startFadeIn();
 	void startGame();
+
+	void openLevelSet();
 private:
 	QImage snapshot;
 	LevelSet levelSet;

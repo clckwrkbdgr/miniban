@@ -9,6 +9,8 @@ class PlayingMode : public AbstractGameMode {
 public:
 	PlayingMode(const QString & level, QObject * parent = 0);
 	virtual ~PlayingMode() {}
+
+	const QString & getCurrentLevel() const { return currentLevel; }
 	
 	virtual void invalidateRect();
 	virtual void paint(QPainter * painter, const QRect & rect);
@@ -27,5 +29,4 @@ private:
 	void resizeSpritesForLevel(const QSize & levelSize, const QRect & rect);
 	void restartLevel(const QString & level);
 };
-
 

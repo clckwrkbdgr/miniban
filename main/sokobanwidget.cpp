@@ -1,5 +1,6 @@
 #include <QtDebug>
 #include <QtCore/QSettings>
+#include <QtGui/QFileDialog>
 #include <QtGui/QPainter>
 #include <QtGui/QMessageBox>
 #include <QtGui/QKeyEvent>
@@ -35,35 +36,94 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 {
 	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
 	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
+	PlayingMode * playingMode = dynamic_cast<PlayingMode*>(gameMode);
 
 	//# CONTROLS
 	int control = AbstractGameMode::CONTROL_NONE;
 	switch(event->key()) { //#
-		case Qt::Key_0: levelSet = LevelSet(0); startFadeIn(); return; // CHEAT CODE: restart leveset.
-		case Qt::Key_1: loadNextLevel(); return; // CHEAT CODE: go to next level.
-		case Qt::Key_Q: emit wantsToQuit(); return;                         //# 'q' or Ctrl-Q - quit.
-		case Qt::Key_Space: control = AbstractGameMode::CONTROL_SKIP; break;                  //# Space - skip intelevel message.
-		case Qt::Key_Left:  case Qt::Key_H: control = AbstractGameMode::CONTROL_LEFT; break;  //# Left or 'h' - move left.
-		case Qt::Key_Down:  case Qt::Key_J: control = AbstractGameMode::CONTROL_DOWN; break;  //# Down or 'j' - move down.
-		case Qt::Key_Up:    case Qt::Key_K: control = AbstractGameMode::CONTROL_UP; break;    //# Up or 'k' - move .
-		case Qt::Key_Right: case Qt::Key_L: control = AbstractGameMode::CONTROL_RIGHT; break; //# Right or 'l' - move left.
-		case Qt::Key_Z:    if(isCtrlDown) control = AbstractGameMode::CONTROL_UNDO; break;    //# Ctrl-Z, Backspace or 'u' - undo last action.
-		case Qt::Key_Backspace: control = AbstractGameMode::CONTROL_UNDO; break;
-		case Qt::Key_U:    control = isShiftDown ? AbstractGameMode::CONTROL_HOME : AbstractGameMode::CONTROL_UNDO; break;
-		case Qt::Key_R:    if(isCtrlDown) control = AbstractGameMode::CONTROL_HOME; break;    //# Ctrl-R, Home or 'U' - revert to the starting position.
-		case Qt::Key_Home: control = AbstractGameMode::CONTROL_HOME; break;
-		default: QWidget::keyPressEvent(event); return;
+		case Qt::Key_0: // CHEAT CODE: restart leveset.
+			if(playingMode) {
+				levelSet = LevelSet(0);
+				startFadeIn();
+				return;
+			}
+			break;
+		case Qt::Key_1: // CHEAT CODE: go to next level.
+			if(playingMode) {
+				loadNextLevel();
+				return;
+			}
+			break;
+		case Qt::Key_Q: //# 'q' or Ctrl-Q - quit.
+			emit wantsToQuit();
+			return;
+		case Qt::Key_O: //# 'o' or Ctrl-O - open another level set.
+			openLevelSet();
+			return;
+		case Qt::Key_Space: //# Space - skip intelevel message.
+			control = AbstractGameMode::CONTROL_SKIP;
+			break;
+		case Qt::Key_Left:
+		case Qt::Key_H: //# Left or 'h' - move left.
+			control = AbstractGameMode::CONTROL_LEFT;
+			break;
+		case Qt::Key_Down:
+		case Qt::Key_J: //# Down or 'j' - move down.
+			control = AbstractGameMode::CONTROL_DOWN;
+			break;
+		case Qt::Key_Up:
+		case Qt::Key_K: //# Up or 'k' - move up.
+			control = AbstractGameMode::CONTROL_UP;
+			break;
+		case Qt::Key_Right:
+		case Qt::Key_L: //# Right or 'l' - move right.
+			control = AbstractGameMode::CONTROL_RIGHT;
+			break;
+		case Qt::Key_Z: //# Ctrl-Z, Backspace or 'u' - undo last action.
+			if(isCtrlDown)
+				control = AbstractGameMode::CONTROL_UNDO;
+			break;
+		case Qt::Key_Backspace:
+			control = AbstractGameMode::CONTROL_UNDO;
+			break;
+		case Qt::Key_U:
+			control = isShiftDown ?  AbstractGameMode::CONTROL_HOME : AbstractGameMode::CONTROL_UNDO;
+			break;
+		case Qt::Key_R: //# Ctrl-R, Home or 'U' - revert to the starting position.
+			if(isCtrlDown)
+				control = AbstractGameMode::CONTROL_HOME;
+			break;
+		case Qt::Key_Home:
+			control = AbstractGameMode::CONTROL_HOME;
+			break;
+		default:
+			QWidget::keyPressEvent(event);
+			return;
 	} //#
 
 	gameMode->processControl(control);
 	update();
 }
 
+void SokobanWidget::openLevelSet()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open sokoban level set"), "", tr("Sokoban level collections (*.slc)"));
+	if(fileName.isEmpty())
+		return;
+	levelSet = LevelSet(fileName);
+	startFadeIn();
+}
+
 void SokobanWidget::loadNextLevel()
 {
 	if(levelSet.isOver())
 		return;
-	gameMode = new FadeMode(levelSet.getCurrentLevel(), true, this);
+	QString level = levelSet.getCurrentLevel();
+	PlayingMode * playingMode = static_cast<PlayingMode*>(gameMode);
+	if(playingMode) {
+		level = playingMode->getCurrentLevel();
+	}
+	gameMode = new FadeMode(level, true, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showMessage()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -73,7 +133,7 @@ void SokobanWidget::showMessage()
 {
 	levelSet.moveToNextLevel();
 
-	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Level: %1").arg(levelSet.getCurrentLevelIndex());
+	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Level: %1").arg(levelSet.getCurrentLevelName());
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
 	update();

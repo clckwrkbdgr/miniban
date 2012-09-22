@@ -7,7 +7,10 @@ class QRect;
 class AbstractGameMode : public QObject {
 	Q_OBJECT
 public:
-	enum { CONTROL_NONE, CONTROL_SKIP, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME } Control;
+	enum {
+		CONTROL_NONE, CONTROL_SKIP, CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP,
+		CONTROL_DOWN, CONTROL_UNDO, CONTROL_HOME
+	} Control;
 
 	AbstractGameMode(QObject * parent = 0) : QObject(parent) {}
 	virtual ~AbstractGameMode() {}

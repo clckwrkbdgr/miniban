@@ -1,4 +1,5 @@
 TARGET = miniban
+QT += xml
 DESTDIR = ../bin
 
 OBJECTS_DIR = ../tmp
