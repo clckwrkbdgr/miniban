@@ -70,7 +70,7 @@ void LevelSet::rewindToLevel(int levelIndex)
 QString LevelSet::getCurrentLevelName() const
 {
 	if(usingEmbedded) {
-		return QString::number(getCurrentLevelIndex());
+		return QString::number(currentLevelIndex + 1);
 	} else {
 		if(currentLevelIndex >= xmlLevels.count()) {
 			return QString();
