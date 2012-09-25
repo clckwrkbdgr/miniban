@@ -9,6 +9,65 @@
 #include "fademode.h"
 #include "sokobanwidget.h"
 
+namespace {
+
+QMap<int, QString> generateKeyToTextMap()
+{
+	QMap<int, QString> result;
+	result[Qt::Key_0]         = "0";
+	result[Qt::Key_1]         = "1";
+	result[Qt::Key_Backspace] = "Backspace";
+	result[Qt::Key_Down]      = "Down";
+	result[Qt::Key_H]         = "H";
+	result[Qt::Key_Home]      = "Home";
+	result[Qt::Key_J]         = "J";
+	result[Qt::Key_K]         = "K";
+	result[Qt::Key_L]         = "L";
+	result[Qt::Key_Left]      = "Left";
+	result[Qt::Key_O]         = "O";
+	result[Qt::Key_Q]         = "Q";
+	result[Qt::Key_R]         = "R";
+	result[Qt::Key_Right]     = "Right";
+	result[Qt::Key_Space]     = "Space";
+	result[Qt::Key_U]         = "U";
+	result[Qt::Key_Up]        = "Up";
+	result[Qt::Key_Z]         = "Z";
+	return result;
+}
+
+QMap<QString, int> generateTextToControlMap()
+{
+	QMap<QString, int> result;
+	result["Space"]     = AbstractGameMode::CONTROL_SKIP;
+	result["Left"]      = AbstractGameMode::CONTROL_LEFT;
+	result["H"]         = AbstractGameMode::CONTROL_LEFT;
+	result["Down"]      = AbstractGameMode::CONTROL_DOWN;
+	result["J"]         = AbstractGameMode::CONTROL_DOWN;
+	result["Up"]        = AbstractGameMode::CONTROL_UP;
+	result["K"]         = AbstractGameMode::CONTROL_UP;
+	result["Right"]     = AbstractGameMode::CONTROL_RIGHT;
+	result["L"]         = AbstractGameMode::CONTROL_RIGHT;
+	result["Ctrl-Z"]    = AbstractGameMode::CONTROL_UNDO;
+	result["Backspace"] = AbstractGameMode::CONTROL_UNDO;
+	result["U"]         = AbstractGameMode::CONTROL_UNDO;
+	result["Shift-U"]   = AbstractGameMode::CONTROL_HOME;
+	result["Ctrl-R"]    = AbstractGameMode::CONTROL_HOME;
+	result["Home"]      = AbstractGameMode::CONTROL_HOME;
+	result["O"]         = AbstractGameMode::CONTROL_OPEN;
+	result["Ctrl-O"]    = AbstractGameMode::CONTROL_OPEN;
+	result["Ctrl-Q"]    = AbstractGameMode::CONTROL_QUIT;
+	result["Q"]         = AbstractGameMode::CONTROL_QUIT;
+
+	result["Ctrl-0"]    = AbstractGameMode::CONTROL_CHEAT_RESTART;
+	result["Ctrl-1"]    = AbstractGameMode::CONTROL_CHEAT_SKIP_LEVEL;
+	return result;
+}
+
+const QMap<int, QString> keyToText = generateKeyToTextMap();
+const QMap<QString, int> textToControl = generateTextToControlMap();
+
+}
+
 SokobanWidget::SokobanWidget(QWidget * parent)
 	: QWidget(parent), gameMode(0)
 {
@@ -45,70 +104,33 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
 	PlayingMode * playingMode = dynamic_cast<PlayingMode*>(gameMode);
 
-	//# CONTROLS
-	int control = AbstractGameMode::CONTROL_NONE;
-	switch(event->key()) { //#
-		case Qt::Key_0: // CHEAT CODE: restart leveset.
+	QString pressedCombination = keyToText[event->key()];
+	if(isShiftDown) {
+		pressedCombination.prepend("Shift-");
+	}
+	if(isCtrlDown) {
+		pressedCombination.prepend("Ctrl-");
+	}
+
+	int control = textToControl.value(pressedCombination);
+	gameMode->processControl(control);
+
+	switch(control) {
+		case AbstractGameMode::CONTROL_CHEAT_RESTART:
 			if(playingMode) {
 				levelSet = LevelSet(0);
 				startFadeIn();
-				return;
 			}
 			break;
-		case Qt::Key_1: // CHEAT CODE: go to next level.
+		case AbstractGameMode::CONTROL_CHEAT_SKIP_LEVEL:
 			if(playingMode) {
 				loadNextLevel();
-				return;
 			}
 			break;
-		case Qt::Key_Q: //# 'q' or Ctrl-Q - quit.
-			emit wantsToQuit();
-			return;
-		case Qt::Key_O: //# 'o' or Ctrl-O - open another level set.
-			openLevelSet();
-			return;
-		case Qt::Key_Space: //# Space - skip intelevel message.
-			control = AbstractGameMode::CONTROL_SKIP;
-			break;
-		case Qt::Key_Left:
-		case Qt::Key_H: //# Left or 'h' - move left.
-			control = AbstractGameMode::CONTROL_LEFT;
-			break;
-		case Qt::Key_Down:
-		case Qt::Key_J: //# Down or 'j' - move down.
-			control = AbstractGameMode::CONTROL_DOWN;
-			break;
-		case Qt::Key_Up:
-		case Qt::Key_K: //# Up or 'k' - move up.
-			control = AbstractGameMode::CONTROL_UP;
-			break;
-		case Qt::Key_Right:
-		case Qt::Key_L: //# Right or 'l' - move right.
-			control = AbstractGameMode::CONTROL_RIGHT;
-			break;
-		case Qt::Key_Z: //# Ctrl-Z, Backspace or 'u' - undo last action.
-			if(isCtrlDown)
-				control = AbstractGameMode::CONTROL_UNDO;
-			break;
-		case Qt::Key_Backspace:
-			control = AbstractGameMode::CONTROL_UNDO;
-			break;
-		case Qt::Key_U:
-			control = isShiftDown ?  AbstractGameMode::CONTROL_HOME : AbstractGameMode::CONTROL_UNDO;
-			break;
-		case Qt::Key_R: //# Ctrl-R, Home or 'U' - revert to the starting position.
-			if(isCtrlDown)
-				control = AbstractGameMode::CONTROL_HOME;
-			break;
-		case Qt::Key_Home:
-			control = AbstractGameMode::CONTROL_HOME;
-			break;
-		default:
-			QWidget::keyPressEvent(event);
-			return;
-	} //#
-
-	gameMode->processControl(control);
+		case AbstractGameMode::CONTROL_QUIT: emit wantsToQuit(); break;
+		case AbstractGameMode::CONTROL_OPEN: openLevelSet(); break;
+		default: QWidget::keyPressEvent(event); break;
+	}
 	update();
 }
 
