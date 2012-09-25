@@ -18,7 +18,7 @@ protected:
 	virtual void resizeEvent(QResizeEvent*);
 private slots:
 	void loadNextLevel();
-	void showMessage();
+	void showInterlevelMessage();
 	void startFadeIn();
 	void startGame();
 

@@ -83,7 +83,7 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 		}
 	}
 
-	startFadeIn();
+	showInterlevelMessage();
 }
 
 SokobanWidget::~SokobanWidget()
@@ -152,16 +152,16 @@ void SokobanWidget::loadNextLevel()
 	if(playingMode) {
 		level = playingMode->getCurrentLevel();
 	}
+	levelSet.moveToNextLevel();
+
 	gameMode = new FadeMode(level, true, this);
-	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showMessage()));
+	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showInterlevelMessage()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
 }
 
-void SokobanWidget::showMessage()
+void SokobanWidget::showInterlevelMessage()
 {
-	levelSet.moveToNextLevel();
-
 	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Level: %1").arg(levelSet.getCurrentLevelName());
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
