@@ -127,7 +127,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 				loadNextLevel();
 			}
 			break;
-		case AbstractGameMode::CONTROL_QUIT: emit wantsToQuit(); break;
+		case AbstractGameMode::CONTROL_QUIT: close(); break;
 		case AbstractGameMode::CONTROL_OPEN: openLevelSet(); break;
 		default: QWidget::keyPressEvent(event); break;
 	}

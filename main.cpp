@@ -1,6 +1,5 @@
 #include <QtGui/QApplication>
-
-#include "mainwindow.h"
+#include "sokobanwidget.h"
 
 int main(int argc, char ** argv)
 {
@@ -8,7 +7,7 @@ int main(int argc, char ** argv)
 	app.setOrganizationName("kp580bm1");
 	app.setApplicationName("miniban");
 
-	MainWindow wnd;
+	SokobanWidget wnd;
 	wnd.showFullScreen();
 	return app.exec();
 }

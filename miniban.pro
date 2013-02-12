@@ -12,7 +12,7 @@ SOKOBAN_TEST {
 } else {
 	HEADERS += abstractgamemode.h
 	SOURCES += main.cpp levels.cpp
-	modules = sokoban mainwindow sokobanwidget
+	modules = sokoban sokobanwidget
 	modules += xpm sprites levelset
 	modules += playingmode messagemode fademode
 }
