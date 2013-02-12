@@ -11,7 +11,8 @@
 *.la
 *.a
 
+# Vim
 *.swp
 Makefile
-bin/
 tmp/
+miniban
