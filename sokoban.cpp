@@ -211,24 +211,155 @@ bool isSolved(const QString & field)
 */
 
 Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
+	: history(backgroundHistory)
 {
-	Q_UNUSED(levelField);
-	Q_UNUSED(backgroundHistory);
+	QStringList rows = levelField.split('\n');
+	size.setHeight(rows.count());
+	foreach(const QString & row, rows) {
+		if(size.width() < row.length()) {
+			size.setWidth(row.length());
+		}
+	}
+
+	QMap<QChar, int> charToCell;
+	charToCell[' '] = FLOOR;
+	charToCell['#'] = WALL;
+	charToCell['@'] = PLAYER_ON_FLOOR;
+	charToCell['.'] = EMPTY_SLOT;
+	charToCell['+'] = PLAYER_ON_SLOT;
+	charToCell['$'] = BOX_ON_FLOOR;
+	charToCell['*'] = BOX_ON_SLOT;
+	QString validChars;
+	foreach(const QChar & ch, charToCell.keys()) {
+		validChars.append(ch);
+	}
+
+	cells.fill(Sokoban::FLOOR, size.width() * size.height());
+	for(int y = 0; y < rows.count(); ++y) {
+		const QString & row = rows[y];
+		for(int x = 0; x < row.size(); ++x) {
+			if(validChars.contains(row[x])) {
+				cell(QPoint(x, y)) = charToCell[row[x]];
+			} else {
+				cell(QPoint(x, y)) = WALL;
+			}
+		}
+	}
+}
+
+QPoint Sokoban::getPlayerPos() const
+{
+	for(int x = 0; x < width(); ++x) {
+		for(int y = 0; y < height(); ++y) {
+			if(cell(QPoint(x, y)) == PLAYER_ON_FLOOR || cell(QPoint(x, y)) == PLAYER_ON_SLOT) {
+				return QPoint(x, y);
+			}
+		}
+	}
+	return QPoint(-1, -1);
+}
+
+const Sokoban::Cell & Sokoban::cell(const QPoint & point) const
+{
+	return cells[point.x() + point.y() * width()];
+}
+
+Sokoban::Cell & Sokoban::cell(const QPoint & point)
+{
+	return cells[point.x() + point.y() * width()];
+}
+
+bool Sokoban::isValid(const QPoint & pos) const
+{
+	return (pos.x() >= 0 || pos.x() < width() || pos.y() >= 0 || pos.y() < height());
 }
 
 void Sokoban::processControls(const QString & controls)
 {
-	Q_UNUSED(controls);
+	QMap<QChar, QPoint> shiftForControl;
+	shiftForControl['u'] = QPoint(0, -1);
+	shiftForControl['d'] = QPoint(0, 1);
+	shiftForControl['r'] = QPoint(1, 0);
+	shiftForControl['l'] = QPoint(-1, 0);
+	foreach(QChar control, controls) {
+		control = control.toLower();
+		QPoint shift = shiftForControl[control];
+		if(shift.isNull()) {
+			continue;
+		}
+		QPoint playerPos = getPlayerPos();
+		QPoint newPlayerPos = playerPos + shift;
+		QPoint newSecondPos = newPlayerPos + shift;
+		if(!isValid(newPlayerPos)) {
+			continue;
+		}
+		if(cell(newPlayerPos) == WALL) {
+			continue;
+		}
+		if(cell(newPlayerPos) == BOX_ON_SLOT || cell(newPlayerPos) == BOX_ON_FLOOR) {
+			if(!isValid(newSecondPos)) {
+				continue;
+			}
+			if(cell(newSecondPos) == WALL) {
+				continue;
+			}
+			if(cell(newSecondPos) == BOX_ON_SLOT || cell(newSecondPos) == BOX_ON_FLOOR) {
+				continue;
+			}
+		}
+
+		if(cell(playerPos) == PLAYER_ON_SLOT) {
+			cell(playerPos) = EMPTY_SLOT;
+		} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
+			cell(playerPos) = FLOOR;
+		}
+		if(cell(newPlayerPos) == EMPTY_SLOT) {
+			cell(newPlayerPos) = PLAYER_ON_SLOT;
+		} else if(cell(newPlayerPos) == FLOOR) {
+			cell(newPlayerPos) = PLAYER_ON_FLOOR;
+		} else if(cell(newPlayerPos) == BOX_ON_FLOOR || cell(newPlayerPos) == BOX_ON_SLOT) {
+			if(cell(newPlayerPos) == BOX_ON_SLOT) {
+				cell(newPlayerPos) = PLAYER_ON_SLOT;
+			} else if(cell(newPlayerPos) == BOX_ON_FLOOR) {
+				cell(newPlayerPos) = PLAYER_ON_FLOOR;
+			}
+			if(cell(newSecondPos) == EMPTY_SLOT) {
+				cell(newSecondPos) = BOX_ON_SLOT;
+			} else if(cell(newSecondPos) == FLOOR) {
+				cell(newSecondPos) = BOX_ON_FLOOR;
+			}
+			control = control.toUpper();
+		}
+		history.append(control);
+	}
 }
 
 QString Sokoban::toString() const
 {
-	return QString();
+	QMap<QChar, int> cellToChar;
+	cellToChar[FLOOR          ] = ' ';
+	cellToChar[WALL           ] = '#';
+	cellToChar[PLAYER_ON_FLOOR] = '@';
+	cellToChar[EMPTY_SLOT     ] = '.';
+	cellToChar[PLAYER_ON_SLOT ] = '+';
+	cellToChar[BOX_ON_FLOOR   ] = '$';
+	cellToChar[BOX_ON_SLOT    ] = '*';
+
+	QString result;
+	for(int y = 0; y < size.height(); ++y) {
+		for(int x = 0; x < size.width(); ++x) {
+			result.append(cellToChar[cells[x + y * size.width()]]);
+		}
+		if(y != size.height() - 1) {
+			result.append('\n');
+		}
+	}
+	return result;
 }
 
 QString Sokoban::historyAsString() const
 {
-	return QString();
+	return history;
 }
 
 bool Sokoban::undo()
@@ -238,7 +369,17 @@ bool Sokoban::undo()
 
 bool Sokoban::isSolved()
 {
-	return false;
+	int freeBoxCount = 0, freeSlotCount = 0;
+	for(int y = 0; y < size.height(); ++y) {
+		for(int x = 0; x < size.width(); ++x) {
+			switch(cell(QPoint(x, y))) {
+				case EMPTY_SLOT: freeSlotCount++; break;
+				case PLAYER_ON_SLOT: freeSlotCount++; break;
+				case BOX_ON_FLOOR: freeBoxCount++; break;
+			}
+		}
+	}
+	return (freeBoxCount == 0) && (freeSlotCount == 0);
 }
 
 //! Use `qmake "CONFIG += SOKOBAN_TEST"` to build unit tests.
@@ -247,6 +388,24 @@ bool Sokoban::isSolved()
 class SokobanTest : public QObject {
 	Q_OBJECT
 private slots:
+	void levelsAreStrings_data() {
+		QTest::addColumn<QString>("level");
+		QTest::addColumn<int>("width");
+		QTest::addColumn<int>("height");
+		QTest::newRow("1x1") << "@" << 1 << 1;
+		QTest::newRow("3x1") << "@ ." << 3 << 1;
+		QTest::newRow("1x3") << "@\n \n$" << 1 << 3;
+		QTest::newRow("3x3") << "@  \n$$$\n###" << 3 << 3;
+	}
+	void levelsAreStrings() {
+		QFETCH(QString, level);
+		QFETCH(int, width);
+		QFETCH(int, height);
+		Sokoban sokoban(level);
+		QCOMPARE(sokoban.width(), width);
+		QCOMPARE(sokoban.height(), height);
+		QCOMPARE(sokoban.toString(), level);
+	}
 	void canMoveOntoFloor_data() {
 		QTest::addColumn<QString>("levelBefore");
 		QTest::addColumn<QString>("control");

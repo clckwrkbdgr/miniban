@@ -1,8 +1,10 @@
 #include <QtCore/QString>
+#include <QtCore/QPoint>
+#include <QtCore/QSize>
 
 class Sokoban {
 public:
-	enum Cell {
+	enum CellType {
 		FLOOR           = ' ',
 		WALL            = '#',
 		PLAYER_ON_FLOOR = '@',
@@ -11,6 +13,7 @@ public:
 		BOX_ON_FLOOR    = '$',
 		BOX_ON_SLOT     = '*'
 	};
+	typedef int Cell;
 	enum Control {
 		NONE       = 0,
 		UP         = 'u',
@@ -41,9 +44,20 @@ public:
 	class OutOfMapException {};
 
 	Sokoban(const QString & levelField, const QString & backgroundHistory = QString());
+	virtual ~Sokoban() {}
+	int width() const { return size.width(); }
+	int height() const { return size.height(); }
 	void processControls(const QString & controls);
 	QString toString() const;
 	QString historyAsString() const;
 	bool undo();
 	bool isSolved();
+private:
+	QSize size;
+	QVector<Cell> cells;
+	QString history;
+	QPoint getPlayerPos() const;
+	const Cell & cell(const QPoint & point) const;
+	Cell & cell(const QPoint & point);
+	bool isValid(const QPoint & pos) const;
 };
