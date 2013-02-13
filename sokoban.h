@@ -1,3 +1,4 @@
+#pragma once
 #include <QtCore/QString>
 #include <QtCore/QPoint>
 #include <QtCore/QSize>
@@ -52,12 +53,13 @@ public:
 	QString historyAsString() const;
 	bool undo();
 	bool isSolved();
+	Cell getCell(const QPoint & point) const { return cell(point); }
 private:
 	QSize size;
 	QVector<Cell> cells;
 	QString history;
 	QPoint getPlayerPos() const;
-	const Cell & cell(const QPoint & point) const;
 	Cell & cell(const QPoint & point);
+	const Cell & cell(const QPoint & point) const;
 	bool isValid(const QPoint & pos) const;
 };

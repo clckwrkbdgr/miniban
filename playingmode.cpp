@@ -12,49 +12,30 @@ const int MAX_SCALE_FACTOR = 8;
 const QList<int> & getAllTileTypes()
 {
 	static QList<int> tileTypes = QList<int>()
-		<< Sokoban::TileType::FLOOR
-		<< Sokoban::TileType::WALL
-		<< Sokoban::TileType::EMPTY_SLOT
-		<< Sokoban::TileType::PLAYER_ON_FLOOR
-		<< Sokoban::TileType::PLAYER_ON_SLOT
-		<< Sokoban::TileType::BOX_ON_FLOOR
-		<< Sokoban::TileType::BOX_ON_SLOT;
+		<< Sokoban::FLOOR
+		<< Sokoban::WALL
+		<< Sokoban::EMPTY_SLOT
+		<< Sokoban::PLAYER_ON_FLOOR
+		<< Sokoban::PLAYER_ON_SLOT
+		<< Sokoban::BOX_ON_FLOOR
+		<< Sokoban::BOX_ON_SLOT;
 	return tileTypes;
-}
-
-QSize calculateLevelSize(const QString & level)
-{
-	int levelWidth = 0;
-	int levelHeight = 1;
-	int lineWidth = 0;
-	foreach(const QChar & c, level) {
-		if(c == '\n') {
-			++levelHeight;
-			if(levelWidth < lineWidth) {
-				levelWidth = lineWidth;
-			}
-			lineWidth = 0;
-		} else {
-			++lineWidth;
-		}
-	}
-	return QSize(levelWidth, levelHeight);
 }
 
 };
 
 PlayingMode::PlayingMode(const QString & level, QObject * parent)
-	: AbstractGameMode(parent), toInvalidate(true)
+	: AbstractGameMode(parent), toInvalidate(true), sokoban(level)
 {
-	restartLevel(level);
+	invalidateRect();
 }
 
 void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & rect)
 {
 	QSize originalSize = Sprites::getSpritesBounds();
 	int scaleFactor = qMin(
-			rect.width() / (levelSize.width() * originalSize.width()),
-			rect.height() / (levelSize.height() * originalSize.height())
+			rect.width() / (sokoban.width() * originalSize.width()),
+			rect.height() / (sokoban.height() * originalSize.height())
 			);
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
@@ -65,31 +46,20 @@ void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & r
 	spriteSize = originalSize * scaleFactor;
 }
 
-void PlayingMode::restartLevel(const QString & level)
-{
-	originalLevel = level;
-	currentLevel = originalLevel;
-	history.clear();
-	currentLevelSize = calculateLevelSize(currentLevel);
-	invalidateRect();
-}
-
 void PlayingMode::processControl(int control)
 {
 	switch(control) {
-		case CONTROL_LEFT:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::LEFT, &history); break;
-		case CONTROL_DOWN:  currentLevel = Sokoban::process(currentLevel, Sokoban::Control::DOWN, &history); break;
-		case CONTROL_UP:    currentLevel = Sokoban::process(currentLevel, Sokoban::Control::UP, &history); break;
-		case CONTROL_RIGHT: currentLevel = Sokoban::process(currentLevel, Sokoban::Control::RIGHT, &history); break;
-		case CONTROL_HOME: restartLevel(originalLevel); break;
+		case CONTROL_LEFT:  sokoban.processControls(QChar(Sokoban::LEFT)); break;
+		case CONTROL_DOWN:  sokoban.processControls(QChar(Sokoban::DOWN)); break;
+		case CONTROL_UP:    sokoban.processControls(QChar(Sokoban::UP)); break;
+		case CONTROL_RIGHT: sokoban.processControls(QChar(Sokoban::RIGHT)); break;
+		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
 		case CONTROL_UNDO:
-				   if(!history.isEmpty()) {
-					   currentLevel = Sokoban::undo(currentLevel, &history);
-				   }
+				   sokoban.undo();
 				   break;
 		default: return;
 	}
-	if(Sokoban::isSolved(currentLevel)) {
+	if(sokoban.isSolved()) {
 		emit levelIsSolved();
 	}
 }
@@ -107,18 +77,16 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 	}
 
 	painter->fillRect(rect, Qt::black);
-	QStringList rows = currentLevel.split('\n');
 
 	QPoint offset = QPoint(
-			rect.width() - currentLevelSize.width() * spriteSize.width(),
-			rect.height() - currentLevelSize.height() * spriteSize.height()
+			rect.width() - sokoban.width() * spriteSize.width(),
+			rect.height() - sokoban.height() * spriteSize.height()
 			) / 2;
-	for(int y = 0; y < currentLevelSize.height(); ++y) {
-		for(int x = 0; x < currentLevelSize.width(); ++x) {
+	for(int y = 0; y < sokoban.height(); ++y) {
+		for(int x = 0; x < sokoban.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
-			bool validSprite = sprites.contains(rows[y][x]);
-			bool stillInRow = x < rows[y].length();
-			QChar tileType = (validSprite && stillInRow) ? rows[y][x] : QChar(Sokoban::TileType::FLOOR);
+			bool validSprite = sprites.contains(sokoban.getCell(QPoint(x, y)));
+			QChar tileType = validSprite ? sokoban.getCell(QPoint(x, y)) : QChar(Sokoban::FLOOR);
 			painter->drawImage(pos, sprites[tileType]);
 		}
 	}

@@ -3,6 +3,7 @@
 #include <QtCore/QSize>
 #include <QtGui/QImage>
 #include "abstractgamemode.h"
+#include "sokoban.h"
 
 class PlayingMode : public AbstractGameMode {
 	Q_OBJECT
@@ -25,8 +26,8 @@ private:
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;
 	bool toInvalidate;
+	Sokoban sokoban;
 
 	void resizeSpritesForLevel(const QSize & levelSize, const QRect & rect);
-	void restartLevel(const QString & level);
 };
 
