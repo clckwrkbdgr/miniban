@@ -3,7 +3,6 @@
 #include <QtXml/QDomDocument>
 #include <QtXml/QDomElement>
 #include "levelset.h"
-#include "levels.cpp"
 
 bool LevelSet::loadFromFile(const QString & fileName)
 {
