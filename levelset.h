@@ -3,8 +3,7 @@
 
 class LevelSet {
 public:
-	LevelSet(const QString & levelSetFileName, int startLevelIndex = 0);
-	LevelSet(int startLevelIndex = 0);
+	LevelSet(const QString & levelSetFileName = QString(), int startLevelIndex = 0);
 	virtual ~LevelSet() {}
 
 	bool moveToNextLevel();

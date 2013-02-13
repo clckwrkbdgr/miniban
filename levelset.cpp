@@ -5,15 +5,11 @@
 #include "levelset.h"
 #include "levels.cpp"
 
-LevelSet::LevelSet(int startLevelIndex)
-	: usingEmbedded(true), over(false), currentLevelIndex(-1), currentSetPos(0)
-{
-	rewindToLevel(startLevelIndex);
-	moveToNextLevel();
-}
-
 bool LevelSet::loadFromFile(const QString & fileName)
 {
+	if(fileName.isEmpty()) {
+		return false;
+	}
 	QDomDocument doc;
 	QFile file(fileName);
 	if(!file.open(QFile::ReadOnly))
