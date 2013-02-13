@@ -25,12 +25,11 @@ const QList<int> & getAllTileTypes()
 };
 
 PlayingMode::PlayingMode(const QString & level, QObject * parent)
-	: AbstractGameMode(parent), toInvalidate(true), sokoban(level)
+	: AbstractGameMode(parent), originalLevel(level), toInvalidate(true), sokoban(level)
 {
-	invalidateRect();
 }
 
-void PlayingMode::resizeSpritesForLevel(const QSize & levelSize, const QRect & rect)
+void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 {
 	QSize originalSize = Sprites::getSpritesBounds();
 	int scaleFactor = qMin(
@@ -72,7 +71,7 @@ void PlayingMode::invalidateRect()
 void PlayingMode::paint(QPainter * painter, const QRect & rect)
 {
 	if(toInvalidate) {
-		resizeSpritesForLevel(currentLevelSize, rect);
+		resizeSpritesForLevel(rect);
 		toInvalidate = false;
 	}
 

@@ -11,7 +11,7 @@ public:
 	PlayingMode(const QString & level, QObject * parent = 0);
 	virtual ~PlayingMode() {}
 
-	const QString & getCurrentLevel() const { return currentLevel; }
+	QString getCurrentLevel() const { return sokoban.toString(); }
 	
 	virtual void invalidateRect();
 	virtual void paint(QPainter * painter, const QRect & rect);
@@ -20,14 +20,11 @@ signals:
 	void levelIsSolved();
 private:
 	QString originalLevel;
-	QString currentLevel;
-	QSize currentLevelSize;
-	QString history;
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;
 	bool toInvalidate;
 	Sokoban sokoban;
 
-	void resizeSpritesForLevel(const QSize & levelSize, const QRect & rect);
+	void resizeSpritesForLevel(const QRect & rect);
 };
 
