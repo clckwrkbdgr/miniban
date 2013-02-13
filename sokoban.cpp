@@ -235,15 +235,22 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 	}
 
 	cells.fill(Sokoban::FLOOR, size.width() * size.height());
+	int playerCount = 0;
 	for(int y = 0; y < rows.count(); ++y) {
 		const QString & row = rows[y];
 		for(int x = 0; x < row.size(); ++x) {
 			if(validChars.contains(row[x])) {
 				cell(QPoint(x, y)) = charToCell[row[x]];
+				if(cell(QPoint(x, y)) == PLAYER_ON_FLOOR || cell(QPoint(x, y)) == PLAYER_ON_SLOT) {
+					playerCount++;
+				}
 			} else {
 				cell(QPoint(x, y)) = WALL;
 			}
 		}
+	}
+	if(playerCount != 1) {
+		throw InvalidPlayerCountException(playerCount);
 	}
 }
 
@@ -271,7 +278,7 @@ Sokoban::Cell & Sokoban::cell(const QPoint & point)
 
 bool Sokoban::isValid(const QPoint & pos) const
 {
-	return (pos.x() >= 0 || pos.x() < width() || pos.y() >= 0 || pos.y() < height());
+	return (pos.x() >= 0 && pos.x() < width() && pos.y() >= 0 && pos.y() < height());
 }
 
 void Sokoban::processControls(const QString & controls)
@@ -282,7 +289,9 @@ void Sokoban::processControls(const QString & controls)
 	shiftForControl['r'] = QPoint(1, 0);
 	shiftForControl['l'] = QPoint(-1, 0);
 	foreach(QChar control, controls) {
-		control = control.toLower();
+		if(!QString("urld").contains(control)) {
+			throw InvalidControlException(control);
+		}
 		QPoint shift = shiftForControl[control];
 		if(shift.isNull()) {
 			continue;
@@ -291,7 +300,7 @@ void Sokoban::processControls(const QString & controls)
 		QPoint newPlayerPos = playerPos + shift;
 		QPoint newSecondPos = newPlayerPos + shift;
 		if(!isValid(newPlayerPos)) {
-			continue;
+			throw OutOfMapException();
 		}
 		if(cell(newPlayerPos) == WALL) {
 			continue;
@@ -364,7 +373,66 @@ QString Sokoban::historyAsString() const
 
 bool Sokoban::undo()
 {
-	return false;
+	QMap<QChar, QPoint> shiftForControl;
+	shiftForControl['u'] = QPoint(0, -1);
+	shiftForControl['d'] = QPoint(0, 1);
+	shiftForControl['r'] = QPoint(1, 0);
+	shiftForControl['l'] = QPoint(-1, 0);
+	if(history.isEmpty()) {
+		return false;
+	}
+
+	QChar control = history.at(history.size() - 1);
+	if(!QString("ulrdURLD").contains(control)) {
+		throw InvalidUndoException(control);
+	}
+	QPoint shift = shiftForControl[control.toLower()];
+	QPoint playerPos = getPlayerPos();
+	QPoint oldPlayerPos = playerPos - shift;
+	QPoint boxPos = playerPos + shift;
+	if(!isValid(oldPlayerPos)) {
+		throw InvalidUndoException(control);
+	}
+	if(cell(oldPlayerPos) == WALL) {
+		throw InvalidUndoException(control);
+	}
+	if(cell(oldPlayerPos) == BOX_ON_SLOT || cell(oldPlayerPos) == BOX_ON_FLOOR) {
+		throw InvalidUndoException(control);
+	}
+	if(control.isUpper()) {
+		if(!isValid(boxPos)) {
+			throw InvalidUndoException(control);
+		}
+		if(cell(boxPos) != BOX_ON_SLOT && cell(boxPos) != BOX_ON_FLOOR) {
+			throw InvalidUndoException(control);
+		}
+	}
+
+	if(cell(oldPlayerPos) == EMPTY_SLOT) {
+		cell(oldPlayerPos) = PLAYER_ON_SLOT;
+	} else if(cell(oldPlayerPos) == FLOOR) {
+		cell(oldPlayerPos) = PLAYER_ON_FLOOR;
+	}
+	if(control.isUpper()) {
+		if(cell(playerPos) == PLAYER_ON_SLOT) {
+			cell(playerPos) = BOX_ON_SLOT;
+		} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
+			cell(playerPos) = BOX_ON_FLOOR;
+		}
+		if(cell(boxPos) == BOX_ON_SLOT) {
+			cell(boxPos) = EMPTY_SLOT;
+		} else if(cell(boxPos) == BOX_ON_FLOOR) {
+			cell(boxPos) = FLOOR;
+		}
+	} else {
+		if(cell(playerPos) == PLAYER_ON_SLOT) {
+			cell(playerPos) = EMPTY_SLOT;
+		} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
+			cell(playerPos) = FLOOR;
+		}
+	}
+	history.remove(history.size() - 1, 1);
+	return true;
 }
 
 bool Sokoban::isSolved()
