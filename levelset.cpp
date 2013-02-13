@@ -40,7 +40,7 @@ bool LevelSet::loadFromFile(const QString & fileName)
 }
 
 LevelSet::LevelSet(const QString & levelSetFileName, int startLevelIndex)
-	: usingEmbedded(false), over(true), currentLevelIndex(-1), currentSetPos(0)
+	: over(true), currentLevelIndex(-1), currentSetPos(0)
 {
 	if(!loadFromFile(levelSetFileName))
 		return;
@@ -51,64 +51,30 @@ LevelSet::LevelSet(const QString & levelSetFileName, int startLevelIndex)
 
 void LevelSet::rewindToLevel(int levelIndex)
 {
-	if(usingEmbedded) {
-		int levelCount = LEVELS.count("\n\n") + 1;
-		levelIndex = qBound(0, levelIndex, levelCount - 1);
-		currentLevelIndex = levelIndex - 1;
-		while(levelIndex--) {
-			currentSetPos = LEVELS.indexOf("\n\n", currentSetPos + 1);
-		}
-	} else {
-		currentLevelIndex = qBound(0, levelIndex, xmlLevels.count() - 1) - 1;
-	}
+	currentLevelIndex = qBound(0, levelIndex, xmlLevels.count() - 1) - 1;
 }
 
 QString LevelSet::getCurrentLevelName() const
 {
-	if(usingEmbedded) {
-		return QString::number(currentLevelIndex + 1);
-	} else {
-		if(currentLevelIndex >= xmlLevels.count()) {
-			return QString();
-		}
-		return xmlLevels[currentLevelIndex].first;
+	if(currentLevelIndex >= xmlLevels.count()) {
+		return QString();
 	}
+	return xmlLevels[currentLevelIndex].first;
 }
 
 QString LevelSet::getCurrentLevelSet() const
 {
-	if(usingEmbedded) {
-		return QString();
-	} else {
-		return fileName;
-	}
+	return fileName;
 }
 
 bool LevelSet::moveToNextLevel()
 {
-	if(usingEmbedded) {
-		currentLevel.clear();
-		if(currentSetPos < 0) {
-			over = true;
-			return false;
-		}
-
-		++currentLevelIndex;
-		if(currentLevelIndex > 0) {
-			currentSetPos += 2;
-		}
-		int endOfLevel = LEVELS.indexOf("\n\n", currentSetPos);
-		int levelLength = (endOfLevel < 0) ? (LEVELS.length() - currentSetPos) : (endOfLevel - currentSetPos);
-		currentLevel = LEVELS.mid(currentSetPos, levelLength);
-		currentSetPos = endOfLevel;
-	} else {
-		++currentLevelIndex;
-		if(currentLevelIndex >= xmlLevels.count()) {
-			over = true;
-			return false;
-		}
-		currentLevel = xmlLevels[currentLevelIndex].second;
+	++currentLevelIndex;
+	if(currentLevelIndex >= xmlLevels.count()) {
+		over = true;
+		return false;
 	}
+	currentLevel = xmlLevels[currentLevelIndex].second;
 	return true;
 }
 

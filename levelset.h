@@ -15,8 +15,6 @@ public:
 	const QString & getCurrentLevel() const { return currentLevel; }
 	bool isOver() const { return over; }
 private:
-	bool usingEmbedded;
-
 	bool over;
 	int currentLevelIndex;
 	QString currentLevel;
