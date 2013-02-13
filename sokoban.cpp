@@ -226,141 +226,231 @@ bool isSolved(const QString & field)
 class SokobanTest : public QObject {
 	Q_OBJECT
 private slots:
+	void canMoveOntoFloor_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("right") << QString("@ "  ) << QString('r') << QString(" @");
+		QTest::newRow("left") << QString(" @"  ) << QString('l') << QString("@ ");
+		QTest::newRow("down") << QString("@\n ") << QString('d') << QString(" \n@");
+		QTest::newRow("up") << QString(" \n@") << QString('u') << QString("@\n ");
+	}
 	void canMoveOntoFloor() {
-		QString a, b;
-		a = Sokoban::process("@ ", 'r');   b = " @";   QCOMPARE(a, b);
-		a = Sokoban::process(" @", 'l');   b = "@ ";   QCOMPARE(a, b);
-		a = Sokoban::process("@\n ", 'd'); b = " \n@"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n@", 'u'); b = "@\n "; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void cannotMoveOntoWall_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("right") << QString("@#") << QString('r') << QString("@#");
+		QTest::newRow("left") << QString("#@") << QString('l') << QString("#@");
+		QTest::newRow("down") << QString("@\n#") << QString('d') << QString("@\n#");
+		QTest::newRow("up") << QString("#\n@") << QString('u') << QString("#\n@");
 	}
 	void cannotMoveOntoWall() {
-		QString a, b;
-		a = Sokoban::process("@#", 'r');   b = "@#";   QCOMPARE(a, b);
-		a = Sokoban::process("#@", 'l');   b = "#@";   QCOMPARE(a, b);
-		a = Sokoban::process("@\n#", 'd'); b = "@\n#"; QCOMPARE(a, b);
-		a = Sokoban::process("#\n@", 'u'); b = "#\n@"; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void canMoveOntoSlot_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("right") << QString("@.") << QString('r') << QString(" +");
+		QTest::newRow("left") << QString(".@") << QString('l') << QString("+ ");
+		QTest::newRow("down") << QString("@\n.") << QString('d') << QString(" \n+");
+		QTest::newRow("up") << QString(".\n@") << QString('u') << QString("+\n ");
 	}
 	void canMoveOntoSlot() {
-		QString a, b;
-		a = Sokoban::process("@.", 'r');   b = " +";   QCOMPARE(a, b);
-		a = Sokoban::process(".@", 'l');   b = "+ ";   QCOMPARE(a, b);
-		a = Sokoban::process("@\n.", 'd'); b = " \n+"; QCOMPARE(a, b);
-		a = Sokoban::process(".\n@", 'u'); b = "+\n "; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void canMoveFromSlot_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("toEmpty:right") << QString("+ ") << QString('r') << QString(".@");
+		QTest::newRow("toEmpty:left") << QString(" +") << QString('l') << QString("@.");
+		QTest::newRow("toEmpty:down") << QString("+\n ") << QString('d') << QString(".\n@");
+		QTest::newRow("toEmpty:up") << QString(" \n+") << QString('u') << QString("@\n.");
+		QTest::newRow("toSlot:right") << QString("+.") << QString('r') << QString(".+");
+		QTest::newRow("toSlot:left") << QString(".+") << QString('l') << QString("+.");
+		QTest::newRow("toSlot:down") << QString("+\n.") << QString('d') << QString(".\n+");
+		QTest::newRow("toSlot:up") << QString(".\n+") << QString('u') << QString("+\n.");
 	}
 	void canMoveFromSlot() {
-		QString a, b;
-		a = Sokoban::process("+ ", 'r');   b = ".@";   QCOMPARE(a, b);
-		a = Sokoban::process(" +", 'l');   b = "@.";   QCOMPARE(a, b);
-		a = Sokoban::process("+\n ", 'd'); b = ".\n@"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n+", 'u'); b = "@\n."; QCOMPARE(a, b);
-
-		a = Sokoban::process("+.", 'r');   b = ".+";   QCOMPARE(a, b);
-		a = Sokoban::process(".+", 'l');   b = "+.";   QCOMPARE(a, b);
-		a = Sokoban::process("+\n.", 'd'); b = ".\n+"; QCOMPARE(a, b);
-		a = Sokoban::process(".\n+", 'u'); b = "+\n."; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void canMoveOntoFreeBoxOnFloor_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("toEmpty:right") << QString("@$ ") << QString('r') << QString(" @$");
+		QTest::newRow("toEmpty:left") << QString(" $@") << QString('l') << QString("$@ ");
+		QTest::newRow("toEmpty:down") << QString("@\n$\n ") << QString('d') << QString(" \n@\n$");
+		QTest::newRow("toEmpty:up") << QString(" \n$\n@") << QString('u') << QString("$\n@\n ");
+		QTest::newRow("toSlot:right") << QString("@$.") << QString('r') << QString(" @*");
+		QTest::newRow("toSlot:left") << QString(".$@") << QString('l') << QString("*@ ");
+		QTest::newRow("toSlot:down") << QString("@\n$\n.") << QString('d') << QString(" \n@\n*");
+		QTest::newRow("toSlot:up") << QString(".\n$\n@") << QString('u') << QString("*\n@\n ");
 	}
 	void canMoveOntoFreeBoxOnFloor() {
-		QString a, b;
-		a = Sokoban::process("@$ ", 'r');     b = " @$";     QCOMPARE(a, b);
-		a = Sokoban::process(" $@", 'l');     b = "$@ ";     QCOMPARE(a, b);
-		a = Sokoban::process("@\n$\n ", 'd'); b = " \n@\n$"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n$\n@", 'u'); b = "$\n@\n "; QCOMPARE(a, b);
-
-		a = Sokoban::process("@$.", 'r');     b = " @*";     QCOMPARE(a, b);
-		a = Sokoban::process(".$@", 'l');     b = "*@ ";     QCOMPARE(a, b);
-		a = Sokoban::process("@\n$\n.", 'd'); b = " \n@\n*"; QCOMPARE(a, b);
-		a = Sokoban::process(".\n$\n@", 'u'); b = "*\n@\n "; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void canMoveOntoFreeBoxOnSlot_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("toEmpty:right") << QString("@* ") << QString('r') << QString(" +$");
+		QTest::newRow("toEmpty:left") << QString(" *@") << QString('l') << QString("$+ ");
+		QTest::newRow("toEmpty:down") << QString("@\n*\n ") << QString('d') << QString(" \n+\n$");
+		QTest::newRow("toEmpty:up") << QString(" \n*\n@") << QString('u') << QString("$\n+\n ");
+		QTest::newRow("toSlot:right") << QString("@*.") << QString('r') << QString(" +*");
+		QTest::newRow("toSlot:left") << QString(".*@") << QString('l') << QString("*+ ");
+		QTest::newRow("toSlot:down") << QString("@\n*\n.") << QString('d') << QString(" \n+\n*");
+		QTest::newRow("toSlot:up") << QString(".\n*\n@") << QString('u') << QString("*\n+\n ");
 	}
 	void canMoveOntoFreeBoxOnSlot() {
-		QString a, b;
-		a = Sokoban::process("@* ", 'r');     b = " +$";     QCOMPARE(a, b);
-		a = Sokoban::process(" *@", 'l');     b = "$+ ";     QCOMPARE(a, b);
-		a = Sokoban::process("@\n*\n ", 'd'); b = " \n+\n$"; QCOMPARE(a, b);
-		a = Sokoban::process(" \n*\n@", 'u'); b = "$\n+\n "; QCOMPARE(a, b);
-
-		a = Sokoban::process("@*.", 'r');     b = " +*";     QCOMPARE(a, b);
-		a = Sokoban::process(".*@", 'l');     b = "*+ ";     QCOMPARE(a, b);
-		a = Sokoban::process("@\n*\n.", 'd'); b = " \n+\n*"; QCOMPARE(a, b);
-		a = Sokoban::process(".\n*\n@", 'u'); b = "*\n+\n "; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
 	}
-	void historyIsTracked() {
-		QString a, b;
-		QString history;
-		a = Sokoban::process("#.@",     'l', NULL);     b = "#+ ";     QCOMPARE(a, b); QVERIFY(history.isEmpty());
-		a = Sokoban::process("#.@",     'l', &history); b = "#+ ";     QCOMPARE(a, b); QCOMPARE(history, QString("l"));
-		a = Sokoban::process("#+ ",     'l', &history); b = "#+ ";     QCOMPARE(a, b); QCOMPARE(history, QString("l"));
-		a = Sokoban::process(".$@",     'l', &history); b = "*@ ";     QCOMPARE(a, b); QCOMPARE(history, QString("lL"));
-		a = Sokoban::process(" $$@",    'l', &history); b = " $$@";    QCOMPARE(a, b); QCOMPARE(history, QString("lL"));
-		a = Sokoban::process("$.*@",    'l', &history); b = "$*+ ";    QCOMPARE(a, b); QCOMPARE(history, QString("lLL"));
-		a = Sokoban::process("@$.",     'r', &history); b = " @*";     QCOMPARE(a, b); QCOMPARE(history, QString("lLLR"));
-		a = Sokoban::process(".\n$\n@", 'u', &history); b = "*\n@\n "; QCOMPARE(a, b); QCOMPARE(history, QString("lLLRU"));
-		a = Sokoban::process("@\n$\n.", 'd', &history); b = " \n@\n*"; QCOMPARE(a, b); QCOMPARE(history, QString("lLLRUD"));
+	void cannotMoveTwoBoxesInRow_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("right") << QString("@$$ ") << QString('r') << QString("@$$ ");
+		QTest::newRow("left") << QString(" $$@") << QString('l') << QString(" $$@");
+		QTest::newRow("down") << QString("@\n$\n$\n ") << QString('d') << QString("@\n$\n$\n ");
+		QTest::newRow("up") << QString(" \n$\n$\n@") << QString('u') << QString(" \n$\n$\n@");
 	}
 	void cannotMoveTwoBoxesInRow() {
-		QString a, b;
-		a = Sokoban::process("@$$ ", 'r');       b = "@$$ ";       QCOMPARE(a, b);
-		a = Sokoban::process(" $$@", 'l');       b = " $$@";       QCOMPARE(a, b);
-		a = Sokoban::process("@\n$\n$\n ", 'd'); b = "@\n$\n$\n "; QCOMPARE(a, b);
-		a = Sokoban::process(" \n$\n$\n@", 'u'); b = " \n$\n$\n@"; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+	void cannotMoveBoxIntoWall_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::newRow("right") << QString("@$# ") << QString('r') << QString("@$# ");
+		QTest::newRow("left") << QString(" #$@") << QString('l') << QString(" #$@");
+		QTest::newRow("down") << QString("@\n$\n#\n ") << QString('d') << QString("@\n$\n#\n ");
+		QTest::newRow("up") << QString(" \n#\n$\n@") << QString('u') << QString(" \n#\n$\n@");
 	}
 	void cannotMoveBoxIntoWall() {
-		QString a, b;
-		a = Sokoban::process("@$# ", 'r');       b = "@$# ";       QCOMPARE(a, b);
-		a = Sokoban::process(" #$@", 'l');       b = " #$@";       QCOMPARE(a, b);
-		a = Sokoban::process("@\n$\n#\n ", 'd'); b = "@\n$\n#\n "; QCOMPARE(a, b);
-		a = Sokoban::process(" \n#\n$\n@", 'u'); b = " \n#\n$\n@"; QCOMPARE(a, b);
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+	}
+
+	void historyIsTracked_data() {
+		QTest::addColumn<QString>("levelBefore");
+		QTest::addColumn<QString>("control");
+		QTest::addColumn<QString>("levelAfter");
+		QTest::addColumn<QString>("history");
+		QTest::newRow("right") << QString("@ ") << QString("r") << QString(" @") << QString("r");
+		QTest::newRow("left") << QString(" @") << QString("l") << QString("@ ") << QString("l");
+		QTest::newRow("up") << QString(" \n@") << QString("u") << QString("@\n ") << QString("u");
+		QTest::newRow("down") << QString("@\n ") << QString("d") << QString(" \n@") << QString("d");
+		QTest::newRow("box right") << QString("@$.") << QString("r") << QString(" @*") << QString("R");
+		QTest::newRow("box left") << QString(".$@") << QString("l") << QString("*@ ") << QString("L");
+		QTest::newRow("box up") << QString(".\n$\n@") << QString("u") << QString("*\n@\n ") << QString("U");
+		QTest::newRow("box down") << QString("@\n$\n.") << QString("d") << QString(" \n@\n*") << QString("D");
+		QTest::newRow("into wall") << QString(" #@") << QString("l") << QString(" #@") << QString("");
+		QTest::newRow("box into wall") << QString(" #$@") << QString("l") << QString(" #$@") << QString("");
+		QTest::newRow("two boxes") << QString(" $$@") << QString("l") << QString(" $$@") << QString("");
+		QTest::newRow("complex history") << QString("#.* @") << QString("lll") << QString("#*+  ") << QString("lL");
+	}
+	void historyIsTracked() {
+		QFETCH(QString, levelBefore);
+		QFETCH(QString, control);
+		QFETCH(QString, levelAfter);
+		Sokoban sokoban(levelBefore);
+		sokoban.processControls(control);
+		QCOMPARE(sokoban.toString(), levelAfter);
+		QCOMPARE(sokoban.historyAsString(), history);
+	}
+	void takeAllSlotsToWin_data() {
+		QTest::addColumn<QString>("level");
+		QTest::addColumn<bool>("isSolved");
+		QTest::newRow("empty") << QString("@ ") << true;
+		QTest::newRow("box without slot") << QString("@$") << false;
+		QTest::newRow("solved box") << QString("@*") << true;
+		QTest::newRow("unsolved box") << QString("+*") << false;
+		QTest::newRow("two boxes, one slot") << QString("@*$ ") << false;
+		QTest::newRow("two solved boxes") << QString("@* * ") << true;
+		QTest::newRow("two boxes, three slots") << QString("@*.* ") << false;
+		QTest::newRow("two boxes, four slots") << QString("+*.* ") << false;
+		QTest::newRow("three boxes, four slots") << QString("+*.*$") << false;
 	}
 	void takeAllSlotsToWin() {
-		QVERIFY( Sokoban::isSolved("@ "));
-		QVERIFY(!Sokoban::isSolved("@$"));
-		QVERIFY( Sokoban::isSolved("@*"));
-		QVERIFY(!Sokoban::isSolved("+*"));
-		QVERIFY(!Sokoban::isSolved("@*$ "));
-		QVERIFY( Sokoban::isSolved("@* * "));
-		QVERIFY(!Sokoban::isSolved("@*.* "));
-		QVERIFY(!Sokoban::isSolved("+*.* "));
-		QVERIFY(!Sokoban::isSolved("+*.*$"));
+		QFETCH(QString, level);
+		QFETCH(bool, isSolved);
+		Sokoban sokoban(level);
+		QCOMPARE(sokoban.isSolved(), isSolved);
 	}
 	void undoMovement() {
-		QString history = "uldlrlrr";
-		int historySize = history.size();
-		QString a, b;
-		a = Sokoban::undo("#. \n. @", &history); b = "#. \n.@ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#. \n.@ ", &history); b = "#. \n+  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#. \n+  ", &history); b = "#. \n.@ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#. \n.@ ", &history); b = "#. \n+  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#. \n+  ", &history); b = "#. \n.@ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#. \n.@ ", &history); b = "#+ \n.  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#+ \n.  ", &history); b = "#.@\n.  "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("#.@\n.  ", &history); b = "#. \n. @"; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-	}
-	void undoMovementWithPush() {
-		QString history = "UDLR";
-		int historySize = history.size();
-		QString a, b;
-		a = Sokoban::undo(" @$", &history); b = "@$ "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("$@ ", &history); b = " $@"; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo(" \n@\n$", &history); b = "@\n$\n "; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
-		a = Sokoban::undo("$\n@\n ", &history); b = " \n$\n@"; QCOMPARE(a, b); --historySize; QCOMPARE(history.size(), historySize);
+		QString levelBefore = ".* \n.$@";
+		QString controls = "luruldu";
+		QString history = "LruLdu";
+		QString levelAfter = "*+ \n*  ";
+		Sokoban sokoban(levelBefore);
+		QCOMPARE(sokoban.toString(), levelBefore);
+		sokoban.processControls(controls);
+		QCOMPARE(sokoban.toString(), levelAfter);
+		QCOMPARE(sokoban.historyAsString(), history);
+		while(sokoban.undo()) {}
+		QCOMPARE(sokoban.historyAsString(), QString());
+		QCOMPARE(sokoban.toString(), levelBefore);
 	}
 	void exceptionInvalidPlayerCount_data() {
 		QTest::addColumn<QString>("field");
-		QTest::addColumn<QChar>("control");
 		QTest::addColumn<bool>("shouldBeThrown");
 		QTest::addColumn<int>("playerCount");
-		QTest::newRow("3 players") << QString("@@@") << QChar('r') << true << 3;
-		QTest::newRow("2 players") << QString("@@ ") << QChar('r') << true << 2;
-		QTest::newRow("1 players") << QString("#@ ") << QChar('r') << false << 1;
-		QTest::newRow("0 players") << QString("#  ") << QChar('r') << true << 0;
+		QTest::newRow("3 players") << QString("@@@") << true << 3;
+		QTest::newRow("2 players") << QString("@@ ") << true << 2;
+		QTest::newRow("1 players") << QString("#@ ") << false << 1;
+		QTest::newRow("0 players") << QString("#  ") << true << 0;
 	}
 	void exceptionInvalidPlayerCount() {
 		QFETCH(QString, field);
-		QFETCH(QChar, control);
 		QFETCH(bool, shouldBeThrown);
 		QFETCH(int, playerCount);
 		bool thrown = false;
 		try {
-			Sokoban::process(field, control);
+			Sokoban sokoban(field);
 		} catch(Sokoban::InvalidPlayerCountException & e) {
 			QCOMPARE(e.playerCount, playerCount);
 			thrown = true;
@@ -389,7 +479,8 @@ private slots:
 		QString field = "   \n @ \n   ";
 		bool thrown = false;
 		try {
-			Sokoban::process(field, control);
+			Sokoban sokoban(field);
+			sokoban.processControls(control);
 		} catch(Sokoban::InvalidControlException & e) {
 			QCOMPARE(e.invalidControl, control);
 			thrown = true;
@@ -412,8 +503,10 @@ private slots:
 		int historySize = history.size();
 		bool thrown = false;
 		try {
-			Sokoban::undo(field, &history);
+			Sokoban sokoban(field, history);
+			sokoban.undo();
 		} catch(Sokoban::InvalidUndoException & e) {
+			QString history = sokoban.historyAsString();
 			QCOMPARE(history.size(), historySize);
 			QVERIFY(!history.isEmpty());
 			QChar last = history[history.size() - 1];
@@ -438,7 +531,8 @@ private slots:
 		QFETCH(bool, shouldBeThrown);
 		bool thrown = false;
 		try {
-			Sokoban::process(field, control);
+			Sokoban sokoban(field);
+			sokoban.processControls(control);
 		} catch(Sokoban::OutOfMapException & e) {
 			thrown = true;
 		} catch(...) {}
