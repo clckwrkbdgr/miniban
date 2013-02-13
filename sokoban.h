@@ -1,48 +1,49 @@
 #include <QtCore/QString>
 
-namespace Sokoban {
+class Sokoban {
+public:
+	enum Cell {
+		FLOOR           = ' ',
+		WALL            = '#',
+		PLAYER_ON_FLOOR = '@',
+		EMPTY_SLOT      = '.',
+		PLAYER_ON_SLOT  = '+',
+		BOX_ON_FLOOR    = '$',
+		BOX_ON_SLOT     = '*'
+	};
+	enum Control {
+		NONE       = 0,
+		UP         = 'u',
+		DOWN       = 'd',
+		LEFT       = 'l',
+		RIGHT      = 'r',
+		PUSH_UP    = 'U',
+		PUSH_DOWN  = 'D',
+		PUSH_LEFT  = 'L',
+		PUSH_RIGHT = 'R'
+	};
 
-namespace TileType { enum TileTypes {
-	FLOOR           = ' ',
-	WALL            = '#',
-	PLAYER_ON_FLOOR = '@',
-	EMPTY_SLOT      = '.',
-	PLAYER_ON_SLOT  = '+',
-	BOX_ON_FLOOR    = '$',
-	BOX_ON_SLOT     = '*'
-}; };
-
-namespace Control { enum Controls {
-	NONE       = 0,
-	UP         = 'u',
-	DOWN       = 'd',
-	LEFT       = 'l',
-	RIGHT      = 'r',
-	PUSH_UP    = 'U',
-	PUSH_DOWN  = 'D',
-	PUSH_LEFT  = 'L',
-	PUSH_RIGHT = 'R'
-}; };
-
-class InvalidPlayerCountException {
+	class InvalidPlayerCountException {
 	public:
 		InvalidPlayerCountException(int wrongPlayerCount) : playerCount(wrongPlayerCount) {}
 		int playerCount;
-};
-class InvalidControlException {
+	};
+	class InvalidControlException {
 	public:
 		InvalidControlException(const QChar & control) : invalidControl(control) {}
 		QChar invalidControl;
-};
-class InvalidUndoException {
+	};
+	class InvalidUndoException {
 	public:
 		InvalidUndoException(const QChar & control) : invalidUndoControl(control) {}
 		QChar invalidUndoControl;
-};
-class OutOfMapException {};
+	};
+	class OutOfMapException {};
 
-QString process(const QString & field, const QChar & control, QString * history = NULL);
-QString undo(const QString & field, QString * history = NULL);
-bool isSolved(const QString & field);
-
+	Sokoban(const QString & levelField, const QString & backgroundHistory = QString());
+	void processControls(const QString & controls);
+	QString toString() const;
+	QString historyAsString() const;
+	bool undo();
+	bool isSolved();
 };

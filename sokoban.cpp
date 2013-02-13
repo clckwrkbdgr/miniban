@@ -2,27 +2,19 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
-//# Miniban - a clone of Sokoban game.
-//#
-//# Developed using C++/Qt4.
-//#
-//# THE GAME
-//#
+/*
 
-namespace Sokoban { // Auxiliary functions.
-
-using namespace TileType;
-using namespace Control;
+namespace { // Auxiliary functions.
 
 int findPlayerPos(const QString & field)
 {
-	int playerCount = field.count(PLAYER_ON_FLOOR) + field.count(PLAYER_ON_SLOT);
+	int playerCount = field.count(Sokoban::PLAYER_ON_FLOOR) + field.count(Sokoban::PLAYER_ON_SLOT);
 	if(playerCount != 1) {
 		throw Sokoban::InvalidPlayerCountException(playerCount);
 	}
-	int playerPos = field.indexOf(PLAYER_ON_FLOOR);
+	int playerPos = field.indexOf(Sokoban::PLAYER_ON_FLOOR);
 	if(playerPos < 0) {
-		playerPos = field.indexOf(PLAYER_ON_SLOT);
+		playerPos = field.indexOf(Sokoban::PLAYER_ON_SLOT);
 	}
 	return playerPos;
 }
@@ -45,41 +37,41 @@ int getOneLineLowerPos(const QString & field, int playerPos)
 
 QChar getFloorSprite(const QString & field, int pos)
 {
-	if(field[pos] == PLAYER_ON_FLOOR) {
-		return FLOOR;
-	} else if(field[pos] == PLAYER_ON_SLOT) {
-		return EMPTY_SLOT;
-	} else if(field[pos] == BOX_ON_FLOOR) {
-		return FLOOR;
-	} else if(field[pos] == BOX_ON_SLOT) {
-		return EMPTY_SLOT;
+	if(field[pos] == Sokoban::PLAYER_ON_FLOOR) {
+		return Sokoban::FLOOR;
+	} else if(field[pos] == Sokoban::PLAYER_ON_SLOT) {
+		return Sokoban::EMPTY_SLOT;
+	} else if(field[pos] == Sokoban::BOX_ON_FLOOR) {
+		return Sokoban::FLOOR;
+	} else if(field[pos] == Sokoban::BOX_ON_SLOT) {
+		return Sokoban::EMPTY_SLOT;
 	}
 	return field[pos];
 }
 
 QChar getPlayerSprite(const QString & field, int pos)
 {
-	if(field[pos] == FLOOR) {
-		return PLAYER_ON_FLOOR;
-	} else if(field[pos] == EMPTY_SLOT) {
-		return PLAYER_ON_SLOT;
+	if(field[pos] == Sokoban::FLOOR) {
+		return Sokoban::PLAYER_ON_FLOOR;
+	} else if(field[pos] == Sokoban::EMPTY_SLOT) {
+		return Sokoban::PLAYER_ON_SLOT;
 	}
 	return field[pos];
 }
 
 QChar getBoxSprite(const QString & field, int pos)
 {
-	if(field[pos] == FLOOR) {
-		return BOX_ON_FLOOR;
-	} else if(field[pos] == EMPTY_SLOT) {
-		return BOX_ON_SLOT;
+	if(field[pos] == Sokoban::FLOOR) {
+		return Sokoban::BOX_ON_FLOOR;
+	} else if(field[pos] == Sokoban::EMPTY_SLOT) {
+		return Sokoban::BOX_ON_SLOT;
 	}
 	return field[pos];
 }
 
 bool isBox(const QString & field, int pos)
 {
-	return (field[pos] == BOX_ON_FLOOR || field[pos] == BOX_ON_SLOT);
+	return (field[pos] == Sokoban::BOX_ON_FLOOR || field[pos] == Sokoban::BOX_ON_SLOT);
 }
 
 int getNewPos(const QString & field, int pos, const QChar & control)
@@ -90,23 +82,23 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 	int relPos = pos - currentLineStart;
 
 	//# Player can move in four directions (up, down, left, right).
-	if(control == RIGHT) {
+	if(control == Sokoban::RIGHT) {
 		bool isLastLine = field.indexOf('\n', pos) < 0;
 		bool crossRightBorder = isLastLine ? (pos + 1 >= field.size()) : (pos + 1 >= nextLineStart);
 		if(crossRightBorder)
 			throw Sokoban::OutOfMapException();
 		return pos + 1;
-	} else if(control == LEFT) {
+	} else if(control == Sokoban::LEFT) {
 		bool isFirstLine = field.lastIndexOf('\n', pos) < 0;
 		bool crossLeftBorder = isFirstLine ? (pos - 1 < 0) : (pos - 1 <= currentLineStart);
 		if(crossLeftBorder)
 			throw Sokoban::OutOfMapException();
 		return pos - 1;
-	} else if(control == DOWN) {
+	} else if(control == Sokoban::DOWN) {
 		if(nextLineStart < 0)
 			throw Sokoban::OutOfMapException();
 		return nextLineStart + relPos;
-	} else if(control == UP) {
+	} else if(control == Sokoban::UP) {
 		if(currentLineStart < 0)
 			throw Sokoban::OutOfMapException();
 		return prevLineStart + relPos;
@@ -117,12 +109,10 @@ int getNewPos(const QString & field, int pos, const QChar & control)
 bool isFreeToMove(const QString & field, int pos)
 {
 	//# Player cannot move through walls.
-	return field[pos] != WALL;
+	return field[pos] != Sokoban::WALL;
 }
 
 };
-
-namespace Sokoban { // Main functions.
 
 QString process(const QString & field, const QChar & control, QString * history)
 {
@@ -213,12 +203,43 @@ QString undo(const QString & field, QString * history)
 bool isSolved(const QString & field)
 {
 	//# The goal of the game is to move all the boxes into all slots.
-	int freeSlotCount = field.count(EMPTY_SLOT) + field.count(PLAYER_ON_SLOT);
-	int freeBoxCount =  field.count(BOX_ON_FLOOR);
+	int freeSlotCount = field.count(Sokoban::EMPTY_SLOT) + field.count(Sokoban::PLAYER_ON_SLOT);
+	int freeBoxCount =  field.count(Sokoban::BOX_ON_FLOOR);
 	return (freeSlotCount == 0) && (freeBoxCount == 0);
 }
 
-};
+*/
+
+Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
+{
+	Q_UNUSED(levelField);
+	Q_UNUSED(backgroundHistory);
+}
+
+void Sokoban::processControls(const QString & controls)
+{
+	Q_UNUSED(controls);
+}
+
+QString Sokoban::toString() const
+{
+	return QString();
+}
+
+QString Sokoban::historyAsString() const
+{
+	return QString();
+}
+
+bool Sokoban::undo()
+{
+	return false;
+}
+
+bool Sokoban::isSolved()
+{
+	return false;
+}
 
 //! Use `qmake "CONFIG += SOKOBAN_TEST"` to build unit tests.
 #ifdef SOKOBAN_TEST
@@ -397,6 +418,7 @@ private slots:
 		QFETCH(QString, levelBefore);
 		QFETCH(QString, control);
 		QFETCH(QString, levelAfter);
+		QFETCH(QString, history);
 		Sokoban sokoban(levelBefore);
 		sokoban.processControls(control);
 		QCOMPARE(sokoban.toString(), levelAfter);
@@ -502,8 +524,8 @@ private slots:
 		QFETCH(bool, shouldBeThrown);
 		int historySize = history.size();
 		bool thrown = false;
+		Sokoban sokoban(field, history);
 		try {
-			Sokoban sokoban(field, history);
 			sokoban.undo();
 		} catch(Sokoban::InvalidUndoException & e) {
 			QString history = sokoban.historyAsString();
@@ -540,5 +562,5 @@ private slots:
 	}
 };
 QTEST_MAIN(SokobanTest)
-#include "test.moc"
+#include "sokoban.moc"
 #endif//SOKOBAN_TEST
