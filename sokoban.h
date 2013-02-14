@@ -5,27 +5,8 @@
 
 class Sokoban {
 public:
-	enum CellType {
-		FLOOR           = ' ',
-		WALL            = '#',
-		PLAYER_ON_FLOOR = '@',
-		EMPTY_SLOT      = '.',
-		PLAYER_ON_SLOT  = '+',
-		BOX_ON_FLOOR    = '$',
-		BOX_ON_SLOT     = '*'
-	};
+	enum { FLOOR, SPACE, WALL, PLAYER_ON_FLOOR, EMPTY_SLOT, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT };
 	typedef int Cell;
-	enum Control {
-		NONE       = 0,
-		UP         = 'u',
-		DOWN       = 'd',
-		LEFT       = 'l',
-		RIGHT      = 'r',
-		PUSH_UP    = 'U',
-		PUSH_DOWN  = 'D',
-		PUSH_LEFT  = 'L',
-		PUSH_RIGHT = 'R'
-	};
 
 	class InvalidPlayerCountException {
 	public:
@@ -62,4 +43,5 @@ private:
 	Cell & cell(const QPoint & point);
 	const Cell & cell(const QPoint & point) const;
 	bool isValid(const QPoint & pos) const;
+	void fillFloor(QVector<int> & reachable, const QPoint & point);
 };

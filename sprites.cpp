@@ -13,6 +13,7 @@ QMap<int, QImage> getAllConvertedSprites()
 	result[Sokoban::FLOOR]           = sprites.copy(0, 0, 8, 8);
 	result[Sokoban::WALL]            = sprites.copy(8, 0, 8, 8);
 	result[Sokoban::EMPTY_SLOT]      = sprites.copy(16, 0, 8, 8);
+	result[Sokoban::SPACE]           = sprites.copy(24, 0, 8, 8);
 	result[Sokoban::PLAYER_ON_FLOOR] = sprites.copy(0, 8, 8, 8);
 	result[Sokoban::PLAYER_ON_SLOT]  = sprites.copy(8, 8, 8, 8);
 	result[Sokoban::BOX_ON_FLOOR]    = sprites.copy(16, 8, 8, 8);

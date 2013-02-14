@@ -15,6 +15,7 @@ const QList<int> & getAllTileTypes()
 		<< Sokoban::FLOOR
 		<< Sokoban::WALL
 		<< Sokoban::EMPTY_SLOT
+		<< Sokoban::SPACE
 		<< Sokoban::PLAYER_ON_FLOOR
 		<< Sokoban::PLAYER_ON_SLOT
 		<< Sokoban::BOX_ON_FLOOR
@@ -48,10 +49,10 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 void PlayingMode::processControl(int control)
 {
 	switch(control) {
-		case CONTROL_LEFT:  sokoban.processControls(QChar(Sokoban::LEFT)); break;
-		case CONTROL_DOWN:  sokoban.processControls(QChar(Sokoban::DOWN)); break;
-		case CONTROL_UP:    sokoban.processControls(QChar(Sokoban::UP)); break;
-		case CONTROL_RIGHT: sokoban.processControls(QChar(Sokoban::RIGHT)); break;
+		case CONTROL_LEFT:  sokoban.processControls("l"); break;
+		case CONTROL_DOWN:  sokoban.processControls("d"); break;
+		case CONTROL_UP:    sokoban.processControls("u"); break;
+		case CONTROL_RIGHT: sokoban.processControls("r"); break;
 		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
 		case CONTROL_UNDO:
 				   sokoban.undo();
@@ -85,6 +86,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 		for(int x = 0; x < sokoban.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
 			bool validSprite = sprites.contains(sokoban.getCell(QPoint(x, y)));
+			qDebug() << validSprite;
 			QChar tileType = validSprite ? sokoban.getCell(QPoint(x, y)) : QChar(Sokoban::FLOOR);
 			painter->drawImage(pos, sprites[tileType]);
 		}

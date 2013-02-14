@@ -14,7 +14,7 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 	}
 
 	QMap<QChar, int> charToCell;
-	charToCell[' '] = FLOOR;
+	charToCell[' '] = SPACE;
 	charToCell['#'] = WALL;
 	charToCell['@'] = PLAYER_ON_FLOOR;
 	charToCell['.'] = EMPTY_SLOT;
@@ -26,7 +26,7 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 		validChars.append(ch);
 	}
 
-	cells.fill(Sokoban::FLOOR, size.width() * size.height());
+	cells.fill(Sokoban::SPACE, size.width() * size.height());
 	int playerCount = 0;
 	for(int y = 0; y < rows.count(); ++y) {
 		const QString & row = rows[y];
@@ -44,6 +44,33 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 	if(playerCount != 1) {
 		throw InvalidPlayerCountException(playerCount);
 	}
+
+	// 0 - passable, 1 - impassable, 2 - found to be floor.
+	QVector<int> reachable(cells.size(), 0);
+	for(int i = 0; i < cells.size(); ++i) {
+		reachable[i] = (cells[i] == WALL) ? 1 : 0;
+	}
+	fillFloor(reachable, getPlayerPos());
+	for(int i = 0; i < cells.size(); ++i) {
+		if(reachable[i] == 2 && cells[i] == SPACE) {
+			cells[i] = FLOOR;
+		}
+	}
+}
+
+void Sokoban::fillFloor(QVector<int> & reachable, const QPoint & point)
+{
+	if(!isValid(point)) {
+		return;
+	}
+	if(reachable[point.x() + point.y() * width()] != 0) {
+		return;
+	}
+	reachable[point.x() + point.y() * width()] = 2;
+	fillFloor(reachable, point + QPoint(0, 1));
+	fillFloor(reachable, point + QPoint(0, -1));
+	fillFloor(reachable, point + QPoint(1, 0));
+	fillFloor(reachable, point + QPoint(-1, 0));
 }
 
 QPoint Sokoban::getPlayerPos() const
@@ -139,6 +166,7 @@ QString Sokoban::toString() const
 {
 	QMap<QChar, int> cellToChar;
 	cellToChar[FLOOR          ] = ' ';
+	cellToChar[SPACE          ] = ' ';
 	cellToChar[WALL           ] = '#';
 	cellToChar[PLAYER_ON_FLOOR] = '@';
 	cellToChar[EMPTY_SLOT     ] = '.';
@@ -476,6 +504,7 @@ private slots:
 		QCOMPARE(sokoban.historyAsString(), QString());
 		QCOMPARE(sokoban.toString(), levelBefore);
 	}
+
 	void exceptionInvalidPlayerCount_data() {
 		QTest::addColumn<QString>("field");
 		QTest::addColumn<bool>("shouldBeThrown");
@@ -578,6 +607,34 @@ private slots:
 			thrown = true;
 		} catch(...) {}
 		QCOMPARE(thrown, shouldBeThrown);
+	}
+
+	void unreachableCellsAreMarkedAsSpace() {
+		QString level =
+			"  ###  \n"
+			"### ###\n"
+			"#  @  #\n"
+			"### ###\n"
+			"  ###  ";
+		Sokoban sokoban(level);
+		QCOMPARE(sokoban.toString(), level);
+		QCOMPARE(sokoban.getCell(QPoint(0, 0)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(1, 0)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(5, 0)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(6, 0)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(0, 4)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(1, 4)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(5, 4)), int(Sokoban::SPACE));
+		QCOMPARE(sokoban.getCell(QPoint(6, 4)), int(Sokoban::SPACE));
+		int spaceCount = 0;
+		for(int x = 0; x < sokoban.width(); ++x) {
+			for(int y = 0; y < sokoban.height(); ++y) {
+				if(sokoban.getCell(QPoint(x, y)) == Sokoban::SPACE) {
+					spaceCount++;
+				}
+			}
+		}
+		QCOMPARE(spaceCount, 8);
 	}
 };
 QTEST_MAIN(SokobanTest)
