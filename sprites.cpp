@@ -1,3 +1,4 @@
+#include <QtDebug>
 #include <QtCore/QMap>
 #include <QtGui/QImage>
 #include "sokoban.h"
@@ -6,18 +7,24 @@
 
 namespace Sprites { // Aux functions and cached sprites.
 
+QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
+{
+	return tileset.copy(x * tile_size.width(), y * tile_size.height(), tile_size.width(), tile_size.height());
+}
+
 QMap<int, QImage> getAllConvertedSprites()
 {
-	QImage sprites(":/sprites");
+	QImage sprites("sokoban.png");
+	QSize sprite_size = QSize(sprites.width() / 4, sprites.height() / 2);
 	QMap<int, QImage> result;
-	result[Sokoban::FLOOR]           = sprites.copy(0, 0, 8, 8);
-	result[Sokoban::WALL]            = sprites.copy(8, 0, 8, 8);
-	result[Sokoban::EMPTY_SLOT]      = sprites.copy(16, 0, 8, 8);
-	result[Sokoban::SPACE]           = sprites.copy(24, 0, 8, 8);
-	result[Sokoban::PLAYER_ON_FLOOR] = sprites.copy(0, 8, 8, 8);
-	result[Sokoban::PLAYER_ON_SLOT]  = sprites.copy(8, 8, 8, 8);
-	result[Sokoban::BOX_ON_FLOOR]    = sprites.copy(16, 8, 8, 8);
-	result[Sokoban::BOX_ON_SLOT]     = sprites.copy(24, 8, 8, 8);
+	result[Sokoban::FLOOR]           = get_tile(sprites, 0, 0, sprite_size);
+	result[Sokoban::WALL]            = get_tile(sprites, 1, 0, sprite_size);
+	result[Sokoban::EMPTY_SLOT]      = get_tile(sprites, 2, 0, sprite_size);
+	result[Sokoban::SPACE]           = get_tile(sprites, 3, 0, sprite_size);
+	result[Sokoban::PLAYER_ON_FLOOR] = get_tile(sprites, 0, 1, sprite_size);
+	result[Sokoban::PLAYER_ON_SLOT]  = get_tile(sprites, 1, 1, sprite_size);
+	result[Sokoban::BOX_ON_FLOOR]    = get_tile(sprites, 2, 1, sprite_size);
+	result[Sokoban::BOX_ON_SLOT]     = get_tile(sprites, 3, 1, sprite_size);
 	return result;
 }
 
@@ -29,7 +36,7 @@ namespace Sprites { // Main.
 
 QSize getSpritesBounds()
 {
-	return QSize(8, 8);
+	return QSize(16, 16);
 }
 
 QImage getSprite(int tileType, int scaleFactor)

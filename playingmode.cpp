@@ -86,7 +86,6 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 		for(int x = 0; x < sokoban.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
 			bool validSprite = sprites.contains(sokoban.getCell(QPoint(x, y)));
-			qDebug() << validSprite;
 			QChar tileType = validSprite ? sokoban.getCell(QPoint(x, y)) : QChar(Sokoban::FLOOR);
 			painter->drawImage(pos, sprites[tileType]);
 		}

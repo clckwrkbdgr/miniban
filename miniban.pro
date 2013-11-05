@@ -11,7 +11,6 @@ SOKOBAN_TEST {
 	QT += testlib
 	modules = sokoban
 } else {
-	RESOURCES += sokoban.qrc
 	HEADERS += abstractgamemode.h
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget
