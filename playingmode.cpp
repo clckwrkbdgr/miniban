@@ -49,10 +49,14 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 void PlayingMode::processControl(int control)
 {
 	switch(control) {
-		case CONTROL_LEFT:  sokoban.processControls("l"); break;
-		case CONTROL_DOWN:  sokoban.processControls("d"); break;
-		case CONTROL_UP:    sokoban.processControls("u"); break;
-		case CONTROL_RIGHT: sokoban.processControls("r"); break;
+		case CONTROL_LEFT:  sokoban.movePlayer(Sokoban::LEFT); break;
+		case CONTROL_DOWN:  sokoban.movePlayer(Sokoban::DOWN); break;
+		case CONTROL_UP:    sokoban.movePlayer(Sokoban::UP); break;
+		case CONTROL_RIGHT: sokoban.movePlayer(Sokoban::RIGHT); break;
+		case CONTROL_RUN_LEFT:  sokoban.runPlayer(Sokoban::LEFT); break;
+		case CONTROL_RUN_DOWN:  sokoban.runPlayer(Sokoban::DOWN); break;
+		case CONTROL_RUN_UP:    sokoban.runPlayer(Sokoban::UP); break;
+		case CONTROL_RUN_RIGHT: sokoban.runPlayer(Sokoban::RIGHT); break;
 		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
 		case CONTROL_UNDO:
 				   sokoban.undo();

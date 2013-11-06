@@ -6,6 +6,7 @@
 class Sokoban {
 public:
 	enum { FLOOR, SPACE, WALL, PLAYER_ON_FLOOR, EMPTY_SLOT, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT };
+	enum { LEFT, RIGHT, DOWN, UP };
 	typedef int Cell;
 
 	class InvalidPlayerCountException {
@@ -29,19 +30,22 @@ public:
 	virtual ~Sokoban() {}
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
-	void processControls(const QString & controls);
 	QString toString() const;
 	QString historyAsString() const;
 	bool undo();
 	bool isSolved();
+	Cell getCell(int x, int y) const { return cell(QPoint(x, y)); }
 	Cell getCell(const QPoint & point) const { return cell(point); }
+	QPoint getPlayerPos() const;
+	bool movePlayer(int control, bool cautious = false);
+	bool runPlayer(int control);
 private:
 	QSize size;
 	QVector<Cell> cells;
 	QString history;
-	QPoint getPlayerPos() const;
 	Cell & cell(const QPoint & point);
 	const Cell & cell(const QPoint & point) const;
 	bool isValid(const QPoint & pos) const;
 	void fillFloor(QVector<int> & reachable, const QPoint & point);
+	bool shiftPlayer(const QPoint & shift);
 };
