@@ -156,6 +156,36 @@ Sokoban::Cell & Sokoban::cell(const QPoint & point)
 	return cells[point.x() + point.y() * width()];
 }
 
+Sokoban::Sprite Sokoban::getCellSprite(const QPoint & point) const
+{
+	switch(cell(point)) {
+		case FLOOR: return FLOOR;
+		case SPACE: return SPACE;
+		case WALL: return WALL;
+		case PLAYER_ON_FLOOR: return FLOOR;
+		case EMPTY_SLOT: return EMPTY_SLOT;
+		case PLAYER_ON_SLOT: return EMPTY_SLOT;
+		case BOX_ON_FLOOR: return FLOOR;
+		case BOX_ON_SLOT: return EMPTY_SLOT;
+		default: return SPACE;
+	}
+}
+
+Sokoban::Sprite Sokoban::getObjectSprite(const QPoint & point) const
+{
+	switch(cell(point)) {
+		case FLOOR: return NONE;
+		case SPACE: return NONE;
+		case WALL: return NONE;
+		case PLAYER_ON_FLOOR: return PLAYER_ON_FLOOR;
+		case EMPTY_SLOT: return NONE;
+		case PLAYER_ON_SLOT: return PLAYER_ON_SLOT;
+		case BOX_ON_FLOOR: return BOX_ON_FLOOR;
+		case BOX_ON_SLOT: return BOX_ON_SLOT;
+		default: return SPACE;
+	}
+}
+
 bool Sokoban::isValid(const QPoint & pos) const
 {
 	return (pos.x() >= 0 && pos.x() < width() && pos.y() >= 0 && pos.y() < height());

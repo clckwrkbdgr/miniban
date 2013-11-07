@@ -118,9 +118,12 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 	for(int y = 0; y < sokoban.height(); ++y) {
 		for(int x = 0; x < sokoban.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
-			bool validSprite = sprites.contains(sokoban.getCell(QPoint(x, y)));
-			QChar tileType = validSprite ? sokoban.getCell(QPoint(x, y)) : QChar(Sokoban::FLOOR);
-			painter->drawImage(pos, sprites[tileType]);
+			int cellSprite = sokoban.getCellSprite(QPoint(x, y));
+			painter->drawImage(pos, sprites[sprites.contains(cellSprite) ? cellSprite : Sokoban::SPACE]);
+			int objectSprite = sokoban.getObjectSprite(QPoint(x, y));
+			if(objectSprite != Sokoban::NONE && sprites.contains(objectSprite)) {
+				painter->drawImage(pos, sprites[objectSprite]);
+			}
 		}
 	}
 	if(target_mode) {

@@ -5,9 +5,10 @@
 
 class Sokoban {
 public:
-	enum { FLOOR, SPACE, WALL, PLAYER_ON_FLOOR, EMPTY_SLOT, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT };
+	enum { NONE = 0, FLOOR, SPACE, WALL, PLAYER_ON_FLOOR, EMPTY_SLOT, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT };
 	enum { LEFT, RIGHT, DOWN, UP };
 	typedef int Cell;
+	typedef int Sprite;
 
 	class InvalidPlayerCountException {
 	public:
@@ -32,8 +33,10 @@ public:
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
 	bool isValid(const QPoint & pos) const;
-	Cell getCell(int x, int y) const { return cell(QPoint(x, y)); }
-	Cell getCell(const QPoint & point) const { return cell(point); }
+	const Cell & getCell(int x, int y) const { return cell(QPoint(x, y)); }
+	const Cell & getCell(const QPoint & point) const { return cell(point); }
+	Sprite getCellSprite(const QPoint & point) const;
+	Sprite getObjectSprite(const QPoint & point) const;
 
 	QString toString() const;
 	QString historyAsString() const;
