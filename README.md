@@ -20,8 +20,9 @@ Left or 'h' - move left.
 Down or 'j' - move down.
 Up or 'k' - move up.
 Right or 'l' - move right.
+'y', 'u', 'b', 'n' - diagonal movement (only for cursor movement)
 Shift-direction - run until wall or box are found.
 X - start target mode (control cursor with usual movement keys, then press 'period' to go there).
-Ctrl-Z, Backspace or 'u' - undo last action.
-Ctrl-R, Home or 'U' - revert to the starting position.
+Ctrl-Z or Backspace - undo last action.
+Ctrl-R or Home - revert to the starting position.
 

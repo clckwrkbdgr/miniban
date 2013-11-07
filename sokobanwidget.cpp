@@ -23,6 +23,10 @@ QMap<int, QString> generateKeyToTextMap()
 	result[Qt::Key_J]         = "J";
 	result[Qt::Key_K]         = "K";
 	result[Qt::Key_L]         = "L";
+	result[Qt::Key_Y]         = "Y";
+	result[Qt::Key_U]         = "U";
+	result[Qt::Key_B]         = "B";
+	result[Qt::Key_N]         = "N";
 	result[Qt::Key_Left]      = "Left";
 	result[Qt::Key_O]         = "O";
 	result[Qt::Key_Q]         = "Q";
@@ -44,6 +48,10 @@ QMap<QString, int> generateTextToControlMap()
 	result["Down"]  = result["J"] = AbstractGameMode::CONTROL_DOWN;
 	result["Up"]    = result["K"] = AbstractGameMode::CONTROL_UP;
 	result["Right"] = result["L"] = AbstractGameMode::CONTROL_RIGHT;
+	result["Y"] = AbstractGameMode::CONTROL_UP_LEFT;
+	result["U"] = AbstractGameMode::CONTROL_UP_RIGHT;
+	result["B"] = AbstractGameMode::CONTROL_DOWN_LEFT;
+	result["N"] = AbstractGameMode::CONTROL_DOWN_RIGHT;
 	result["Shift-Left"]  = result["Shift-H"] = AbstractGameMode::CONTROL_RUN_LEFT;
 	result["Shift-Down"]  = result["Shift-J"] = AbstractGameMode::CONTROL_RUN_DOWN;
 	result["Shift-Up"]    = result["Shift-K"] = AbstractGameMode::CONTROL_RUN_UP;
@@ -53,8 +61,6 @@ QMap<QString, int> generateTextToControlMap()
 	result["Space"]     = AbstractGameMode::CONTROL_SKIP;
 	result["Ctrl-Z"]    = AbstractGameMode::CONTROL_UNDO;
 	result["Backspace"] = AbstractGameMode::CONTROL_UNDO;
-	result["U"]         = AbstractGameMode::CONTROL_UNDO;
-	result["Shift-U"]   = AbstractGameMode::CONTROL_HOME;
 	result["Ctrl-R"]    = AbstractGameMode::CONTROL_HOME;
 	result["Home"]      = AbstractGameMode::CONTROL_HOME;
 	result["O"]         = AbstractGameMode::CONTROL_OPEN;

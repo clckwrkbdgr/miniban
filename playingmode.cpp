@@ -61,6 +61,10 @@ void PlayingMode::processControl(int control)
 			case CONTROL_DOWN:  new_target.ry()++; break;
 			case CONTROL_UP:    new_target.ry()--; break;
 			case CONTROL_RIGHT: new_target.rx()++; break;
+			case CONTROL_UP_LEFT: new_target += QPoint(-1, -1); break;
+			case CONTROL_UP_RIGHT: new_target += QPoint(1, -1); break;
+			case CONTROL_DOWN_LEFT: new_target += QPoint(-1, 1); break;
+			case CONTROL_DOWN_RIGHT: new_target += QPoint(1, 1); break;
 			case CONTROL_GOTO:
 				sokoban.movePlayer(target);
 				target_mode = false;
