@@ -397,6 +397,42 @@ class SokobanTest : public QObject {
 		QCOMPARE(sokoban.toString(), QString("  @$ #"));
 	}
 
+	void targetMoving() {
+		Sokoban sokoban(
+			"#########\n"
+			"# #     #\n"
+			"# # ### #\n"
+			"# #  $  #\n"
+			"# ##### #\n"
+			"# #  @# #\n"
+			"# # ### #\n"
+			"# #     #\n"
+			"#########\n"
+			);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(5, 5));
+		bool moved = false;
+
+		moved = sokoban.movePlayer(QPoint(1, 1));
+		QVERIFY(!moved);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(5, 5));
+
+		moved = sokoban.movePlayer(QPoint(4, 6));
+		QVERIFY(moved);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+
+		moved = sokoban.movePlayer(QPoint(4, 3));
+		QVERIFY(moved);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 3));
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+
+		moved = sokoban.movePlayer(QPoint(5, 5));
+		QVERIFY(!moved);
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+	}
+
 	void historyIsTracked() {
 		Sokoban sokoban("#@ $.$");
 
