@@ -14,7 +14,7 @@ SOKOBAN_TEST {
 	HEADERS += abstractgamemode.h
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget
-	modules += xpm sprites levelset
+	modules += sprites levelset
 	modules += playingmode messagemode fademode
 }
 

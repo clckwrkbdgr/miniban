@@ -1,11 +1,12 @@
 #pragma once
 #include <QtGui/QImage>
 #include "abstractgamemode.h"
+#include "sprites.h"
 
 class FadeMode : public AbstractGameMode {
 	Q_OBJECT
 public:
-	FadeMode(const QString & levelToFade, bool fadeOut, QObject * parent = 0);
+	FadeMode(const QString & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent = 0);
 	virtual ~FadeMode();
 
 	virtual void invalidateRect();
@@ -19,6 +20,7 @@ protected:
 private:
 	QString level;
 	QImage snapshot;
+	Sprites sprites;
 	bool isFadeOut;
 	int timerId;
 	int currentFade;

@@ -12,8 +12,8 @@ const int FADE_COUNT = 200;
 
 };
 
-FadeMode::FadeMode(const QString & levelToFade, bool fadeOut, QObject * parent)
-	: AbstractGameMode(parent), level(levelToFade), isFadeOut(fadeOut), currentFade(isFadeOut ? FADE_COUNT : 0)
+FadeMode::FadeMode(const QString & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent)
+	: AbstractGameMode(parent), level(levelToFade), sprites(_sprites), isFadeOut(fadeOut), currentFade(isFadeOut ? FADE_COUNT : 0)
 {
 	timerId = startTimer(FADE_DELAY);
 	invalidateRect();
@@ -48,7 +48,7 @@ void FadeMode::paint(QPainter * painter, const QRect & rect)
 	if(snapshot.isNull()) {
 		snapshot = QImage(rect.size(), QImage::Format_RGB32);
 		QPainter painter(&snapshot);
-		PlayingMode(level).paint(&painter, snapshot.rect());
+		PlayingMode(level, sprites).paint(&painter, snapshot.rect());
 	}
 
 	painter->fillRect(rect, Qt::black);

@@ -4,11 +4,12 @@
 #include <QtGui/QImage>
 #include "abstractgamemode.h"
 #include "sokoban.h"
+#include "sprites.h"
 
 class PlayingMode : public AbstractGameMode {
 	Q_OBJECT
 public:
-	PlayingMode(const QString & level, QObject * parent = 0);
+	PlayingMode(const QString & level, const Sprites & sprites, QObject * parent = 0);
 	virtual ~PlayingMode() {}
 
 	QString getCurrentLevel() const { return sokoban.toString(); }
@@ -20,10 +21,14 @@ signals:
 	void levelIsSolved();
 private:
 	QString originalLevel;
+	Sprites original_sprites;
 	QMap<QChar, QImage> sprites;
 	QSize spriteSize;
 	bool toInvalidate;
 	Sokoban sokoban;
+	bool target_mode;
+	QPoint target;
+	QImage aim;
 
 	void resizeSpritesForLevel(const QRect & rect);
 };

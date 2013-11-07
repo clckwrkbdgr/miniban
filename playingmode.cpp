@@ -25,14 +25,14 @@ const QList<int> & getAllTileTypes()
 
 };
 
-PlayingMode::PlayingMode(const QString & level, QObject * parent)
-	: AbstractGameMode(parent), originalLevel(level), toInvalidate(true), sokoban(level)
+PlayingMode::PlayingMode(const QString & level, const Sprites & _sprites, QObject * parent)
+	: AbstractGameMode(parent), originalLevel(level), original_sprites(_sprites), toInvalidate(true), sokoban(level), target_mode(false)
 {
 }
 
 void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 {
-	QSize originalSize = Sprites::getSpritesBounds();
+	QSize originalSize = original_sprites.getSpritesBounds();
 	int scaleFactor = qMin(
 			rect.width() / (sokoban.width() * originalSize.width()),
 			rect.height() / (sokoban.height() * originalSize.height())
@@ -40,14 +40,39 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
 	foreach(int tileType, getAllTileTypes()) {
-		sprites[tileType] = Sprites::getSprite(tileType, scaleFactor);
+		sprites[tileType] = original_sprites.getSprite(tileType, scaleFactor);
 	}
 
 	spriteSize = originalSize * scaleFactor;
+
+	aim = QImage(spriteSize, sprites[Sokoban::FLOOR].format());
+	QPainter painter(&aim);
+	painter.setCompositionMode(QPainter::CompositionMode_Source);
+	painter.fillRect(aim.rect(), Qt::blue);
+	painter.fillRect(scaleFactor, scaleFactor, spriteSize.width() - scaleFactor * 2, spriteSize.height() - scaleFactor * 2, Qt::transparent);
 }
 
 void PlayingMode::processControl(int control)
 {
+	if(target_mode) {
+		QPoint new_target = target;
+		switch(control) {
+			case CONTROL_LEFT:  new_target.rx()--; break;
+			case CONTROL_DOWN:  new_target.ry()++; break;
+			case CONTROL_UP:    new_target.ry()--; break;
+			case CONTROL_RIGHT: new_target.rx()++; break;
+			case CONTROL_GOTO:
+				sokoban.movePlayer(target);
+				target_mode = false;
+				break;
+			case CONTROL_TARGET:  target_mode = false; break;
+			default: break;
+		}
+		if(sokoban.isValid(new_target)) {
+			target = new_target;
+		}
+		return;
+	}
 	switch(control) {
 		case CONTROL_LEFT:  sokoban.movePlayer(Sokoban::LEFT); break;
 		case CONTROL_DOWN:  sokoban.movePlayer(Sokoban::DOWN); break;
@@ -57,6 +82,10 @@ void PlayingMode::processControl(int control)
 		case CONTROL_RUN_DOWN:  sokoban.runPlayer(Sokoban::DOWN); break;
 		case CONTROL_RUN_UP:    sokoban.runPlayer(Sokoban::UP); break;
 		case CONTROL_RUN_RIGHT: sokoban.runPlayer(Sokoban::RIGHT); break;
+		case CONTROL_TARGET:
+			target_mode = true;
+			target = sokoban.getPlayerPos();
+			break;
 		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
 		case CONTROL_UNDO:
 				   sokoban.undo();
@@ -93,6 +122,10 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 			QChar tileType = validSprite ? sokoban.getCell(QPoint(x, y)) : QChar(Sokoban::FLOOR);
 			painter->drawImage(pos, sprites[tileType]);
 		}
+	}
+	if(target_mode) {
+		QPoint pos = offset + QPoint(target.x() * spriteSize.width(), target.y() * spriteSize.height());
+		painter->drawImage(pos, aim);
 	}
 }
 

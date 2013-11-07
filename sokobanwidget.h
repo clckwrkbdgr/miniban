@@ -1,6 +1,7 @@
 #pragma once
 #include <QtGui/QWidget>
 #include "levelset.h"
+#include "sprites.h"
 
 class AbstractGameMode;
 
@@ -25,5 +26,6 @@ private:
 	QImage snapshot;
 	LevelSet levelSet;
 	AbstractGameMode * gameMode;
+	Sprites sprites;
 };
 

@@ -28,16 +28,21 @@ public:
 
 	Sokoban(const QString & levelField, const QString & backgroundHistory = QString());
 	virtual ~Sokoban() {}
+
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
-	QString toString() const;
-	QString historyAsString() const;
-	bool undo();
-	bool isSolved();
+	bool isValid(const QPoint & pos) const;
 	Cell getCell(int x, int y) const { return cell(QPoint(x, y)); }
 	Cell getCell(const QPoint & point) const { return cell(point); }
+
+	QString toString() const;
+	QString historyAsString() const;
 	QPoint getPlayerPos() const;
+
+	bool undo();
+	bool isSolved();
 	bool movePlayer(int control, bool cautious = false);
+	bool movePlayer(const QPoint & target);
 	bool runPlayer(int control);
 private:
 	QSize size;
@@ -45,7 +50,6 @@ private:
 	QString history;
 	Cell & cell(const QPoint & point);
 	const Cell & cell(const QPoint & point) const;
-	bool isValid(const QPoint & pos) const;
 	void fillFloor(QVector<int> & reachable, const QPoint & point);
 	bool shiftPlayer(const QPoint & shift);
 };

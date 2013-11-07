@@ -58,6 +58,11 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 	}
 }
 
+bool Sokoban::movePlayer(const QPoint & target)
+{
+	return false;
+}
+
 void Sokoban::fillFloor(QVector<int> & reachable, const QPoint & point)
 {
 	if(!isValid(point)) {
@@ -100,7 +105,8 @@ bool Sokoban::isValid(const QPoint & pos) const
 	return (pos.x() >= 0 && pos.x() < width() && pos.y() >= 0 && pos.y() < height());
 }
 
-bool Sokoban::runPlayer(int control) {
+bool Sokoban::runPlayer(int control)
+{
 	bool moved = false;
 	while(movePlayer(control, true)) {
 		moved = true;

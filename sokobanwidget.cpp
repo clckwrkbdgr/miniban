@@ -32,6 +32,8 @@ QMap<int, QString> generateKeyToTextMap()
 	result[Qt::Key_U]         = "U";
 	result[Qt::Key_Up]        = "Up";
 	result[Qt::Key_Z]         = "Z";
+	result[Qt::Key_X]         = "X";
+	result[Qt::Key_Period]    = ".";
 	return result;
 }
 
@@ -46,6 +48,8 @@ QMap<QString, int> generateTextToControlMap()
 	result["Shift-Down"]  = result["Shift-J"] = AbstractGameMode::CONTROL_RUN_DOWN;
 	result["Shift-Up"]    = result["Shift-K"] = AbstractGameMode::CONTROL_RUN_UP;
 	result["Shift-Right"] = result["Shift-L"] = AbstractGameMode::CONTROL_RUN_RIGHT;
+	result["X"]         = AbstractGameMode::CONTROL_TARGET;
+	result["."]         = AbstractGameMode::CONTROL_GOTO;
 	result["Space"]     = AbstractGameMode::CONTROL_SKIP;
 	result["Ctrl-Z"]    = AbstractGameMode::CONTROL_UNDO;
 	result["Backspace"] = AbstractGameMode::CONTROL_UNDO;
@@ -69,7 +73,7 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 }
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), gameMode(0)
+	: QWidget(parent), gameMode(0), sprites("sokoban.png")
 {
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
@@ -154,7 +158,7 @@ void SokobanWidget::loadNextLevel()
 	}
 	levelSet.moveToNextLevel();
 
-	gameMode = new FadeMode(level, true, this);
+	gameMode = new FadeMode(level, sprites, true, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(showInterlevelMessage()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -170,7 +174,7 @@ void SokobanWidget::showInterlevelMessage()
 
 void SokobanWidget::startFadeIn()
 {
-	gameMode = new FadeMode(levelSet.getCurrentLevel(), false, this);
+	gameMode = new FadeMode(levelSet.getCurrentLevel(), sprites, false, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(startGame()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -178,7 +182,7 @@ void SokobanWidget::startFadeIn()
 
 void SokobanWidget::startGame()
 {
-	gameMode = new PlayingMode(levelSet.getCurrentLevel(), this);
+	gameMode = new PlayingMode(levelSet.getCurrentLevel(), sprites, this);
 	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
 }
