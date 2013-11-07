@@ -60,6 +60,62 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
 
 bool Sokoban::movePlayer(const QPoint & target)
 {
+	QVector<int> passed(cells.size(), -1);
+	for(int i = 0; i < cells.size(); ++i) {
+		if(cells[i] != WALL && cells[i] != BOX_ON_SLOT && cells[i] != BOX_ON_FLOOR) {
+			passed[i] = 0;
+		}
+	}
+	QPoint pos = getPlayerPos();
+	if(pos == target) {
+		return true;
+	}
+	passed[pos.x() + pos.y() * width()] = 1;
+	QList<QPoint> current_points;
+	current_points << pos;
+	for(int counter = 0; counter < cells.size(); ++counter) {
+		QList<QPoint> new_points;
+		foreach(const QPoint & current_pos, current_points) {
+			if(current_pos == target) {
+				if(cell(pos) != PLAYER_ON_FLOOR && cell(pos) != PLAYER_ON_SLOT) {
+					return false;
+				}
+				if(cell(target) != FLOOR && cell(target) != EMPTY_SLOT) {
+					return false;
+				}
+				switch(cell(pos)) {
+					case PLAYER_ON_FLOOR: cell(pos) = FLOOR; break;
+					case PLAYER_ON_SLOT: cell(pos) = EMPTY_SLOT; break;
+					default: return false;
+				}
+				switch(cell(target)) {
+					case FLOOR: cell(target) = PLAYER_ON_FLOOR; break;
+					case EMPTY_SLOT: cell(target) = PLAYER_ON_SLOT; break;
+					default: return false;
+				}
+				return true;
+			}
+			int current_cell = passed[current_pos.x() + current_pos.y() * width()];
+			QList<QPoint> neighs;
+			for(int i = 0; i < passed.size(); ++i) {
+				neighs << current_pos + QPoint(1, 0) << current_pos + QPoint(-1, 0) << current_pos + QPoint(0, 1) << current_pos + QPoint(0, -1);
+			}
+			foreach(const QPoint & neigh, neighs) {
+				if(!isValid(neigh) || passed[neigh.x() + neigh.y() * width()] < 0) {
+					continue;
+				}
+				int & neigh_cell = passed[neigh.x() + neigh.y() * width()];
+				if(neigh_cell == 0) {
+					neigh_cell = current_cell + 1;
+					new_points << neigh;
+				}
+			}
+		}
+		if(new_points.isEmpty()) {
+			return false;
+		}
+		current_points = new_points;
+	}
 	return false;
 }
 
@@ -416,9 +472,9 @@ class SokobanTest : public QObject {
 		QVERIFY(!moved);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(5, 5));
 
-		moved = sokoban.movePlayer(QPoint(4, 6));
+		moved = sokoban.movePlayer(QPoint(6, 3));
 		QVERIFY(moved);
-		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
 
 		moved = sokoban.movePlayer(QPoint(4, 3));
 		QVERIFY(moved);
@@ -426,11 +482,11 @@ class SokobanTest : public QObject {
 
 		sokoban.movePlayer(Sokoban::RIGHT);
 		sokoban.movePlayer(Sokoban::RIGHT);
-		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
 
 		moved = sokoban.movePlayer(QPoint(5, 5));
 		QVERIFY(!moved);
-		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 6));
+		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
 	}
 
 	void historyIsTracked() {
