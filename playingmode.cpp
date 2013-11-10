@@ -1,3 +1,4 @@
+//#define DEBUG_FULL_HISTORY
 #include <QtDebug>
 #include <QtGui/QPainter>
 #include "sokoban.h"
@@ -26,7 +27,13 @@ const QList<int> & getAllTileTypes()
 };
 
 PlayingMode::PlayingMode(const QString & level, const Sprites & _sprites, QObject * parent)
-	: AbstractGameMode(parent), originalLevel(level), original_sprites(_sprites), toInvalidate(true), sokoban(level), target_mode(false)
+	: AbstractGameMode(parent), originalLevel(level), original_sprites(_sprites), toInvalidate(true),
+#ifdef DEBUG_FULL_HISTORY
+	sokoban(level, 0, true),
+#else
+	sokoban(level),
+#endif
+	target_mode(false)
 {
 }
 
@@ -92,8 +99,13 @@ void PlayingMode::processControl(int control)
 			break;
 		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
 		case CONTROL_UNDO:
-				   sokoban.undo();
-				   break;
+			try {
+				sokoban.undo();
+			} catch(const Sokoban::InvalidUndoException & e) {
+				QTextStream err(stderr);
+				err << tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(sokoban.historyAsString()) << endl;
+			}
+			break;
 		default: return;
 	}
 	if(sokoban.isSolved()) {

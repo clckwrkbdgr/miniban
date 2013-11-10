@@ -31,9 +31,10 @@ bool LevelSet::loadFromFile(const QString & fileName)
 				levelData += '\n';
 			}
 		}
-		xmlLevels << qMakePair(title.text() + '/' + level.attribute("Id"), levelData);
+		xmlLevels << qMakePair(level.attribute("Id"), levelData);
 		level = level.nextSiblingElement();
 	}
+	levelSetTitle = title.text();
 	this->fileName = fileName;
 	return true;
 }
@@ -51,6 +52,16 @@ LevelSet::LevelSet(const QString & levelSetFileName, int startLevelIndex)
 void LevelSet::rewindToLevel(int levelIndex)
 {
 	currentLevelIndex = qBound(0, levelIndex, xmlLevels.count() - 1) - 1;
+}
+
+int LevelSet::getLevelCount() const
+{
+	return xmlLevels.count();
+}
+
+const QString & LevelSet::getLevelSetTitle() const
+{
+	return levelSetTitle;
 }
 
 QString LevelSet::getCurrentLevelName() const

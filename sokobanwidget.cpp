@@ -172,7 +172,13 @@ void SokobanWidget::loadNextLevel()
 
 void SokobanWidget::showInterlevelMessage()
 {
-	QString message = levelSet.isOver() ? tr("Levels are over.") : tr("Level: %1").arg(levelSet.getCurrentLevelName());
+	QString levelName = tr("%1: %4\n%2/%3")
+		.arg(levelSet.getLevelSetTitle())
+		.arg(levelSet.getCurrentLevelIndex() + 1)
+		.arg(levelSet.getLevelCount())
+		.arg(levelSet.getCurrentLevelName())
+		;
+	QString message = levelSet.isOver() ? tr("Levels are over.") : levelName;
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
 	update();

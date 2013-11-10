@@ -11,6 +11,8 @@ public:
 
 	int getCurrentLevelIndex() const { return currentLevelIndex; }
 	QString getCurrentLevelName() const;
+	int getLevelCount() const;
+	const QString & getLevelSetTitle() const;
 	QString getCurrentLevelSet() const;
 	const QString & getCurrentLevel() const { return currentLevel; }
 	bool isOver() const { return over; }
@@ -19,6 +21,7 @@ private:
 	int currentLevelIndex;
 	QString currentLevel;
 	int currentSetPos;
+	QString levelSetTitle;
 
 	QString fileName;
 	QList<QPair<QString, QString> > xmlLevels;

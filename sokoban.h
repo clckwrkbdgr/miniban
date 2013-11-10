@@ -27,7 +27,7 @@ public:
 	};
 	class OutOfMapException {};
 
-	Sokoban(const QString & levelField, const QString & backgroundHistory = QString());
+	Sokoban(const QString & levelField, const QString & backgroundHistory = QString(), bool isFullHistoryTracked = false);
 	virtual ~Sokoban() {}
 
 	int width() const { return size.width(); }
@@ -51,6 +51,7 @@ private:
 	QSize size;
 	QVector<Cell> cells;
 	QString history;
+	bool fullHistoryTracking;
 	Cell & cell(const QPoint & point);
 	const Cell & cell(const QPoint & point) const;
 	void fillFloor(QVector<int> & reachable, const QPoint & point);

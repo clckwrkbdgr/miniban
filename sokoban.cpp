@@ -2,8 +2,8 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
-Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory)
-	: history(backgroundHistory)
+Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, bool isFullHistoryTracked)
+	: history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
 {
 	QStringList rows = levelField.split('\n');
 	size.setHeight(rows.count());
@@ -83,15 +83,46 @@ bool Sokoban::movePlayer(const QPoint & target)
 				if(cell(target) != FLOOR && cell(target) != EMPTY_SLOT) {
 					return false;
 				}
-				switch(cell(pos)) {
-					case PLAYER_ON_FLOOR: cell(pos) = FLOOR; break;
-					case PLAYER_ON_SLOT: cell(pos) = EMPTY_SLOT; break;
-					default: return false;
+				QPoint current = current_pos;
+				QList<QPoint> path;
+				path << current;
+				int count = 2000;
+				while(current != pos) {
+					if(--count < 0) {
+						break;
+					}
+					int current_cell = passed[current.x() + current.y() * width()];
+					QList<QPoint> neighs;
+					for(int i = 0; i < passed.size(); ++i) {
+						neighs << current + QPoint(1, 0) << current + QPoint(-1, 0) << current + QPoint(0, 1) << current + QPoint(0, -1);
+					}
+					QPoint step;
+					foreach(const QPoint & neigh, neighs) {
+						if(!isValid(neigh) || passed[neigh.x() + neigh.y() * width()] < 0) {
+							continue;
+						}
+						int & neigh_cell = passed[neigh.x() + neigh.y() * width()];
+						if(neigh_cell == current_cell - 1) {
+							path << neigh;
+							current = neigh;
+							break;
+						}
+					}
 				}
-				switch(cell(target)) {
-					case FLOOR: cell(target) = PLAYER_ON_FLOOR; break;
-					case EMPTY_SLOT: cell(target) = PLAYER_ON_SLOT; break;
-					default: return false;
+				for(int k = 0; k < (path.size() / 2); ++k) {
+					path.swap(k, path.size() - (1 + k));
+				}
+				for(int i = 1; i < path.size(); ++i) {
+					QPoint r = path[i] - path[i - 1];
+					if(r.x() > 0) {
+						movePlayer(Sokoban::RIGHT);
+					} else if(r.x() < 0) {
+						movePlayer(Sokoban::LEFT);
+					} else if(r.y() > 0) {
+						movePlayer(Sokoban::DOWN);
+					} else if(r.y() < 0) {
+						movePlayer(Sokoban::UP);
+					}
 				}
 				return true;
 			}
@@ -304,11 +335,27 @@ bool Sokoban::undo()
 	shiftForControl['d'] = QPoint(0, 1);
 	shiftForControl['r'] = QPoint(1, 0);
 	shiftForControl['l'] = QPoint(-1, 0);
-	if(history.isEmpty()) {
+
+	QString realHistory = history;
+	if(fullHistoryTracking) {
+		while(!realHistory.isEmpty() && realHistory.endsWith('-')) {
+			int count = 0;
+			while(realHistory.endsWith('-')) {
+				++count;
+				realHistory.remove(realHistory.size() - 1, 1);
+			}
+			while(count > 0) {
+				--count;
+				realHistory.remove(realHistory.size() - 1, 1);
+			}
+		}
+	}
+
+	if(realHistory.isEmpty()) {
 		return false;
 	}
 
-	QChar control = history.at(history.size() - 1);
+	QChar control = realHistory.at(realHistory.size() - 1);
 	if(!QString("ulrdURLD").contains(control)) {
 		throw InvalidUndoException(control);
 	}
@@ -357,7 +404,11 @@ bool Sokoban::undo()
 			cell(playerPos) = FLOOR;
 		}
 	}
-	history.remove(history.size() - 1, 1);
+	if(fullHistoryTracking) {
+		history.append('-');
+	} else {
+		history.remove(history.size() - 1, 1);
+	}
 	return true;
 }
 
@@ -501,22 +552,27 @@ class SokobanTest : public QObject {
 		moved = sokoban.movePlayer(QPoint(1, 1));
 		QVERIFY(!moved);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(5, 5));
+		QCOMPARE(sokoban.historyAsString(), QString());
 
 		moved = sokoban.movePlayer(QPoint(6, 3));
 		QVERIFY(moved);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
+		QCOMPARE(sokoban.historyAsString(), QString("llddrrrruuuul"));
 
 		moved = sokoban.movePlayer(QPoint(4, 3));
 		QVERIFY(moved);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(4, 3));
+		QCOMPARE(sokoban.historyAsString(), QString("llddrrrruuuulruullllddr"));
 
 		sokoban.movePlayer(Sokoban::RIGHT);
 		sokoban.movePlayer(Sokoban::RIGHT);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
+		QCOMPARE(sokoban.historyAsString(), QString("llddrrrruuuulruullllddrRR"));
 
 		moved = sokoban.movePlayer(QPoint(5, 5));
 		QVERIFY(!moved);
 		QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
+		QCOMPARE(sokoban.historyAsString(), QString("llddrrrruuuulruullllddrRR"));
 	}
 
 	void historyIsTracked() {
@@ -537,6 +593,45 @@ class SokobanTest : public QObject {
 		sokoban.runPlayer(Sokoban::LEFT);
 		QCOMPARE(sokoban.toString(), QString("#@  *$"));
 		QCOMPARE(sokoban.historyAsString(), QString("rRll"));
+	}
+	void historyIsTrackedWithUndo() {
+		Sokoban sokoban("#@ $.$", "", true);
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.toString(), QString("# @$.$"));
+		QCOMPARE(sokoban.historyAsString(), QString("r"));
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.toString(), QString("#  @*$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rR"));
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.toString(), QString("#  @*$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rR"));
+
+		sokoban.runPlayer(Sokoban::LEFT);
+		QCOMPARE(sokoban.toString(), QString("#@  *$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rRll"));
+		
+		sokoban.undo();
+		sokoban.undo();
+		sokoban.undo();
+		QCOMPARE(sokoban.toString(), QString("# @$.$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rRll---"));
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.toString(), QString("#  @*$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rRll---R"));
+
+		sokoban.undo();
+		sokoban.undo();
+		QCOMPARE(sokoban.toString(), QString("#@ $.$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rRll---R--"));
+
+		sokoban.movePlayer(Sokoban::RIGHT);
+		sokoban.movePlayer(Sokoban::RIGHT);
+		QCOMPARE(sokoban.toString(), QString("#  @*$"));
+		QCOMPARE(sokoban.historyAsString(), QString("rRll---R--rR"));
 	}
 	void takeAllSlotsToWin_data() {
 		QTest::addColumn<QString>("level");
