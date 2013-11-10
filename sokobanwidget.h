@@ -20,8 +20,6 @@ private slots:
 	void showInterlevelMessage();
 	void startFadeIn();
 	void startGame();
-
-	void openLevelSet();
 private:
 	QImage snapshot;
 	LevelSet levelSet;

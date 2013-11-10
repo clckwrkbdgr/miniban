@@ -64,8 +64,6 @@ QMap<QString, int> generateTextToControlMap()
 	result["Backspace"] = AbstractGameMode::CONTROL_UNDO;
 	result["Ctrl-R"]    = AbstractGameMode::CONTROL_HOME;
 	result["Home"]      = AbstractGameMode::CONTROL_HOME;
-	result["O"]         = AbstractGameMode::CONTROL_OPEN;
-	result["Ctrl-O"]    = AbstractGameMode::CONTROL_OPEN;
 	result["Ctrl-Q"]    = AbstractGameMode::CONTROL_QUIT;
 	result["Q"]         = AbstractGameMode::CONTROL_QUIT;
 
@@ -136,19 +134,9 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 			}
 			break;
 		case AbstractGameMode::CONTROL_QUIT: close(); break;
-		case AbstractGameMode::CONTROL_OPEN: openLevelSet(); break;
 		default: QWidget::keyPressEvent(event); break;
 	}
 	update();
-}
-
-void SokobanWidget::openLevelSet()
-{
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open sokoban level set"), "", tr("Sokoban level collections (*.slc)"));
-	if(fileName.isEmpty())
-		return;
-	levelSet = LevelSet(fileName);
-	startFadeIn();
 }
 
 void SokobanWidget::loadNextLevel()

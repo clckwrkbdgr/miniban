@@ -11,6 +11,15 @@ Items can be pushed, but not pulled.
 Item can be pushed only until hits a wall or another box, so two boxes in a row cannot be moved.
 Hero can move only in four basic directions, so no diagonal movement avail.
 
+USAGE
+=====
+
+	miniban [levelset]
+
+`levelset` - name of file with Sokoban level collection, usually with .slc extension.
+
+At start miniban will load previous game (last level). If levelset is specified and it differs from levelset that saved, specified one is loaded instead.
+
 CONTROLS
 ========
 
