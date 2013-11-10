@@ -84,13 +84,8 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
-	if(lastLevelSet.isEmpty()) {
-		levelSet = LevelSet();
-	} else {
+	if(!lastLevelSet.isEmpty()) {
 		levelSet = LevelSet(lastLevelSet, lastLevelIndex);
-		if(levelSet.isOver()) {
-			levelSet = LevelSet();
-		}
 	}
 
 	showInterlevelMessage();
@@ -126,12 +121,6 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 	gameMode->processControl(control);
 
 	switch(control) {
-		case AbstractGameMode::CONTROL_CHEAT_RESTART:
-			if(playingMode) {
-				levelSet = LevelSet(0);
-				startFadeIn();
-			}
-			break;
 		case AbstractGameMode::CONTROL_CHEAT_SKIP_LEVEL:
 			if(playingMode) {
 				loadNextLevel();
@@ -178,7 +167,7 @@ void SokobanWidget::showInterlevelMessage()
 		.arg(levelSet.getLevelCount())
 		.arg(levelSet.getCurrentLevelName())
 		;
-	QString message = levelSet.isOver() ? tr("Levels are over.") : levelName;
+	QString message = levelSet.isOver() ? tr("%1\nLevels are over.").arg(levelSet.getLevelSetTitle()) : levelName;
 	gameMode = new MessageMode(!levelSet.isOver(), message, this);
 	connect(gameMode, SIGNAL(messageIsEnded()), this, SLOT(startFadeIn()));
 	update();

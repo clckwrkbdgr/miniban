@@ -51,7 +51,7 @@ LevelSet::LevelSet(const QString & levelSetFileName, int startLevelIndex)
 
 void LevelSet::rewindToLevel(int levelIndex)
 {
-	currentLevelIndex = qBound(0, levelIndex, xmlLevels.count() - 1) - 1;
+	currentLevelIndex = qBound(0, levelIndex, xmlLevels.count()) - 1;
 }
 
 int LevelSet::getLevelCount() const
@@ -66,7 +66,7 @@ const QString & LevelSet::getLevelSetTitle() const
 
 QString LevelSet::getCurrentLevelName() const
 {
-	if(currentLevelIndex >= xmlLevels.count()) {
+	if(currentLevelIndex < 0 || xmlLevels.count() <= currentLevelIndex) {
 		return QString();
 	}
 	return xmlLevels[currentLevelIndex].first;
