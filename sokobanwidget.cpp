@@ -4,6 +4,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QMessageBox>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QApplication>
 #include "playingmode.h"
 #include "messagemode.h"
 #include "fademode.h"
@@ -81,11 +82,19 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 SokobanWidget::SokobanWidget(QWidget * parent)
 	: QWidget(parent), gameMode(0), sprites("sokoban.png")
 {
+	QStringList args = QCoreApplication::arguments();
+	args.removeAt(0);
+	QString commandLineFilename = args.value(0);
+
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
 	if(!lastLevelSet.isEmpty()) {
-		levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+		if(commandLineFilename == lastLevelSet) {
+			levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+		} else {
+			levelSet = LevelSet(commandLineFilename, 0);
+		}
 	}
 
 	showInterlevelMessage();
