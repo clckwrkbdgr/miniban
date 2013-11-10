@@ -190,6 +190,8 @@ void SokobanWidget::startFadeIn()
 
 void SokobanWidget::startGame()
 {
+	QSettings settings;
+	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
 	gameMode = new PlayingMode(levelSet.getCurrentLevel(), sprites, this);
 	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
