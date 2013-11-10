@@ -87,11 +87,21 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
-	if(!lastLevelSet.isEmpty()) {
-		if(commandLineFilename == lastLevelSet) {
-			levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+	if(lastLevelSet.isEmpty()) {
+		if(commandLineFilename.isEmpty()) {
+			levelSet = LevelSet();
 		} else {
 			levelSet = LevelSet(commandLineFilename, 0);
+		}
+	} else {
+		if(commandLineFilename.isEmpty()) {
+			levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+		} else {
+			if(commandLineFilename == lastLevelSet) {
+				levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+			} else {
+				levelSet = LevelSet(commandLineFilename, 0);
+			}
 		}
 	}
 
