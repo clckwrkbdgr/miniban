@@ -1,5 +1,6 @@
 #include <QtDebug>
 #include <QtCore/QSettings>
+#include <QtCore/QFileInfo>
 #include <QtGui/QFileDialog>
 #include <QtGui/QPainter>
 #include <QtGui/QMessageBox>
@@ -82,11 +83,12 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 {
 	QStringList args = QCoreApplication::arguments();
 	args.removeAt(0);
-	QString commandLineFilename = args.value(0);
+	QString commandLineFilename = args.isEmpty() ? QString() : QFileInfo(args[0]).absoluteFilePath();
 
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
+	qDebug() << lastLevelIndex << lastLevelSet << commandLineFilename;
 	if(lastLevelSet.isEmpty()) {
 		if(commandLineFilename.isEmpty()) {
 			levelSet = LevelSet();
