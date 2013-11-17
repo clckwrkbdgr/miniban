@@ -10,6 +10,7 @@ SOKOBAN_TEST {
 	DEFINES += SOKOBAN_TEST
 	QT += testlib
 	modules = sokoban
+	SOURCES += sokoban_test.cpp
 } else {
 	HEADERS += abstractgamemode.h
 	SOURCES += main.cpp

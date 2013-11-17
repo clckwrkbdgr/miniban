@@ -1,5 +1,6 @@
 #pragma once
 #include <QtCore/QString>
+#include <QtCore/QVector>
 #include <QtCore/QPoint>
 #include <QtCore/QSize>
 

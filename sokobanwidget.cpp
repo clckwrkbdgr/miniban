@@ -88,7 +88,6 @@ SokobanWidget::SokobanWidget(QWidget * parent)
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
-	qDebug() << lastLevelIndex << lastLevelSet << commandLineFilename;
 	if(lastLevelSet.isEmpty()) {
 		if(commandLineFilename.isEmpty()) {
 			levelSet = LevelSet();
