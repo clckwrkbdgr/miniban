@@ -50,6 +50,7 @@ public:
 	bool runPlayer(int control);
 private:
 	QPoint player;
+	QList<QPoint> boxes;
 	QSize size;
 	QVector<Cell> cells;
 	QString history;

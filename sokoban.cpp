@@ -19,8 +19,8 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	charToCell['@'] = SPACE;
 	charToCell['.'] = EMPTY_SLOT;
 	charToCell['+'] = EMPTY_SLOT;
-	charToCell['$'] = BOX_ON_FLOOR;
-	charToCell['*'] = BOX_ON_SLOT;
+	charToCell['$'] = FLOOR;
+	charToCell['*'] = EMPTY_SLOT;
 	QString validChars;
 	foreach(const QChar & ch, charToCell.keys()) {
 		validChars.append(ch);
@@ -34,6 +34,9 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 		for(int x = 0; x < row.size(); ++x) {
 			if(validChars.contains(row[x])) {
 				cell(QPoint(x, y)) = charToCell[row[x]];
+				if(row[x] == '$' || row[x] == '*') {
+					boxes << QPoint(x, y);
+				}
 				if(row[x] == '@' || row[x] == '+') {
 					if(player.x() < 0) {
 						player = QPoint(x, y);
@@ -66,7 +69,7 @@ bool Sokoban::movePlayer(const QPoint & target)
 {
 	QVector<int> passed(cells.size(), -1);
 	for(int i = 0; i < cells.size(); ++i) {
-		if(cells[i] != WALL && cells[i] != BOX_ON_SLOT && cells[i] != BOX_ON_FLOOR) {
+		if(cells[i] != WALL && !boxes.contains(QPoint(i % width(), i / width()))) {
 			passed[i] = 0;
 		}
 	}
@@ -208,6 +211,13 @@ Sokoban::Sprite Sokoban::getObjectSprite(const QPoint & point) const
 			default: return NONE;
 		}
 	}
+	if(boxes.contains(point)) {
+		switch(cell(point)) {
+			case FLOOR: return BOX_ON_FLOOR;
+			case EMPTY_SLOT: return BOX_ON_SLOT;
+			default: return NONE;
+		}
+	}
 	switch(cell(point)) {
 		case FLOOR: return NONE;
 		case SPACE: return NONE;
@@ -261,7 +271,7 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	if(cell(newPlayerPos) == WALL) {
 		return false;
 	}
-	if(cell(newPlayerPos) == BOX_ON_SLOT || cell(newPlayerPos) == BOX_ON_FLOOR) {
+	if(boxes.contains(newPlayerPos)) {
 		if(cautious) {
 			return false;
 		}
@@ -271,24 +281,15 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		if(cell(newSecondPos) == WALL) {
 			return false;
 		}
-		if(cell(newSecondPos) == BOX_ON_SLOT || cell(newSecondPos) == BOX_ON_FLOOR) {
+		if(boxes.contains(newSecondPos)) {
 			return false;
 		}
 	}
 
 	QChar controlChar = charForControl[control];
 	player = newPlayerPos;
-	if(cell(newPlayerPos) == BOX_ON_FLOOR || cell(newPlayerPos) == BOX_ON_SLOT) {
-		if(cell(newPlayerPos) == BOX_ON_SLOT) {
-			cell(newPlayerPos) = EMPTY_SLOT;
-		} else if(cell(newPlayerPos) == BOX_ON_FLOOR) {
-			cell(newPlayerPos) = FLOOR;
-		}
-		if(cell(newSecondPos) == EMPTY_SLOT) {
-			cell(newSecondPos) = BOX_ON_SLOT;
-		} else if(cell(newSecondPos) == FLOOR) {
-			cell(newSecondPos) = BOX_ON_FLOOR;
-		}
+	if(boxes.contains(newPlayerPos)) {
+		boxes[boxes.indexOf(newPlayerPos)] = newSecondPos;
 		controlChar = controlChar.toUpper();
 	}
 	history.append(controlChar);
@@ -316,6 +317,13 @@ QString Sokoban::toString() const
 					ch = '@';
 				} else if(ch == '.') {
 					ch = '+';
+				}
+			}
+			if(boxes.contains(QPoint(x, y))) {
+				if(ch == ' ') {
+					ch = '$';
+				} else if(ch == '.') {
+					ch = '*';
 				}
 			}
 			result.append(ch);
@@ -373,30 +381,21 @@ bool Sokoban::undo()
 	if(cell(oldPlayerPos) == WALL) {
 		throw InvalidUndoException(control);
 	}
-	if(cell(oldPlayerPos) == BOX_ON_SLOT || cell(oldPlayerPos) == BOX_ON_FLOOR) {
+	if(boxes.contains(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
 	if(control.isUpper()) {
 		if(!isValid(boxPos)) {
 			throw InvalidUndoException(control);
 		}
-		if(cell(boxPos) != BOX_ON_SLOT && cell(boxPos) != BOX_ON_FLOOR) {
+		if(!boxes.contains(boxPos)) {
 			throw InvalidUndoException(control);
 		}
 	}
 
 	player = oldPlayerPos;
 	if(control.isUpper()) {
-		if(cell(playerPos) == EMPTY_SLOT) {
-			cell(playerPos) = BOX_ON_SLOT;
-		} else if(cell(playerPos) == FLOOR) {
-			cell(playerPos) = BOX_ON_FLOOR;
-		}
-		if(cell(boxPos) == BOX_ON_SLOT) {
-			cell(boxPos) = EMPTY_SLOT;
-		} else if(cell(boxPos) == BOX_ON_FLOOR) {
-			cell(boxPos) = FLOOR;
-		}
+		boxes[boxes.indexOf(boxPos)] = playerPos;
 	}
 	if(fullHistoryTracking) {
 		history.append('-');
@@ -411,11 +410,14 @@ bool Sokoban::isSolved()
 	int freeBoxCount = 0, freeSlotCount = 0;
 	for(int y = 0; y < size.height(); ++y) {
 		for(int x = 0; x < size.width(); ++x) {
-			switch(cell(QPoint(x, y))) {
-				case EMPTY_SLOT: freeSlotCount++; break;
-				case PLAYER_ON_SLOT: freeSlotCount++; break;
-				case BOX_ON_FLOOR: freeBoxCount++; break;
+			if(cell(QPoint(x, y)) == EMPTY_SLOT && !boxes.contains(QPoint(x, y))) {
+				freeSlotCount++;
 			}
+		}
+	}
+	foreach(const QPoint & box, boxes) {
+		if(cell(box) != EMPTY_SLOT) {
+			freeBoxCount++;
 		}
 	}
 	return (freeBoxCount == 0) && (freeSlotCount == 0);
