@@ -16,9 +16,9 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	QMap<QChar, int> charToCell;
 	charToCell[' '] = SPACE;
 	charToCell['#'] = WALL;
-	charToCell['@'] = PLAYER_ON_FLOOR;
+	charToCell['@'] = SPACE;
 	charToCell['.'] = EMPTY_SLOT;
-	charToCell['+'] = PLAYER_ON_SLOT;
+	charToCell['+'] = EMPTY_SLOT;
 	charToCell['$'] = BOX_ON_FLOOR;
 	charToCell['*'] = BOX_ON_SLOT;
 	QString validChars;
@@ -27,13 +27,17 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	}
 
 	cells.fill(Sokoban::SPACE, size.width() * size.height());
+	player = QPoint(-1, -1);
 	int playerCount = 0;
 	for(int y = 0; y < rows.count(); ++y) {
 		const QString & row = rows[y];
 		for(int x = 0; x < row.size(); ++x) {
 			if(validChars.contains(row[x])) {
 				cell(QPoint(x, y)) = charToCell[row[x]];
-				if(cell(QPoint(x, y)) == PLAYER_ON_FLOOR || cell(QPoint(x, y)) == PLAYER_ON_SLOT) {
+				if(row[x] == '@' || row[x] == '+') {
+					if(player.x() < 0) {
+						player = QPoint(x, y);
+					}
 					playerCount++;
 				}
 			} else {
@@ -77,7 +81,7 @@ bool Sokoban::movePlayer(const QPoint & target)
 		QList<QPoint> new_points;
 		foreach(const QPoint & current_pos, current_points) {
 			if(current_pos == target) {
-				if(cell(pos) != PLAYER_ON_FLOOR && cell(pos) != PLAYER_ON_SLOT) {
+				if(player != pos) {
 					return false;
 				}
 				if(cell(target) != FLOOR && cell(target) != EMPTY_SLOT) {
@@ -167,14 +171,7 @@ void Sokoban::fillFloor(QVector<int> & reachable, const QPoint & point)
 
 QPoint Sokoban::getPlayerPos() const
 {
-	for(int x = 0; x < width(); ++x) {
-		for(int y = 0; y < height(); ++y) {
-			if(cell(QPoint(x, y)) == PLAYER_ON_FLOOR || cell(QPoint(x, y)) == PLAYER_ON_SLOT) {
-				return QPoint(x, y);
-			}
-		}
-	}
-	return QPoint(-1, -1);
+	return player;
 }
 
 const Sokoban::Cell & Sokoban::cell(const QPoint & point) const
@@ -204,6 +201,13 @@ Sokoban::Sprite Sokoban::getCellSprite(const QPoint & point) const
 
 Sokoban::Sprite Sokoban::getObjectSprite(const QPoint & point) const
 {
+	if(point == player) {
+		switch(cell(point)) {
+			case FLOOR: return PLAYER_ON_FLOOR;
+			case EMPTY_SLOT: return PLAYER_ON_SLOT;
+			default: return NONE;
+		}
+	}
 	switch(cell(point)) {
 		case FLOOR: return NONE;
 		case SPACE: return NONE;
@@ -273,20 +277,12 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	}
 
 	QChar controlChar = charForControl[control];
-	if(cell(playerPos) == PLAYER_ON_SLOT) {
-		cell(playerPos) = EMPTY_SLOT;
-	} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
-		cell(playerPos) = FLOOR;
-	}
-	if(cell(newPlayerPos) == EMPTY_SLOT) {
-		cell(newPlayerPos) = PLAYER_ON_SLOT;
-	} else if(cell(newPlayerPos) == FLOOR) {
-		cell(newPlayerPos) = PLAYER_ON_FLOOR;
-	} else if(cell(newPlayerPos) == BOX_ON_FLOOR || cell(newPlayerPos) == BOX_ON_SLOT) {
+	player = newPlayerPos;
+	if(cell(newPlayerPos) == BOX_ON_FLOOR || cell(newPlayerPos) == BOX_ON_SLOT) {
 		if(cell(newPlayerPos) == BOX_ON_SLOT) {
-			cell(newPlayerPos) = PLAYER_ON_SLOT;
+			cell(newPlayerPos) = EMPTY_SLOT;
 		} else if(cell(newPlayerPos) == BOX_ON_FLOOR) {
-			cell(newPlayerPos) = PLAYER_ON_FLOOR;
+			cell(newPlayerPos) = FLOOR;
 		}
 		if(cell(newSecondPos) == EMPTY_SLOT) {
 			cell(newSecondPos) = BOX_ON_SLOT;
@@ -314,7 +310,15 @@ QString Sokoban::toString() const
 	QString result;
 	for(int y = 0; y < size.height(); ++y) {
 		for(int x = 0; x < size.width(); ++x) {
-			result.append(cellToChar[cells[x + y * size.width()]]);
+			QChar ch = cellToChar[cells[x + y * size.width()]];
+			if(player == QPoint(x, y)) {
+				if(ch == ' ') {
+					ch = '@';
+				} else if(ch == '.') {
+					ch = '+';
+				}
+			}
+			result.append(ch);
 		}
 		if(y != size.height() - 1) {
 			result.append('\n');
@@ -381,27 +385,17 @@ bool Sokoban::undo()
 		}
 	}
 
-	if(cell(oldPlayerPos) == EMPTY_SLOT) {
-		cell(oldPlayerPos) = PLAYER_ON_SLOT;
-	} else if(cell(oldPlayerPos) == FLOOR) {
-		cell(oldPlayerPos) = PLAYER_ON_FLOOR;
-	}
+	player = oldPlayerPos;
 	if(control.isUpper()) {
-		if(cell(playerPos) == PLAYER_ON_SLOT) {
+		if(cell(playerPos) == EMPTY_SLOT) {
 			cell(playerPos) = BOX_ON_SLOT;
-		} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
+		} else if(cell(playerPos) == FLOOR) {
 			cell(playerPos) = BOX_ON_FLOOR;
 		}
 		if(cell(boxPos) == BOX_ON_SLOT) {
 			cell(boxPos) = EMPTY_SLOT;
 		} else if(cell(boxPos) == BOX_ON_FLOOR) {
 			cell(boxPos) = FLOOR;
-		}
-	} else {
-		if(cell(playerPos) == PLAYER_ON_SLOT) {
-			cell(playerPos) = EMPTY_SLOT;
-		} else if(cell(playerPos) == PLAYER_ON_FLOOR) {
-			cell(playerPos) = FLOOR;
 		}
 	}
 	if(fullHistoryTracking) {

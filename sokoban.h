@@ -34,10 +34,10 @@ public:
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
 	bool isValid(const QPoint & pos) const;
-	const Cell & getCell(int x, int y) const { return cell(QPoint(x, y)); }
-	const Cell & getCell(const QPoint & point) const { return cell(point); }
 	Sprite getCellSprite(const QPoint & point) const;
+	Sprite getCellSprite(int x, int y) const { return getCellSprite(QPoint(x, y)); }
 	Sprite getObjectSprite(const QPoint & point) const;
+	Sprite getObjectSprite(int x, int y) const { return getObjectSprite(QPoint(x, y)); }
 
 	QString toString() const;
 	QString historyAsString() const;
@@ -49,6 +49,7 @@ public:
 	bool movePlayer(const QPoint & target);
 	bool runPlayer(int control);
 private:
+	QPoint player;
 	QSize size;
 	QVector<Cell> cells;
 	QString history;

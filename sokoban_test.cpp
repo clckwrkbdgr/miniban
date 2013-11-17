@@ -37,21 +37,30 @@ void SokobanTest::levelsAreStrings()
 	QCOMPARE(sokoban1.height(), 1);
 	QCOMPARE(sokoban1.getPlayerPos(), QPoint(0, 0));
 	QCOMPARE(sokoban1.toString(), QString("@ $.#"));
-	QCOMPARE(sokoban1.getCell(0, 0), int(Sokoban::PLAYER_ON_FLOOR));
-	QCOMPARE(sokoban1.getCell(1, 0), int(Sokoban::FLOOR));
-	QCOMPARE(sokoban1.getCell(2, 0), int(Sokoban::BOX_ON_FLOOR));
-	QCOMPARE(sokoban1.getCell(3, 0), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban1.getCell(4, 0), int(Sokoban::WALL));
+	QCOMPARE(sokoban1.getCellSprite(0, 0), int(Sokoban::FLOOR));
+	QCOMPARE(sokoban1.getObjectSprite(0, 0), int(Sokoban::PLAYER_ON_FLOOR));
+	QCOMPARE(sokoban1.getCellSprite(1, 0), int(Sokoban::FLOOR));
+	QCOMPARE(sokoban1.getObjectSprite(1, 0), int(Sokoban::NONE));
+	QCOMPARE(sokoban1.getCellSprite(2, 0), int(Sokoban::FLOOR));
+	QCOMPARE(sokoban1.getObjectSprite(2, 0), int(Sokoban::BOX_ON_FLOOR));
+	QCOMPARE(sokoban1.getCellSprite(3, 0), int(Sokoban::EMPTY_SLOT));
+	QCOMPARE(sokoban1.getObjectSprite(3, 0), int(Sokoban::NONE));
+	QCOMPARE(sokoban1.getCellSprite(4, 0), int(Sokoban::WALL));
+	QCOMPARE(sokoban1.getObjectSprite(4, 0), int(Sokoban::NONE));
 
 	Sokoban sokoban2("#.\n*+");
 	QCOMPARE(sokoban2.width(), 2);
 	QCOMPARE(sokoban2.height(), 2);
 	QCOMPARE(sokoban2.getPlayerPos(), QPoint(1, 1));
 	QCOMPARE(sokoban2.toString(), QString("#.\n*+"));
-	QCOMPARE(sokoban2.getCell(0, 0), int(Sokoban::WALL));
-	QCOMPARE(sokoban2.getCell(1, 0), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban2.getCell(0, 1), int(Sokoban::BOX_ON_SLOT));
-	QCOMPARE(sokoban2.getCell(1, 1), int(Sokoban::PLAYER_ON_SLOT));
+	QCOMPARE(sokoban2.getCellSprite(0, 0), int(Sokoban::WALL));
+	QCOMPARE(sokoban2.getObjectSprite(0, 0), int(Sokoban::NONE));
+	QCOMPARE(sokoban2.getCellSprite(1, 0), int(Sokoban::EMPTY_SLOT));
+	QCOMPARE(sokoban2.getObjectSprite(1, 0), int(Sokoban::NONE));
+	QCOMPARE(sokoban2.getCellSprite(0, 1), int(Sokoban::EMPTY_SLOT));
+	QCOMPARE(sokoban2.getObjectSprite(0, 1), int(Sokoban::BOX_ON_SLOT));
+	QCOMPARE(sokoban2.getCellSprite(1, 1), int(Sokoban::EMPTY_SLOT));
+	QCOMPARE(sokoban2.getObjectSprite(1, 1), int(Sokoban::PLAYER_ON_SLOT));
 }
 
 void SokobanTest::canMoveOntoFloor()
@@ -375,18 +384,18 @@ void SokobanTest::unreachableCellsAreMarkedAsSpace()
 		"  ###  ";
 	Sokoban sokoban(level);
 	QCOMPARE(sokoban.toString(), level);
-	QCOMPARE(sokoban.getCell(QPoint(0, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(1, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(5, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(6, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(0, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(1, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(5, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCell(QPoint(6, 4)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(0, 0)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(1, 0)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(5, 0)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(6, 0)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(0, 4)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(1, 4)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(5, 4)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellSprite(QPoint(6, 4)), int(Sokoban::SPACE));
 	int spaceCount = 0;
 	for(int x = 0; x < sokoban.width(); ++x) {
 		for(int y = 0; y < sokoban.height(); ++y) {
-			if(sokoban.getCell(QPoint(x, y)) == Sokoban::SPACE) {
+			if(sokoban.getCellSprite(QPoint(x, y)) == Sokoban::SPACE) {
 				spaceCount++;
 			}
 		}
