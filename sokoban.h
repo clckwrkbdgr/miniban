@@ -4,12 +4,23 @@
 #include <QtCore/QPoint>
 #include <QtCore/QSize>
 
+struct Cell {
+	enum { SPACE, FLOOR, WALL, SLOT };
+	int type;
+	explicit Cell(int cell_type = SPACE) : type(cell_type) {}
+};
+
+struct Object {
+	QPoint pos;
+	bool is_player;
+	Object() : is_player(false) {}
+	explicit Object(const QPoint & object_pos, bool player = false) : pos(object_pos), is_player(player) {}
+	bool isNull() const { return pos.isNull(); }
+};
+
 class Sokoban {
 public:
-	enum { NONE = 0, FLOOR, SPACE, WALL, PLAYER_ON_FLOOR, EMPTY_SLOT, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT };
 	enum { LEFT, RIGHT, DOWN, UP };
-	typedef int Cell;
-	typedef int Sprite;
 
 	class InvalidPlayerCountException {
 	public:
@@ -34,10 +45,10 @@ public:
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
 	bool isValid(const QPoint & pos) const;
-	Sprite getCellSprite(const QPoint & point) const;
-	Sprite getCellSprite(int x, int y) const { return getCellSprite(QPoint(x, y)); }
-	Sprite getObjectSprite(const QPoint & point) const;
-	Sprite getObjectSprite(int x, int y) const { return getObjectSprite(QPoint(x, y)); }
+	Cell getCellAt(int x, int y) const;
+	Cell getCellAt(const QPoint & point) const { return getCellAt(point.x(), point.y()); }
+	Object getObjectAt(int x, int y) const;
+	Object getObjectAt(const QPoint & point) const { return getObjectAt(point.x(), point.y()); }
 
 	QString toString() const;
 	QString historyAsString() const;
@@ -49,11 +60,12 @@ public:
 	bool movePlayer(const QPoint & target);
 	bool runPlayer(int control);
 private:
-	QPoint player;
-	QList<QPoint> boxes;
 	QSize size;
+	Object player;
+	QList<Object> boxes;
 	QVector<Cell> cells;
 	QString history;
+	bool has_box(const QPoint & point) const;
 	bool fullHistoryTracking;
 	Cell & cell(const QPoint & point);
 	const Cell & cell(const QPoint & point) const;

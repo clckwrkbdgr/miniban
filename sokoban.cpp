@@ -13,38 +13,21 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 		}
 	}
 
-	QMap<QChar, int> charToCell;
-	charToCell[' '] = SPACE;
-	charToCell['#'] = WALL;
-	charToCell['@'] = SPACE;
-	charToCell['.'] = EMPTY_SLOT;
-	charToCell['+'] = EMPTY_SLOT;
-	charToCell['$'] = FLOOR;
-	charToCell['*'] = EMPTY_SLOT;
-	QString validChars;
-	foreach(const QChar & ch, charToCell.keys()) {
-		validChars.append(ch);
-	}
-
-	cells.fill(Sokoban::SPACE, size.width() * size.height());
-	player = QPoint(-1, -1);
+	cells.fill(Cell(), size.width() * size.height());
+	player = Object();
 	int playerCount = 0;
 	for(int y = 0; y < rows.count(); ++y) {
 		const QString & row = rows[y];
 		for(int x = 0; x < row.size(); ++x) {
-			if(validChars.contains(row[x])) {
-				cell(QPoint(x, y)) = charToCell[row[x]];
-				if(row[x] == '$' || row[x] == '*') {
-					boxes << QPoint(x, y);
-				}
-				if(row[x] == '@' || row[x] == '+') {
-					if(player.x() < 0) {
-						player = QPoint(x, y);
-					}
-					playerCount++;
-				}
-			} else {
-				cell(QPoint(x, y)) = WALL;
+			QPoint pos(x, y);
+			switch(row[x].toAscii()) {
+				case ' ': cell(pos).type = Cell::SPACE; break;
+				case '#': cell(pos).type = Cell::WALL; break;
+				case '@': cell(pos).type = Cell::SPACE; player = Object(pos, true); ++playerCount; break;
+				case '.': cell(pos).type = Cell::SLOT; break;
+				case '+': cell(pos).type = Cell::SLOT; player = Object(pos, true); ++playerCount; break;
+				case '$': cell(pos).type = Cell::SPACE; boxes << Object(pos); break;
+				case '*': cell(pos).type = Cell::SLOT; boxes << Object(pos); break;
 			}
 		}
 	}
@@ -55,21 +38,31 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	// 0 - passable, 1 - impassable, 2 - found to be floor.
 	QVector<int> reachable(cells.size(), 0);
 	for(int i = 0; i < cells.size(); ++i) {
-		reachable[i] = (cells[i] == WALL) ? 1 : 0;
+		reachable[i] = (cells[i].type == Cell::WALL) ? 1 : 0;
 	}
 	fillFloor(reachable, getPlayerPos());
 	for(int i = 0; i < cells.size(); ++i) {
-		if(reachable[i] == 2 && cells[i] == SPACE) {
-			cells[i] = FLOOR;
+		if(reachable[i] == 2 && cells[i].type == Cell::SPACE) {
+			cells[i].type = Cell::FLOOR;
 		}
 	}
+}
+
+bool Sokoban::has_box(const QPoint & point) const
+{
+	foreach(const Object & box, boxes) {
+		if(box.pos == point) {
+			return true;
+		}
+	}
+	return false;
 }
 
 bool Sokoban::movePlayer(const QPoint & target)
 {
 	QVector<int> passed(cells.size(), -1);
 	for(int i = 0; i < cells.size(); ++i) {
-		if(cells[i] != WALL && !boxes.contains(QPoint(i % width(), i / width()))) {
+		if(cells[i].type != Cell::WALL && !has_box(QPoint(i % width(), i / width()))) {
 			passed[i] = 0;
 		}
 	}
@@ -84,10 +77,10 @@ bool Sokoban::movePlayer(const QPoint & target)
 		QList<QPoint> new_points;
 		foreach(const QPoint & current_pos, current_points) {
 			if(current_pos == target) {
-				if(player != pos) {
+				if(player.pos != pos) {
 					return false;
 				}
-				if(cell(target) != FLOOR && cell(target) != EMPTY_SLOT) {
+				if(cell(target).type != Cell::FLOOR && cell(target).type != Cell::SLOT) {
 					return false;
 				}
 				QPoint current = current_pos;
@@ -174,61 +167,36 @@ void Sokoban::fillFloor(QVector<int> & reachable, const QPoint & point)
 
 QPoint Sokoban::getPlayerPos() const
 {
-	return player;
+	return player.pos;
 }
 
-const Sokoban::Cell & Sokoban::cell(const QPoint & point) const
+const Cell & Sokoban::cell(const QPoint & point) const
 {
 	return cells[point.x() + point.y() * width()];
 }
 
-Sokoban::Cell & Sokoban::cell(const QPoint & point)
+Cell & Sokoban::cell(const QPoint & point)
 {
 	return cells[point.x() + point.y() * width()];
 }
 
-Sokoban::Sprite Sokoban::getCellSprite(const QPoint & point) const
+Cell Sokoban::getCellAt(int x, int y) const
 {
-	switch(cell(point)) {
-		case FLOOR: return FLOOR;
-		case SPACE: return SPACE;
-		case WALL: return WALL;
-		case PLAYER_ON_FLOOR: return FLOOR;
-		case EMPTY_SLOT: return EMPTY_SLOT;
-		case PLAYER_ON_SLOT: return EMPTY_SLOT;
-		case BOX_ON_FLOOR: return FLOOR;
-		case BOX_ON_SLOT: return EMPTY_SLOT;
-		default: return SPACE;
+	if(!isValid(QPoint(x, y))) {
+		return Cell();
 	}
+	return cell(QPoint(x, y));
 }
 
-Sokoban::Sprite Sokoban::getObjectSprite(const QPoint & point) const
+Object Sokoban::getObjectAt(int x, int y) const
 {
-	if(point == player) {
-		switch(cell(point)) {
-			case FLOOR: return PLAYER_ON_FLOOR;
-			case EMPTY_SLOT: return PLAYER_ON_SLOT;
-			default: return NONE;
-		}
+	if(player.pos == QPoint(x, y)) {
+		return player;
 	}
-	if(boxes.contains(point)) {
-		switch(cell(point)) {
-			case FLOOR: return BOX_ON_FLOOR;
-			case EMPTY_SLOT: return BOX_ON_SLOT;
-			default: return NONE;
-		}
+	if(has_box(QPoint(x, y))) {
+		return Object(QPoint(x, y));
 	}
-	switch(cell(point)) {
-		case FLOOR: return NONE;
-		case SPACE: return NONE;
-		case WALL: return NONE;
-		case PLAYER_ON_FLOOR: return PLAYER_ON_FLOOR;
-		case EMPTY_SLOT: return NONE;
-		case PLAYER_ON_SLOT: return PLAYER_ON_SLOT;
-		case BOX_ON_FLOOR: return BOX_ON_FLOOR;
-		case BOX_ON_SLOT: return BOX_ON_SLOT;
-		default: return SPACE;
-	}
+	return Object();
 }
 
 bool Sokoban::isValid(const QPoint & pos) const
@@ -268,28 +236,33 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	if(!isValid(newPlayerPos)) {
 		throw OutOfMapException();
 	}
-	if(cell(newPlayerPos) == WALL) {
+	if(cell(newPlayerPos).type == Cell::WALL) {
 		return false;
 	}
-	if(boxes.contains(newPlayerPos)) {
+	if(has_box(newPlayerPos)) {
 		if(cautious) {
 			return false;
 		}
 		if(!isValid(newSecondPos)) {
 			return false;
 		}
-		if(cell(newSecondPos) == WALL) {
+		if(cell(newSecondPos).type == Cell::WALL) {
 			return false;
 		}
-		if(boxes.contains(newSecondPos)) {
+		if(has_box(newSecondPos)) {
 			return false;
 		}
 	}
 
 	QChar controlChar = charForControl[control];
-	player = newPlayerPos;
-	if(boxes.contains(newPlayerPos)) {
-		boxes[boxes.indexOf(newPlayerPos)] = newSecondPos;
+	player.pos = newPlayerPos;
+	if(has_box(newPlayerPos)) {
+		for(int i = 0; i < boxes.size(); ++i) {
+			if(boxes[i].pos == newPlayerPos) {
+				boxes[i].pos = newSecondPos;
+				break;
+			}
+		}
 		controlChar = controlChar.toUpper();
 	}
 	history.append(controlChar);
@@ -298,33 +271,18 @@ bool Sokoban::movePlayer(int control, bool cautious)
 
 QString Sokoban::toString() const
 {
-	QMap<QChar, int> cellToChar;
-	cellToChar[FLOOR          ] = ' ';
-	cellToChar[SPACE          ] = ' ';
-	cellToChar[WALL           ] = '#';
-	cellToChar[PLAYER_ON_FLOOR] = '@';
-	cellToChar[EMPTY_SLOT     ] = '.';
-	cellToChar[PLAYER_ON_SLOT ] = '+';
-	cellToChar[BOX_ON_FLOOR   ] = '$';
-	cellToChar[BOX_ON_SLOT    ] = '*';
-
 	QString result;
 	for(int y = 0; y < size.height(); ++y) {
 		for(int x = 0; x < size.width(); ++x) {
-			QChar ch = cellToChar[cells[x + y * size.width()]];
-			if(player == QPoint(x, y)) {
-				if(ch == ' ') {
-					ch = '@';
-				} else if(ch == '.') {
-					ch = '+';
-				}
-			}
-			if(boxes.contains(QPoint(x, y))) {
-				if(ch == ' ') {
-					ch = '$';
-				} else if(ch == '.') {
-					ch = '*';
-				}
+			QPoint pos(x, y);
+			bool is_player = player.pos == pos;
+			bool is_box = has_box(pos);
+			QChar ch = ' ';
+			switch(cell(pos).type) {
+				case Cell::SPACE: ch = ' '; break;
+				case Cell::FLOOR: ch = is_player ? '@' : (is_box ? '$' : ' '); break;
+				case Cell::WALL: ch = '#'; break;
+				case Cell::SLOT: ch = is_player ? '+' : (is_box ? '*' : '.'); break;
 			}
 			result.append(ch);
 		}
@@ -378,24 +336,29 @@ bool Sokoban::undo()
 	if(!isValid(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
-	if(cell(oldPlayerPos) == WALL) {
+	if(cell(oldPlayerPos).type == Cell::WALL) {
 		throw InvalidUndoException(control);
 	}
-	if(boxes.contains(oldPlayerPos)) {
+	if(has_box(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
 	if(control.isUpper()) {
 		if(!isValid(boxPos)) {
 			throw InvalidUndoException(control);
 		}
-		if(!boxes.contains(boxPos)) {
+		if(!has_box(boxPos)) {
 			throw InvalidUndoException(control);
 		}
 	}
 
-	player = oldPlayerPos;
+	player.pos = oldPlayerPos;
 	if(control.isUpper()) {
-		boxes[boxes.indexOf(boxPos)] = playerPos;
+		for(int i = 0; i < boxes.size(); ++i) {
+			if(boxes[i].pos == boxPos) {
+				boxes[i].pos = playerPos;
+				break;
+			}
+		}
 	}
 	if(fullHistoryTracking) {
 		history.append('-');
@@ -410,13 +373,13 @@ bool Sokoban::isSolved()
 	int freeBoxCount = 0, freeSlotCount = 0;
 	for(int y = 0; y < size.height(); ++y) {
 		for(int x = 0; x < size.width(); ++x) {
-			if(cell(QPoint(x, y)) == EMPTY_SLOT && !boxes.contains(QPoint(x, y))) {
+			if(cell(QPoint(x, y)).type == Cell::SLOT && !has_box(QPoint(x, y))) {
 				freeSlotCount++;
 			}
 		}
 	}
-	foreach(const QPoint & box, boxes) {
-		if(cell(box) != EMPTY_SLOT) {
+	foreach(const Object & box, boxes) {
+		if(cell(box.pos).type != Cell::SLOT) {
 			freeBoxCount++;
 		}
 	}

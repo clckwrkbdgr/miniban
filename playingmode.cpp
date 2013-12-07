@@ -13,14 +13,14 @@ const int MAX_SCALE_FACTOR = 8;
 const QList<int> & getAllTileTypes()
 {
 	static QList<int> tileTypes = QList<int>()
-		<< Sokoban::FLOOR
-		<< Sokoban::WALL
-		<< Sokoban::EMPTY_SLOT
-		<< Sokoban::SPACE
-		<< Sokoban::PLAYER_ON_FLOOR
-		<< Sokoban::PLAYER_ON_SLOT
-		<< Sokoban::BOX_ON_FLOOR
-		<< Sokoban::BOX_ON_SLOT;
+		<< Sprites::FLOOR
+		<< Sprites::WALL
+		<< Sprites::EMPTY_SLOT
+		<< Sprites::SPACE
+		<< Sprites::PLAYER_ON_FLOOR
+		<< Sprites::PLAYER_ON_SLOT
+		<< Sprites::BOX_ON_FLOOR
+		<< Sprites::BOX_ON_SLOT;
 	return tileTypes;
 }
 
@@ -52,7 +52,7 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 
 	spriteSize = originalSize * scaleFactor;
 
-	aim = QImage(spriteSize, sprites[Sokoban::FLOOR].format());
+	aim = QImage(spriteSize, sprites[Sprites::FLOOR].format());
 	QPainter painter(&aim);
 	painter.setCompositionMode(QPainter::CompositionMode_Source);
 	painter.fillRect(aim.rect(), Qt::blue);
@@ -134,11 +134,39 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 	for(int y = 0; y < sokoban.height(); ++y) {
 		for(int x = 0; x < sokoban.width(); ++x) {
 			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
-			int cellSprite = sokoban.getCellSprite(QPoint(x, y));
-			painter->drawImage(pos, sprites[sprites.contains(cellSprite) ? cellSprite : Sokoban::SPACE]);
-			int objectSprite = sokoban.getObjectSprite(QPoint(x, y));
-			if(objectSprite != Sokoban::NONE && sprites.contains(objectSprite)) {
-				painter->drawImage(pos, sprites[objectSprite]);
+
+			Cell cell = sokoban.getCellAt(x, y);
+			int cellSprite = Sprites::SPACE;
+			switch(cell.type) {
+				case Cell::FLOOR: cellSprite = Sprites::FLOOR; break;
+				case Cell::SLOT: cellSprite = Sprites::EMPTY_SLOT; break;
+				case Cell::SPACE: cellSprite = Sprites::SPACE; break;
+				case Cell::WALL: cellSprite = Sprites::WALL; break;
+			}
+			painter->drawImage(pos, sprites[sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE]);
+
+			Object object = sokoban.getObjectAt(x, y);
+			if(!object.isNull()) {
+				int objectSprite = Sprites::SPACE;
+				switch(cell.type) {
+					case Cell::FLOOR:
+						if(object.is_player) {
+							objectSprite = Sprites::PLAYER_ON_FLOOR;
+						} else {
+							objectSprite = Sprites::BOX_ON_FLOOR;
+						}
+						break;
+					case Cell::SLOT:
+						if(object.is_player) {
+							objectSprite = Sprites::PLAYER_ON_SLOT;
+						} else {
+							objectSprite = Sprites::BOX_ON_SLOT;
+						}
+						break;
+				}
+				if(objectSprite != Sprites::SPACE && sprites.contains(objectSprite)) {
+					painter->drawImage(pos, sprites[objectSprite]);
+				}
 			}
 		}
 	}

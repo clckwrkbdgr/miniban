@@ -37,30 +37,30 @@ void SokobanTest::levelsAreStrings()
 	QCOMPARE(sokoban1.height(), 1);
 	QCOMPARE(sokoban1.getPlayerPos(), QPoint(0, 0));
 	QCOMPARE(sokoban1.toString(), QString("@ $.#"));
-	QCOMPARE(sokoban1.getCellSprite(0, 0), int(Sokoban::FLOOR));
-	QCOMPARE(sokoban1.getObjectSprite(0, 0), int(Sokoban::PLAYER_ON_FLOOR));
-	QCOMPARE(sokoban1.getCellSprite(1, 0), int(Sokoban::FLOOR));
-	QCOMPARE(sokoban1.getObjectSprite(1, 0), int(Sokoban::NONE));
-	QCOMPARE(sokoban1.getCellSprite(2, 0), int(Sokoban::FLOOR));
-	QCOMPARE(sokoban1.getObjectSprite(2, 0), int(Sokoban::BOX_ON_FLOOR));
-	QCOMPARE(sokoban1.getCellSprite(3, 0), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban1.getObjectSprite(3, 0), int(Sokoban::NONE));
-	QCOMPARE(sokoban1.getCellSprite(4, 0), int(Sokoban::WALL));
-	QCOMPARE(sokoban1.getObjectSprite(4, 0), int(Sokoban::NONE));
+	QCOMPARE(sokoban1.getCellAt(0, 0).type, int(Cell::FLOOR));
+	QVERIFY(sokoban1.getObjectAt(0, 0).is_player);
+	QCOMPARE(sokoban1.getCellAt(1, 0).type, int(Cell::FLOOR));
+	QVERIFY(sokoban1.getObjectAt(1, 0).isNull());
+	QCOMPARE(sokoban1.getCellAt(2, 0).type, int(Cell::FLOOR));
+	QVERIFY(!sokoban1.getObjectAt(2, 0).is_player);
+	QCOMPARE(sokoban1.getCellAt(3, 0).type, int(Cell::SLOT));
+	QVERIFY(sokoban1.getObjectAt(3, 0).isNull());
+	QCOMPARE(sokoban1.getCellAt(4, 0).type, int(Cell::WALL));
+	QVERIFY(sokoban1.getObjectAt(4, 0).isNull());
 
 	Sokoban sokoban2("#.\n*+");
 	QCOMPARE(sokoban2.width(), 2);
 	QCOMPARE(sokoban2.height(), 2);
 	QCOMPARE(sokoban2.getPlayerPos(), QPoint(1, 1));
 	QCOMPARE(sokoban2.toString(), QString("#.\n*+"));
-	QCOMPARE(sokoban2.getCellSprite(0, 0), int(Sokoban::WALL));
-	QCOMPARE(sokoban2.getObjectSprite(0, 0), int(Sokoban::NONE));
-	QCOMPARE(sokoban2.getCellSprite(1, 0), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban2.getObjectSprite(1, 0), int(Sokoban::NONE));
-	QCOMPARE(sokoban2.getCellSprite(0, 1), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban2.getObjectSprite(0, 1), int(Sokoban::BOX_ON_SLOT));
-	QCOMPARE(sokoban2.getCellSprite(1, 1), int(Sokoban::EMPTY_SLOT));
-	QCOMPARE(sokoban2.getObjectSprite(1, 1), int(Sokoban::PLAYER_ON_SLOT));
+	QCOMPARE(sokoban2.getCellAt(0, 0).type, int(Cell::WALL));
+	QVERIFY(sokoban2.getObjectAt(0, 0).isNull());
+	QCOMPARE(sokoban2.getCellAt(1, 0).type, int(Cell::SLOT));
+	QVERIFY(sokoban2.getObjectAt(1, 0).isNull());
+	QCOMPARE(sokoban2.getCellAt(0, 1).type, int(Cell::SLOT));
+	QVERIFY(!sokoban2.getObjectAt(0, 1).is_player);
+	QCOMPARE(sokoban2.getCellAt(1, 1).type, int(Cell::SLOT));
+	QVERIFY(sokoban2.getObjectAt(1, 1).is_player);
 }
 
 void SokobanTest::canMoveOntoFloor()
@@ -384,18 +384,18 @@ void SokobanTest::unreachableCellsAreMarkedAsSpace()
 		"  ###  ";
 	Sokoban sokoban(level);
 	QCOMPARE(sokoban.toString(), level);
-	QCOMPARE(sokoban.getCellSprite(QPoint(0, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(1, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(5, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(6, 0)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(0, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(1, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(5, 4)), int(Sokoban::SPACE));
-	QCOMPARE(sokoban.getCellSprite(QPoint(6, 4)), int(Sokoban::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(0, 0)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(1, 0)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(5, 0)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(6, 0)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(0, 4)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(1, 4)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(5, 4)).type, int(Cell::SPACE));
+	QCOMPARE(sokoban.getCellAt(QPoint(6, 4)).type, int(Cell::SPACE));
 	int spaceCount = 0;
 	for(int x = 0; x < sokoban.width(); ++x) {
 		for(int y = 0; y < sokoban.height(); ++y) {
-			if(sokoban.getCellSprite(QPoint(x, y)) == Sokoban::SPACE) {
+			if(sokoban.getCellAt(QPoint(x, y)).type == Cell::SPACE) {
 				spaceCount++;
 			}
 		}
