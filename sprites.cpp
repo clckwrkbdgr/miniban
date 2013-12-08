@@ -28,14 +28,30 @@ QSize Sprites::getSpritesBounds() const
 	return sprite_size;
 }
 
-QImage Sprites::getSprite(int tileType, int scaleFactor) const
+QRect Sprites::getSpriteRect(int tileType) const
 {
-	scaleFactor = (scaleFactor < 1) ? 1 : scaleFactor;
 	if(cachedSprites.contains(tileType)) {
 		QPoint tile_pos = cachedSprites[tileType];
-		QRect r(QPoint(tile_pos.x() * sprite_size.width(), tile_pos.y() * sprite_size.height()), sprite_size);
-		return tileset.copy(r).scaled(sprite_size * scaleFactor);
+		return QRect(QPoint(tile_pos.x() * sprite_size.width(), tile_pos.y() * sprite_size.height()), sprite_size);
 	}
-	return QImage();
+	return QRect();
 }
 
+const QImage & Sprites::getTileSet() const
+{
+	return tileset;
+}
+
+bool Sprites::contains(int tileType) const
+{
+	static QList<int> tileTypes = QList<int>()
+		<< Sprites::FLOOR
+		<< Sprites::WALL
+		<< Sprites::EMPTY_SLOT
+		<< Sprites::SPACE
+		<< Sprites::PLAYER_ON_FLOOR
+		<< Sprites::PLAYER_ON_SLOT
+		<< Sprites::BOX_ON_FLOOR
+		<< Sprites::BOX_ON_SLOT;
+	return tileTypes.contains(tileType);
+}

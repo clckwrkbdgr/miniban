@@ -22,7 +22,6 @@ signals:
 private:
 	QString originalLevel;
 	Sprites original_sprites;
-	QMap<int, QImage> sprites;
 	QSize spriteSize;
 	bool toInvalidate;
 	Sokoban sokoban;

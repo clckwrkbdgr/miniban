@@ -5,26 +5,8 @@
 #include "sprites.h"
 #include "playingmode.h"
 
-namespace { // Aux.
-
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
-
-const QList<int> & getAllTileTypes()
-{
-	static QList<int> tileTypes = QList<int>()
-		<< Sprites::FLOOR
-		<< Sprites::WALL
-		<< Sprites::EMPTY_SLOT
-		<< Sprites::SPACE
-		<< Sprites::PLAYER_ON_FLOOR
-		<< Sprites::PLAYER_ON_SLOT
-		<< Sprites::BOX_ON_FLOOR
-		<< Sprites::BOX_ON_SLOT;
-	return tileTypes;
-}
-
-};
 
 PlayingMode::PlayingMode(const QString & level, const Sprites & _sprites, QObject * parent)
 	: AbstractGameMode(parent), originalLevel(level), original_sprites(_sprites), toInvalidate(true),
@@ -46,13 +28,9 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 			);
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
-	foreach(int tileType, getAllTileTypes()) {
-		sprites[tileType] = original_sprites.getSprite(tileType, scaleFactor);
-	}
-
 	spriteSize = originalSize * scaleFactor;
 
-	aim = QImage(spriteSize, sprites[Sprites::FLOOR].format());
+	aim = QImage(spriteSize, original_sprites.getTileSet().format());
 	QPainter painter(&aim);
 	painter.setCompositionMode(QPainter::CompositionMode_Source);
 	painter.fillRect(aim.rect(), Qt::blue);
@@ -143,7 +121,9 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 				case Cell::SPACE: cellSprite = Sprites::SPACE; break;
 				case Cell::WALL: cellSprite = Sprites::WALL; break;
 			}
-			painter->drawImage(pos, sprites[sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE]);
+			painter->drawImage(pos,
+					original_sprites.getTileSet().copy(original_sprites.getSpriteRect(original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE)).scaled(spriteSize)
+					);
 
 			Object object = sokoban.getObjectAt(x, y);
 			if(!object.isNull()) {
@@ -164,8 +144,10 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 						}
 						break;
 				}
-				if(objectSprite != Sprites::SPACE && sprites.contains(objectSprite)) {
-					painter->drawImage(pos, sprites[objectSprite]);
+				if(objectSprite != Sprites::SPACE && original_sprites.contains(objectSprite)) {
+					painter->drawImage(pos,
+							original_sprites.getTileSet().copy(original_sprites.getSpriteRect(objectSprite)).scaled(spriteSize)
+							);
 				}
 			}
 		}
