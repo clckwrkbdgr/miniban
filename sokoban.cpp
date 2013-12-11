@@ -29,10 +29,24 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 				case '$': cell(pos).type = Cell::SPACE; boxes << Object(pos); break;
 				case '*': cell(pos).type = Cell::SLOT; boxes << Object(pos); break;
 			}
+			int sprite_chance = qrand() % 100;
+			if(sprite_chance < 50) {
+				cell(pos).sprite = 0;
+			} else if(sprite_chance < 80) {
+				cell(pos).sprite = 1;
+			} else if(sprite_chance < 95) {
+				cell(pos).sprite = 2;
+			} else {
+				cell(pos).sprite = 3;
+			}
 		}
 	}
 	if(playerCount != 1) {
 		throw InvalidPlayerCountException(playerCount);
+	}
+	player.sprite = qrand() % 4;
+	for(int i = 0; i < boxes.count(); ++i) {
+		boxes[i].sprite = qrand() % 4;
 	}
 
 	// 0 - passable, 1 - impassable, 2 - found to be floor.
@@ -193,8 +207,10 @@ Object Sokoban::getObjectAt(int x, int y) const
 	if(player.pos == QPoint(x, y)) {
 		return player;
 	}
-	if(has_box(QPoint(x, y))) {
-		return Object(QPoint(x, y));
+	foreach(const Object & box, boxes) {
+		if(box.pos == QPoint(x, y)) {
+			return box;
+		}
 	}
 	return Object();
 }

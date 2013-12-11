@@ -7,14 +7,16 @@
 struct Cell {
 	enum { SPACE, FLOOR, WALL, SLOT };
 	int type;
-	explicit Cell(int cell_type = SPACE) : type(cell_type) {}
+	int sprite;
+	explicit Cell(int cell_type = SPACE) : type(cell_type), sprite(0) {}
 };
 
 struct Object {
 	QPoint pos;
 	bool is_player;
+	int sprite;
 	Object() : is_player(false) {}
-	explicit Object(const QPoint & object_pos, bool player = false) : pos(object_pos), is_player(player) {}
+	explicit Object(const QPoint & object_pos, bool player = false) : pos(object_pos), is_player(player), sprite(0) {}
 	bool isNull() const { return pos.isNull(); }
 };
 
