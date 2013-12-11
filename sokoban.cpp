@@ -62,6 +62,12 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	}
 }
 
+void Sokoban::restart()
+{
+	while(undo()) {
+	}
+}
+
 bool Sokoban::has_box(const QPoint & point) const
 {
 	foreach(const Object & box, boxes) {

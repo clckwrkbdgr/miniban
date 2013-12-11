@@ -61,7 +61,9 @@ public:
 	bool movePlayer(int control, bool cautious = false);
 	bool movePlayer(const QPoint & target);
 	bool runPlayer(int control);
+	void restart();
 private:
+	QString original_level;
 	QSize size;
 	Object player;
 	QList<Object> boxes;

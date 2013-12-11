@@ -75,7 +75,7 @@ void PlayingMode::processControl(int control)
 			target_mode = true;
 			target = sokoban.getPlayerPos();
 			break;
-		case CONTROL_HOME: sokoban = Sokoban(originalLevel); break;
+		case CONTROL_HOME: sokoban.restart(); break;
 		case CONTROL_UNDO:
 			try {
 				sokoban.undo();
