@@ -1,12 +1,13 @@
 #pragma once
-#include <QtGui/QImage>
 #include "abstractgamemode.h"
 #include "sprites.h"
+#include "sokoban.h"
+#include <QtGui/QImage>
 
 class FadeMode : public AbstractGameMode {
 	Q_OBJECT
 public:
-	FadeMode(const QString & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent = 0);
+	FadeMode(const Sokoban & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent = 0);
 	virtual ~FadeMode();
 
 	virtual void invalidateRect();
@@ -18,7 +19,7 @@ signals:
 protected:
 	void timerEvent(QTimerEvent*);
 private:
-	QString level;
+	Sokoban level;
 	QImage snapshot;
 	Sprites sprites;
 	bool isFadeOut;

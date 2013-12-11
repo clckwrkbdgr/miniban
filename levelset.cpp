@@ -85,6 +85,7 @@ bool LevelSet::moveToNextLevel()
 		return false;
 	}
 	currentLevel = xmlLevels[currentLevelIndex].second;
+	currentSokoban = Sokoban(currentLevel);
 	return true;
 }
 

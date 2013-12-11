@@ -1,4 +1,5 @@
 #pragma once
+#include "sokoban.h"
 #include <QtCore/QString>
 
 class LevelSet {
@@ -14,12 +15,13 @@ public:
 	int getLevelCount() const;
 	const QString & getLevelSetTitle() const;
 	QString getCurrentLevelSet() const;
-	const QString & getCurrentLevel() const { return currentLevel; }
+	const Sokoban & getCurrentSokoban() const { return currentSokoban; }
 	bool isOver() const { return over; }
 private:
 	bool over;
 	int currentLevelIndex;
 	QString currentLevel;
+	Sokoban currentSokoban;
 	int currentSetPos;
 	QString levelSetTitle;
 

@@ -1,4 +1,3 @@
-//#define DEBUG_FULL_HISTORY
 #include <QtDebug>
 #include <QtGui/QPainter>
 #include "sokoban.h"
@@ -8,14 +7,9 @@
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
 
-PlayingMode::PlayingMode(const QString & level, const Sprites & _sprites, QObject * parent)
-	: AbstractGameMode(parent), originalLevel(level), original_sprites(_sprites), toInvalidate(true),
-#ifdef DEBUG_FULL_HISTORY
-	sokoban(level, 0, true),
-#else
-	sokoban(level),
-#endif
-	target_mode(false)
+PlayingMode::PlayingMode(const Sokoban & prepared_sokoban, const Sprites & _sprites, QObject * parent)
+	: AbstractGameMode(parent), original_sprites(_sprites), toInvalidate(true),
+	sokoban(prepared_sokoban), target_mode(false)
 {
 }
 

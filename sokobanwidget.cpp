@@ -154,10 +154,10 @@ void SokobanWidget::loadNextLevel()
 {
 	if(levelSet.isOver())
 		return;
-	QString level = levelSet.getCurrentLevel();
+	Sokoban level = levelSet.getCurrentSokoban();
 	PlayingMode * playingMode = static_cast<PlayingMode*>(gameMode);
 	if(playingMode) {
-		level = playingMode->getCurrentLevel();
+		level = playingMode->getCurrentSokoban();
 	}
 	levelSet.moveToNextLevel();
 
@@ -183,7 +183,7 @@ void SokobanWidget::showInterlevelMessage()
 
 void SokobanWidget::startFadeIn()
 {
-	gameMode = new FadeMode(levelSet.getCurrentLevel(), sprites, false, this);
+	gameMode = new FadeMode(levelSet.getCurrentSokoban(), sprites, false, this);
 	connect(gameMode, SIGNAL(fadeIsEnded()), this, SLOT(startGame()));
 	connect(gameMode, SIGNAL(update()), this, SLOT(update()));
 	update();
@@ -193,7 +193,7 @@ void SokobanWidget::startGame()
 {
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-	gameMode = new PlayingMode(levelSet.getCurrentLevel(), sprites, this);
+	gameMode = new PlayingMode(levelSet.getCurrentSokoban(), sprites, this);
 	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
 }

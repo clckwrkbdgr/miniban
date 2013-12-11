@@ -2,8 +2,13 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
+Sokoban::Sokoban()
+	: valid(false)
+{
+}
+
 Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, bool isFullHistoryTracked)
-	: history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
+	: valid(true), history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
 {
 	QStringList rows = levelField.split('\n');
 	size.setHeight(rows.count());
@@ -80,6 +85,9 @@ bool Sokoban::has_box(const QPoint & point) const
 
 bool Sokoban::movePlayer(const QPoint & target)
 {
+	if(!valid) {
+		return false;
+	}
 	QVector<int> passed(cells.size(), -1);
 	for(int i = 0; i < cells.size(); ++i) {
 		if(cells[i].type != Cell::WALL && !has_box(QPoint(i % width(), i / width()))) {
@@ -223,11 +231,17 @@ Object Sokoban::getObjectAt(int x, int y) const
 
 bool Sokoban::isValid(const QPoint & pos) const
 {
+	if(!valid) {
+		return false;
+	}
 	return (pos.x() >= 0 && pos.x() < width() && pos.y() >= 0 && pos.y() < height());
 }
 
 bool Sokoban::runPlayer(int control)
 {
+	if(!valid) {
+		return false;
+	}
 	bool moved = false;
 	while(movePlayer(control, true)) {
 		moved = true;
@@ -237,6 +251,9 @@ bool Sokoban::runPlayer(int control)
 
 bool Sokoban::movePlayer(int control, bool cautious)
 {
+	if(!valid) {
+		return false;
+	}
 	QMap<int, QPoint> shiftForControl;
 	shiftForControl[UP] = QPoint(0, -1);
 	shiftForControl[DOWN] = QPoint(0, 1);
@@ -322,6 +339,9 @@ QString Sokoban::historyAsString() const
 
 bool Sokoban::undo()
 {
+	if(!valid) {
+		return false;
+	}
 	QMap<QChar, QPoint> shiftForControl;
 	shiftForControl['u'] = QPoint(0, -1);
 	shiftForControl['d'] = QPoint(0, 1);
@@ -392,6 +412,9 @@ bool Sokoban::undo()
 
 bool Sokoban::isSolved()
 {
+	if(!valid) {
+		return false;
+	}
 	int freeBoxCount = 0, freeSlotCount = 0;
 	for(int y = 0; y < size.height(); ++y) {
 		for(int x = 0; x < size.width(); ++x) {

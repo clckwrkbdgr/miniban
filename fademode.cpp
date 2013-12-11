@@ -12,7 +12,7 @@ const int FADE_COUNT = 200;
 
 };
 
-FadeMode::FadeMode(const QString & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent)
+FadeMode::FadeMode(const Sokoban & levelToFade, const Sprites & _sprites, bool fadeOut, QObject * parent)
 	: AbstractGameMode(parent), level(levelToFade), sprites(_sprites), isFadeOut(fadeOut), currentFade(isFadeOut ? FADE_COUNT : 0)
 {
 	timerId = startTimer(FADE_DELAY);

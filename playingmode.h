@@ -9,10 +9,10 @@
 class PlayingMode : public AbstractGameMode {
 	Q_OBJECT
 public:
-	PlayingMode(const QString & level, const Sprites & sprites, QObject * parent = 0);
+	PlayingMode(const Sokoban & prepared_sokoban, const Sprites & sprites, QObject * parent = 0);
 	virtual ~PlayingMode() {}
 
-	QString getCurrentLevel() const { return sokoban.toString(); }
+	const Sokoban & getCurrentSokoban() const { return sokoban; }
 	
 	virtual void invalidateRect();
 	virtual void paint(QPainter * painter, const QRect & rect);
@@ -20,7 +20,6 @@ public:
 signals:
 	void levelIsSolved();
 private:
-	QString originalLevel;
 	Sprites original_sprites;
 	QSize spriteSize;
 	bool toInvalidate;

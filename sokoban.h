@@ -41,9 +41,11 @@ public:
 	};
 	class OutOfMapException {};
 
+	Sokoban();
 	Sokoban(const QString & levelField, const QString & backgroundHistory = QString(), bool isFullHistoryTracked = false);
 	virtual ~Sokoban() {}
 
+	bool isValid() const { return valid; }
 	int width() const { return size.width(); }
 	int height() const { return size.height(); }
 	bool isValid(const QPoint & pos) const;
@@ -63,6 +65,7 @@ public:
 	bool runPlayer(int control);
 	void restart();
 private:
+	bool valid;
 	QString original_level;
 	QSize size;
 	Object player;
