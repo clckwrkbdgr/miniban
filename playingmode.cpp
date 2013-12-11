@@ -121,8 +121,9 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 				case Cell::SPACE: cellSprite = Sprites::SPACE; break;
 				case Cell::WALL: cellSprite = Sprites::WALL; break;
 			}
+			cellSprite = original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE;
 			painter->drawImage(pos,
-					original_sprites.getTileSet().copy(original_sprites.getSpriteRect(original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE)).scaled(spriteSize)
+					original_sprites.getTileSet().copy(original_sprites.getSpriteRect(cellSprite, 0)).scaled(spriteSize)
 					);
 
 			Object object = sokoban.getObjectAt(x, y);
@@ -146,7 +147,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 				}
 				if(objectSprite != Sprites::SPACE && original_sprites.contains(objectSprite)) {
 					painter->drawImage(pos,
-							original_sprites.getTileSet().copy(original_sprites.getSpriteRect(objectSprite)).scaled(spriteSize)
+							original_sprites.getTileSet().copy(original_sprites.getSpriteRect(objectSprite, 0)).scaled(spriteSize)
 							);
 				}
 			}
