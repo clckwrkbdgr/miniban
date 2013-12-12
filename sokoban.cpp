@@ -49,7 +49,6 @@ Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, 
 	if(playerCount != 1) {
 		throw InvalidPlayerCountException(playerCount);
 	}
-	player.sprite = qrand() % 4;
 	for(int i = 0; i < boxes.count(); ++i) {
 		boxes[i].sprite = qrand() % 4;
 	}
@@ -264,6 +263,11 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	charForControl[DOWN] = 'd';
 	charForControl[RIGHT] = 'r';
 	charForControl[LEFT] = 'l';
+	QMap<int, int> poseForControl;
+	poseForControl[DOWN] = 0;
+	poseForControl[LEFT] = 1;
+	poseForControl[UP] = 2;
+	poseForControl[RIGHT] = 3;
 
 	QPoint shift = shiftForControl[control];
 	if(shift.isNull()) {
@@ -304,6 +308,7 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		}
 		controlChar = controlChar.toUpper();
 	}
+	player.sprite = poseForControl[control];
 	history.append(controlChar);
 	return true;
 }
