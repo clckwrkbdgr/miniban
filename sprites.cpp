@@ -12,6 +12,9 @@ QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
 Sprites::Sprites(const QString & filename)
 	: tileset(filename)
 {
+	if(!tileset.isNull()) {
+		return;
+	}
 	sprite_size = QSize(tileset.width() / 4, tileset.height() / 8);
 	cachedSprites[Sprites::FLOOR]           << QPoint(0, 0) << QPoint(1, 0) << QPoint(2, 0) << QPoint(3, 0);
 	cachedSprites[Sprites::WALL]            << QPoint(0, 1) << QPoint(1, 1) << QPoint(2, 1) << QPoint(3, 1);
@@ -25,6 +28,9 @@ Sprites::Sprites(const QString & filename)
 
 QSize Sprites::getSpritesBounds() const
 {
+	if(tileset.isNull()) {
+		return QSize();
+	}
 	return sprite_size;
 }
 
@@ -44,6 +50,9 @@ const QImage & Sprites::getTileSet() const
 
 bool Sprites::contains(int tileType) const
 {
+	if(!tileset.isNull()) {
+		return false;
+	}
 	static QList<int> tileTypes = QList<int>()
 		<< Sprites::FLOOR
 		<< Sprites::WALL
