@@ -352,6 +352,11 @@ bool Sokoban::undo()
 	shiftForControl['d'] = QPoint(0, 1);
 	shiftForControl['r'] = QPoint(1, 0);
 	shiftForControl['l'] = QPoint(-1, 0);
+	QMap<QChar, int> poseForControl;
+	poseForControl['d'] = 0;
+	poseForControl['l'] = 1;
+	poseForControl['u'] = 2;
+	poseForControl['r'] = 3;
 
 	QString realHistory = history;
 	if(fullHistoryTracking) {
@@ -407,6 +412,7 @@ bool Sokoban::undo()
 			}
 		}
 	}
+	player.sprite = poseForControl[control.toLower()];
 	if(fullHistoryTracking) {
 		history.append('-');
 	} else {

@@ -12,7 +12,7 @@ QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
 Sprites::Sprites(const QString & filename)
 	: tileset(filename)
 {
-	if(!tileset.isNull()) {
+	if(tileset.isNull()) {
 		return;
 	}
 	sprite_size = QSize(tileset.width() / 4, tileset.height() / 8);
@@ -50,7 +50,7 @@ const QImage & Sprites::getTileSet() const
 
 bool Sprites::contains(int tileType) const
 {
-	if(!tileset.isNull()) {
+	if(tileset.isNull()) {
 		return false;
 	}
 	static QList<int> tileTypes = QList<int>()
