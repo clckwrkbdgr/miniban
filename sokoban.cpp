@@ -2,6 +2,8 @@
 #include <QtCore/QStringList>
 #include "sokoban.h"
 
+static const bool DIRECTIONAL_PLAYER_SPRITES = false;
+
 Sokoban::Sokoban()
 	: valid(false)
 {
@@ -308,7 +310,9 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		}
 		controlChar = controlChar.toUpper();
 	}
-	player.sprite = poseForControl[control];
+	if(DIRECTIONAL_PLAYER_SPRITES) {
+		player.sprite = poseForControl[control];
+	}
 	history.append(controlChar);
 	return true;
 }
@@ -412,7 +416,9 @@ bool Sokoban::undo()
 			}
 		}
 	}
-	player.sprite = poseForControl[control.toLower()];
+	if(DIRECTIONAL_PLAYER_SPRITES) {
+		player.sprite = poseForControl[control.toLower()];
+	}
 	if(fullHistoryTracking) {
 		history.append('-');
 	} else {
