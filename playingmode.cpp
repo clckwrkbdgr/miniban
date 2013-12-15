@@ -61,6 +61,10 @@ void PlayingMode::processControl(int control)
 		case CONTROL_DOWN:  sokoban.movePlayer(Sokoban::DOWN); break;
 		case CONTROL_UP:    sokoban.movePlayer(Sokoban::UP); break;
 		case CONTROL_RIGHT: sokoban.movePlayer(Sokoban::RIGHT); break;
+		case CONTROL_UP_LEFT:    sokoban.movePlayer(Sokoban::UP_LEFT); break;
+		case CONTROL_UP_RIGHT:   sokoban.movePlayer(Sokoban::UP_RIGHT); break;
+		case CONTROL_DOWN_LEFT:  sokoban.movePlayer(Sokoban::DOWN_LEFT); break;
+		case CONTROL_DOWN_RIGHT: sokoban.movePlayer(Sokoban::DOWN_RIGHT); break;
 		case CONTROL_RUN_LEFT:  sokoban.runPlayer(Sokoban::LEFT); break;
 		case CONTROL_RUN_DOWN:  sokoban.runPlayer(Sokoban::DOWN); break;
 		case CONTROL_RUN_UP:    sokoban.runPlayer(Sokoban::UP); break;
