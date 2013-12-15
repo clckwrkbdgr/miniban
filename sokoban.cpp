@@ -255,6 +255,11 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	if(!valid) {
 		return false;
 	}
+	QMap<int, QPair<int, int> > diagonal_controls;
+	diagonal_controls[UP_LEFT] = qMakePair<int, int>(UP, LEFT);
+	diagonal_controls[UP_RIGHT] = qMakePair<int, int>(UP, RIGHT);
+	diagonal_controls[DOWN_LEFT] = qMakePair<int, int>(DOWN, LEFT);
+	diagonal_controls[DOWN_RIGHT] = qMakePair<int, int>(DOWN, RIGHT);
 	QMap<int, QPoint> shiftForControl;
 	shiftForControl[UP] = QPoint(0, -1);
 	shiftForControl[DOWN] = QPoint(0, 1);
@@ -270,6 +275,27 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	poseForControl[LEFT] = 1;
 	poseForControl[UP] = 2;
 	poseForControl[RIGHT] = 3;
+
+	if(diagonal_controls.contains(control)) {
+		QPair<int, int> controls = diagonal_controls[control];
+		bool ok = false;
+		ok = movePlayer(controls.first, true);
+		if(ok) {
+			ok = movePlayer(controls.second, true);
+			if(!ok) {
+				undo();
+			}
+		} else {
+			ok = movePlayer(controls.second, true);
+			if(ok) {
+				ok = movePlayer(controls.first, true);
+				if(!ok) {
+					undo();
+				}
+			}
+		}
+		return ok;
+	}
 
 	QPoint shift = shiftForControl[control];
 	if(shift.isNull()) {

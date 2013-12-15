@@ -22,7 +22,7 @@ struct Object {
 
 class Sokoban {
 public:
-	enum { LEFT, RIGHT, DOWN, UP };
+	enum { LEFT, RIGHT, DOWN, UP, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT };
 
 	class InvalidPlayerCountException {
 	public:

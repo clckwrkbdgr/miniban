@@ -17,6 +17,8 @@ private slots:
 	void cannotRunIntoWall();
 	void cannotPushBoxWhileRunning();
 	void targetMoving();
+	void diagonalMovement_data();
+	void diagonalMovement();
 	void historyIsTracked();
 	void historyIsTrackedWithUndo();
 	void takeAllSlotsToWin_data();
@@ -203,6 +205,34 @@ void SokobanTest::targetMoving()
 	QVERIFY(!moved);
 	QCOMPARE(sokoban.getPlayerPos(), QPoint(6, 3));
 	QCOMPARE(sokoban.historyAsString(), QString("llddrrrruuuulruullllddrRR"));
+}
+
+void SokobanTest::diagonalMovement_data()
+{
+	QTest::addColumn<QString>("level");
+	QTest::addColumn<int>("control");
+	QTest::addColumn<bool>("moved");
+	QTest::addColumn<QPoint>("new_pos");
+	QTest::newRow("empty")         << QString("@ \n  ") << int(Sokoban::DOWN_RIGHT) << true << QPoint(1, 1);
+	QTest::newRow("wall")          << QString("@ \n# ") << int(Sokoban::DOWN_RIGHT) << true << QPoint(1, 1);
+	QTest::newRow("another wall")  << QString("@#\n  ") << int(Sokoban::DOWN_RIGHT) << true << QPoint(1, 1);
+	QTest::newRow("box")           << QString("@ \n$ ") << int(Sokoban::DOWN_RIGHT) << true << QPoint(1, 1);
+	QTest::newRow("another box")   << QString("@$\n  ") << int(Sokoban::DOWN_RIGHT) << true << QPoint(1, 1);
+	QTest::newRow("closing walls") << QString("@#\n# ") << int(Sokoban::DOWN_RIGHT) << false << QPoint(0, 0);
+	QTest::newRow("closing boxes") << QString("@$\n$ ") << int(Sokoban::DOWN_RIGHT) << false << QPoint(0, 0);
+	QTest::newRow("wall blocking") << QString("@ \n #") << int(Sokoban::DOWN_RIGHT) << false << QPoint(0, 0);
+	QTest::newRow("box blocking")  << QString("@ \n $") << int(Sokoban::DOWN_RIGHT) << false << QPoint(0, 0);
+}
+void SokobanTest::diagonalMovement()
+{
+	QFETCH(QString, level);
+	QFETCH(int, control);
+	QFETCH(bool, moved);
+	QFETCH(QPoint, new_pos);
+	Sokoban sokoban(level);
+	bool ok = sokoban.movePlayer(control);
+	QCOMPARE(ok, moved);
+	QCOMPARE(sokoban.getPlayerPos(), new_pos);
 }
 
 void SokobanTest::historyIsTracked()
