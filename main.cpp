@@ -8,6 +8,8 @@ int main(int argc, char ** argv)
 	app.setApplicationName("miniban");
 	qsrand(time(NULL));
 
+	QApplication::setOverrideCursor(Qt::BlankCursor);
+
 	SokobanWidget wnd;
 	wnd.showFullScreen();
 	return app.exec();
