@@ -15,7 +15,6 @@ Sprites::Sprites(const QString & filename)
 	if(tileset.isNull()) {
 		return;
 	}
-	sprite_size = QSize(tileset.width() / 4, tileset.height() / 8);
 	cachedSprites[Sprites::FLOOR]           << QPoint(0, 0) << QPoint(1, 0) << QPoint(2, 0) << QPoint(3, 0);
 	cachedSprites[Sprites::WALL]            << QPoint(0, 1) << QPoint(1, 1) << QPoint(2, 1) << QPoint(3, 1);
 	cachedSprites[Sprites::EMPTY_SLOT]      << QPoint(0, 2) << QPoint(1, 2) << QPoint(2, 2) << QPoint(3, 2);
@@ -24,6 +23,15 @@ Sprites::Sprites(const QString & filename)
 	cachedSprites[Sprites::PLAYER_ON_SLOT]  << QPoint(0, 5) << QPoint(1, 5) << QPoint(2, 5) << QPoint(3, 5);
 	cachedSprites[Sprites::BOX_ON_FLOOR]    << QPoint(0, 6) << QPoint(1, 6) << QPoint(2, 6) << QPoint(3, 6);
 	cachedSprites[Sprites::BOX_ON_SLOT]     << QPoint(0, 7) << QPoint(1, 7) << QPoint(2, 7) << QPoint(3, 7);
+	cachedSprites[Sprites::CURSOR]          << QPoint(0, 8);
+	int max_x = 0, max_y = 0;
+	foreach(int key, cachedSprites.keys()) {
+		foreach(const QPoint & point, cachedSprites[key]) {
+			max_x = qMax(point.x(), max_x);
+			max_y = qMax(point.y(), max_y);
+		}
+	}
+	sprite_size = QSize(tileset.width() / (max_x + 1), tileset.height() / (max_y + 1));
 }
 
 QSize Sprites::getSpritesBounds() const
@@ -53,14 +61,5 @@ bool Sprites::contains(int tileType) const
 	if(tileset.isNull()) {
 		return false;
 	}
-	static QList<int> tileTypes = QList<int>()
-		<< Sprites::FLOOR
-		<< Sprites::WALL
-		<< Sprites::EMPTY_SLOT
-		<< Sprites::SPACE
-		<< Sprites::PLAYER_ON_FLOOR
-		<< Sprites::PLAYER_ON_SLOT
-		<< Sprites::BOX_ON_FLOOR
-		<< Sprites::BOX_ON_SLOT;
-	return tileTypes.contains(tileType);
+	return cachedSprites.contains(tileType);
 }

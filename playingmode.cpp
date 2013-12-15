@@ -149,7 +149,9 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 	}
 	if(target_mode) {
 		QPoint pos = offset + QPoint(target.x() * spriteSize.width(), target.y() * spriteSize.height());
-		painter->drawImage(pos, aim);
+		painter->drawImage(pos,
+				original_sprites.getTileSet().copy(original_sprites.getSpriteRect(Sprites::CURSOR, 0)).scaled(spriteSize)
+				);
 	}
 }
 
