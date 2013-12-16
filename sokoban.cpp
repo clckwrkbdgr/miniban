@@ -305,7 +305,7 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	QPoint newPlayerPos = playerPos + shift;
 	QPoint newSecondPos = newPlayerPos + shift;
 	if(!isValid(newPlayerPos)) {
-		throw OutOfMapException();
+		return false;
 	}
 	if(cell(newPlayerPos).type == Cell::WALL) {
 		return false;

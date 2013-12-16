@@ -28,7 +28,6 @@ private slots:
 	void exceptionInvalidPlayerCount();
 	void exceptionInvalidUndo_data();
 	void exceptionInvalidUndo();
-	void exceptionWhenMoveOutOfMap();
 	void unreachableCellsAreMarkedAsSpace();
 };
 
@@ -391,17 +390,6 @@ void SokobanTest::exceptionInvalidUndo()
 		thrown = true;
 	} catch(...) {}
 	QCOMPARE(thrown, shouldBeThrown);
-}
-
-void SokobanTest::exceptionWhenMoveOutOfMap()
-{
-	try {
-		Sokoban sokoban(" @");
-		sokoban.movePlayer(Sokoban::RIGHT);
-	} catch(Sokoban::OutOfMapException & e) {
-		return;
-	}
-	QFAIL("Exception wasn't raised!");
 }
 
 void SokobanTest::unreachableCellsAreMarkedAsSpace()

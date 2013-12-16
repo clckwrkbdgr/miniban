@@ -29,11 +29,6 @@ public:
 		InvalidPlayerCountException(int wrongPlayerCount) : playerCount(wrongPlayerCount) {}
 		int playerCount;
 	};
-	class InvalidControlException {
-	public:
-		InvalidControlException(const QChar & control) : invalidControl(control) {}
-		QChar invalidControl;
-	};
 	class InvalidUndoException {
 	public:
 		InvalidUndoException(const QChar & control) : invalidUndoControl(control) {}
