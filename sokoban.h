@@ -1,8 +1,6 @@
 #pragma once
-#include <QtCore/QString>
-#include <QtCore/QVector>
-#include <QtCore/QPoint>
-#include <QtCore/QSize>
+#include <chthon/map.h>
+#include <chthon/point.h>
 
 struct Cell {
 	enum { SPACE, FLOOR, WALL, SLOT };
@@ -12,12 +10,12 @@ struct Cell {
 };
 
 struct Object {
-	QPoint pos;
+	Chthon::Point pos;
 	bool is_player;
 	int sprite;
 	Object() : is_player(false) {}
-	explicit Object(const QPoint & object_pos, bool player = false) : pos(object_pos), is_player(player), sprite(0) {}
-	bool isNull() const { return pos.isNull(); }
+	explicit Object(const Chthon::Point & object_pos, bool player = false) : pos(object_pos), is_player(player), sprite(0) {}
+	bool isNull() const { return pos.null(); }
 };
 
 class Sokoban {
@@ -31,46 +29,43 @@ public:
 	};
 	class InvalidUndoException {
 	public:
-		InvalidUndoException(const QChar & control) : invalidUndoControl(control) {}
-		QChar invalidUndoControl;
+		InvalidUndoException(const char & control) : invalidUndoControl(control) {}
+		char invalidUndoControl;
 	};
 	class OutOfMapException {};
 
 	Sokoban();
-	Sokoban(const QString & levelField, const QString & backgroundHistory = QString(), bool isFullHistoryTracked = false);
+	Sokoban(const std::string & levelField, const std::string & backgroundHistory = std::string(), bool isFullHistoryTracked = false);
 	virtual ~Sokoban() {}
 
 	bool isValid() const { return valid; }
-	int width() const { return size.width(); }
-	int height() const { return size.height(); }
-	bool isValid(const QPoint & pos) const;
+	int width() const { return cells.width; }
+	int height() const { return cells.height; }
+	bool isValid(const Chthon::Point & pos) const;
 	Cell getCellAt(int x, int y) const;
-	Cell getCellAt(const QPoint & point) const { return getCellAt(point.x(), point.y()); }
+	Cell getCellAt(const Chthon::Point & point) const { return getCellAt(point.x, point.y); }
 	Object getObjectAt(int x, int y) const;
-	Object getObjectAt(const QPoint & point) const { return getObjectAt(point.x(), point.y()); }
+	Object getObjectAt(const Chthon::Point & point) const { return getObjectAt(point.x, point.y); }
 
-	QString toString() const;
-	QString historyAsString() const;
-	QPoint getPlayerPos() const;
+	std::string toString() const;
+	std::string historyAsString() const;
+	Chthon::Point getPlayerPos() const;
 
 	bool undo();
 	bool isSolved();
 	bool movePlayer(int control, bool cautious = false);
-	bool movePlayer(const QPoint & target);
+	bool movePlayer(const Chthon::Point & target);
 	bool runPlayer(int control);
 	void restart();
 private:
 	bool valid;
-	QString original_level;
-	QSize size;
+	std::string original_level;
 	Object player;
-	QList<Object> boxes;
-	QVector<Cell> cells;
-	QString history;
-	bool has_box(const QPoint & point) const;
+	std::vector<Object> boxes;
+	Chthon::Map<Cell> cells;
+	std::string history;
+	bool has_box(const Chthon::Point & point) const;
 	bool fullHistoryTracking;
-	Cell & cell(const QPoint & point);
-	const Cell & cell(const QPoint & point) const;
-	void fillFloor(QVector<int> & reachable, const QPoint & point);
-	bool shiftPlayer(const QPoint & shift);
+	void fillFloor(std::vector<int> & reachable, const Chthon::Point & point);
+	bool shiftPlayer(const Chthon::Point & shift);
 };

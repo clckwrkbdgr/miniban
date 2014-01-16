@@ -3,24 +3,13 @@
 #include <chthon/test.h>
 using namespace Chthon::UnitTest;
 
-std::string to_string(const QPoint & point)
-{
-	return Chthon::format("({0}, {1})", point.x(), point.y());
-}
-
-std::string to_string(const QString & str)
-{
-	return str.toStdString();
-}
-
-
 TEST(levelsAreStrings)
 {
 	Sokoban sokoban1("@ $.#");
 	EQUAL(sokoban1.width(), 5);
 	EQUAL(sokoban1.height(), 1);
-	EQUAL(sokoban1.getPlayerPos(), QPoint(0, 0));
-	EQUAL(sokoban1.toString(), QString("@ $.#"));
+	EQUAL(sokoban1.getPlayerPos(), Chthon::Point(0, 0));
+	EQUAL(sokoban1.toString(), "@ $.#");
 	EQUAL(sokoban1.getCellAt(0, 0).type, int(Cell::FLOOR));
 	ASSERT(sokoban1.getObjectAt(0, 0).is_player);
 	EQUAL(sokoban1.getCellAt(1, 0).type, int(Cell::FLOOR));
@@ -35,8 +24,8 @@ TEST(levelsAreStrings)
 	Sokoban sokoban2("#.\n*+");
 	EQUAL(sokoban2.width(), 2);
 	EQUAL(sokoban2.height(), 2);
-	EQUAL(sokoban2.getPlayerPos(), QPoint(1, 1));
-	EQUAL(sokoban2.toString(), QString("#.\n*+"));
+	EQUAL(sokoban2.getPlayerPos(), Chthon::Point(1, 1));
+	EQUAL(sokoban2.toString(), "#.\n*+");
 	EQUAL(sokoban2.getCellAt(0, 0).type, int(Cell::WALL));
 	ASSERT(sokoban2.getObjectAt(0, 0).isNull());
 	EQUAL(sokoban2.getCellAt(1, 0).type, int(Cell::SLOT));
@@ -52,7 +41,7 @@ TEST(canMoveOntoFloor)
 	Sokoban sokoban("@ ");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(" @"));
+	EQUAL(sokoban.toString(), " @");
 }
 
 TEST(cannotMoveOntoWall)
@@ -60,7 +49,7 @@ TEST(cannotMoveOntoWall)
 	Sokoban sokoban("@#");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(!moved);
-	EQUAL(sokoban.toString(), QString("@#"));
+	EQUAL(sokoban.toString(), "@#");
 }
 
 TEST(canMoveOntoSlot)
@@ -68,7 +57,7 @@ TEST(canMoveOntoSlot)
 	Sokoban sokoban("@.");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(" +"));
+	EQUAL(sokoban.toString(), " +");
 }
 
 TEST(canMoveFromSlot)
@@ -76,11 +65,11 @@ TEST(canMoveFromSlot)
 	Sokoban sokoban("+. ");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(".+ "));
+	EQUAL(sokoban.toString(), ".+ ");
 
 	moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString("..@"));
+	EQUAL(sokoban.toString(), "..@");
 }
 
 TEST(canMoveOntoFreeBoxOnFloor)
@@ -88,11 +77,11 @@ TEST(canMoveOntoFreeBoxOnFloor)
 	Sokoban sokoban("@$ .");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(" @$."));
+	EQUAL(sokoban.toString(), " @$.");
 
 	moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString("  @*"));
+	EQUAL(sokoban.toString(), "  @*");
 }
 
 TEST(canMoveOntoFreeBoxOnSlot)
@@ -100,11 +89,11 @@ TEST(canMoveOntoFreeBoxOnSlot)
 	Sokoban sokoban("@*. ");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(" +* "));
+	EQUAL(sokoban.toString(), " +* ");
 
 	moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString(" .+$"));
+	EQUAL(sokoban.toString(), " .+$");
 }
 
 TEST(cannotMoveTwoBoxesInRow)
@@ -112,7 +101,7 @@ TEST(cannotMoveTwoBoxesInRow)
 	Sokoban sokoban("@$$ ");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(!moved);
-	EQUAL(sokoban.toString(), QString("@$$ "));
+	EQUAL(sokoban.toString(), "@$$ ");
 }
 
 TEST(cannotMoveBoxIntoWall)
@@ -120,7 +109,7 @@ TEST(cannotMoveBoxIntoWall)
 	Sokoban sokoban("@$# ");
 	bool moved = sokoban.movePlayer(Sokoban::RIGHT);
 	ASSERT(!moved);
-	EQUAL(sokoban.toString(), QString("@$# "));
+	EQUAL(sokoban.toString(), "@$# ");
 }
 
 TEST(canRunUntilWall)
@@ -128,7 +117,7 @@ TEST(canRunUntilWall)
 	Sokoban sokoban("@  #");
 	bool moved = sokoban.runPlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString("  @#"));
+	EQUAL(sokoban.toString(), "  @#");
 }
 
 TEST(cannotRunIntoWall)
@@ -136,7 +125,7 @@ TEST(cannotRunIntoWall)
 	Sokoban sokoban("@# ");
 	bool moved = sokoban.runPlayer(Sokoban::RIGHT);
 	ASSERT(!moved);
-	EQUAL(sokoban.toString(), QString("@# "));
+	EQUAL(sokoban.toString(), "@# ");
 }
 
 TEST(cannotPushBoxWhileRunning)
@@ -144,7 +133,7 @@ TEST(cannotPushBoxWhileRunning)
 	Sokoban sokoban("@  $ #");
 	bool moved = sokoban.runPlayer(Sokoban::RIGHT);
 	ASSERT(moved);
-	EQUAL(sokoban.toString(), QString("  @$ #"));
+	EQUAL(sokoban.toString(), "  @$ #");
 }
 
 TEST(targetMoving)
@@ -160,33 +149,33 @@ TEST(targetMoving)
 		"# #     #\n"
 		"#########\n"
 		);
-	EQUAL(sokoban.getPlayerPos(), QPoint(5, 5));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(5, 5));
 	bool moved = false;
 
-	moved = sokoban.movePlayer(QPoint(1, 1));
+	moved = sokoban.movePlayer(Chthon::Point(1, 1));
 	ASSERT(!moved);
-	EQUAL(sokoban.getPlayerPos(), QPoint(5, 5));
-	EQUAL(sokoban.historyAsString(), QString());
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(5, 5));
+	EQUAL(sokoban.historyAsString(), "");
 
-	moved = sokoban.movePlayer(QPoint(6, 3));
+	moved = sokoban.movePlayer(Chthon::Point(6, 3));
 	ASSERT(moved);
-	EQUAL(sokoban.getPlayerPos(), QPoint(6, 3));
-	EQUAL(sokoban.historyAsString(), QString("llddrrrruuuul"));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(6, 3));
+	EQUAL(sokoban.historyAsString(), "llddrrrruuuul");
 
-	moved = sokoban.movePlayer(QPoint(4, 3));
+	moved = sokoban.movePlayer(Chthon::Point(4, 3));
 	ASSERT(moved);
-	EQUAL(sokoban.getPlayerPos(), QPoint(4, 3));
-	EQUAL(sokoban.historyAsString(), QString("llddrrrruuuulruullllddr"));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(4, 3));
+	EQUAL(sokoban.historyAsString(), "llddrrrruuuulruullllddr");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.getPlayerPos(), QPoint(6, 3));
-	EQUAL(sokoban.historyAsString(), QString("llddrrrruuuulruullllddrRR"));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(6, 3));
+	EQUAL(sokoban.historyAsString(), "llddrrrruuuulruullllddrRR");
 
-	moved = sokoban.movePlayer(QPoint(5, 5));
+	moved = sokoban.movePlayer(Chthon::Point(5, 5));
 	ASSERT(!moved);
-	EQUAL(sokoban.getPlayerPos(), QPoint(6, 3));
-	EQUAL(sokoban.historyAsString(), QString("llddrrrruuuulruullllddrRR"));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(6, 3));
+	EQUAL(sokoban.historyAsString(), "llddrrrruuuulruullllddrRR");
 }
 
 TEST(should_move_diagonally_through_empty)
@@ -194,7 +183,7 @@ TEST(should_move_diagonally_through_empty)
 	Sokoban sokoban("@ \n  ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(1, 1));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(1, 1));
 }
 
 TEST(should_move_diagonally_through_wall)
@@ -202,7 +191,7 @@ TEST(should_move_diagonally_through_wall)
 	Sokoban sokoban("@ \n# ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(1, 1));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(1, 1));
 }
 
 TEST(should_move_diagonally_through_another_wall)
@@ -210,7 +199,7 @@ TEST(should_move_diagonally_through_another_wall)
 	Sokoban sokoban("@#\n  ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(1, 1));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(1, 1));
 }
 
 TEST(should_move_diagonally_through_box)
@@ -218,7 +207,7 @@ TEST(should_move_diagonally_through_box)
 	Sokoban sokoban("@ \n$ ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(1, 1));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(1, 1));
 }
 
 TEST(should_move_diagonally_through_another_box)
@@ -226,7 +215,7 @@ TEST(should_move_diagonally_through_another_box)
 	Sokoban sokoban("@$\n  ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(1, 1));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(1, 1));
 }
 
 TEST(should_not_move_diagonally_through_closing_walls)
@@ -234,7 +223,7 @@ TEST(should_not_move_diagonally_through_closing_walls)
 	Sokoban sokoban("@#\n# ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(!ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(0, 0));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(0, 0));
 }
 
 TEST(should_not_move_diagonally_through_closing_boxes)
@@ -242,7 +231,7 @@ TEST(should_not_move_diagonally_through_closing_boxes)
 	Sokoban sokoban("@$\n$ ");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(!ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(0, 0));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(0, 0));
 }
 
 TEST(should_not_move_diagonally_through_wall_blocking)
@@ -250,7 +239,7 @@ TEST(should_not_move_diagonally_through_wall_blocking)
 	Sokoban sokoban("@ \n #");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(!ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(0, 0));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(0, 0));
 }
 
 TEST(should_not_move_diagonally_through_box_blocking)
@@ -258,7 +247,7 @@ TEST(should_not_move_diagonally_through_box_blocking)
 	Sokoban sokoban("@ \n $");
 	bool ok = sokoban.movePlayer(Sokoban::DOWN_RIGHT);
 	ASSERT(!ok);
-	EQUAL(sokoban.getPlayerPos(), QPoint(0, 0));
+	EQUAL(sokoban.getPlayerPos(), Chthon::Point(0, 0));
 }
 
 TEST(historyIsTracked)
@@ -266,20 +255,20 @@ TEST(historyIsTracked)
 	Sokoban sokoban("#@ $.$");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("# @$.$"));
-	EQUAL(sokoban.historyAsString(), QString("r"));
+	EQUAL(sokoban.toString(), "# @$.$");
+	EQUAL(sokoban.historyAsString(), "r");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rR"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rR");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rR"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rR");
 
 	sokoban.runPlayer(Sokoban::LEFT);
-	EQUAL(sokoban.toString(), QString("#@  *$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll"));
+	EQUAL(sokoban.toString(), "#@  *$");
+	EQUAL(sokoban.historyAsString(), "rRll");
 }
 
 TEST(historyIsTrackedWithUndo)
@@ -287,40 +276,40 @@ TEST(historyIsTrackedWithUndo)
 	Sokoban sokoban("#@ $.$", "", true);
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("# @$.$"));
-	EQUAL(sokoban.historyAsString(), QString("r"));
+	EQUAL(sokoban.toString(), "# @$.$");
+	EQUAL(sokoban.historyAsString(), "r");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rR"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rR");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rR"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rR");
 
 	sokoban.runPlayer(Sokoban::LEFT);
-	EQUAL(sokoban.toString(), QString("#@  *$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll"));
+	EQUAL(sokoban.toString(), "#@  *$");
+	EQUAL(sokoban.historyAsString(), "rRll");
 	
 	sokoban.undo();
 	sokoban.undo();
 	sokoban.undo();
-	EQUAL(sokoban.toString(), QString("# @$.$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll---"));
+	EQUAL(sokoban.toString(), "# @$.$");
+	EQUAL(sokoban.historyAsString(), "rRll---");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll---R"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rRll---R");
 
 	sokoban.undo();
 	sokoban.undo();
-	EQUAL(sokoban.toString(), QString("#@ $.$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll---R--"));
+	EQUAL(sokoban.toString(), "#@ $.$");
+	EQUAL(sokoban.historyAsString(), "rRll---R--");
 
 	sokoban.movePlayer(Sokoban::RIGHT);
 	sokoban.movePlayer(Sokoban::RIGHT);
-	EQUAL(sokoban.toString(), QString("#  @*$"));
-	EQUAL(sokoban.historyAsString(), QString("rRll---R--rR"));
+	EQUAL(sokoban.toString(), "#  @*$");
+	EQUAL(sokoban.historyAsString(), "rRll---R--rR");
 }
 
 TEST(should_win_when_empty)
@@ -387,12 +376,15 @@ TEST(undoMovement)
 	sokoban.movePlayer(Sokoban::LEFT);
 	sokoban.movePlayer(Sokoban::DOWN);
 	sokoban.movePlayer(Sokoban::UP);
-	EQUAL(sokoban.toString(), QString("*+ \n*  "));
-	EQUAL(sokoban.historyAsString(), QString("LruLdu"));
+	EQUAL(sokoban.toString(), "*+ \n*  ");
+	EQUAL(sokoban.historyAsString(), "LruLdu");
 
-	while(sokoban.undo()) {}
-	EQUAL(sokoban.historyAsString(), QString());
-	EQUAL(sokoban.toString(), QString(".* \n.$@"));
+	int count = 100;
+	while(count --> 0) {
+		sokoban.undo();
+	}
+	EQUAL(sokoban.historyAsString(), "");
+	EQUAL(sokoban.toString(), ".* \n.$@");
 }
 
 TEST(should_consider_2_players_invalid)
@@ -446,7 +438,7 @@ TEST(should_consider_invalid_movement_undo_string_invalid)
 
 TEST(unreachableCellsAreMarkedAsSpace)
 {
-	QString level =
+	std::string level =
 		"  ###  \n"
 		"### ###\n"
 		"#  @  #\n"
@@ -454,18 +446,18 @@ TEST(unreachableCellsAreMarkedAsSpace)
 		"  ###  ";
 	Sokoban sokoban(level);
 	EQUAL(sokoban.toString(), level);
-	EQUAL(sokoban.getCellAt(QPoint(0, 0)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(1, 0)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(5, 0)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(6, 0)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(0, 4)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(1, 4)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(5, 4)).type, int(Cell::SPACE));
-	EQUAL(sokoban.getCellAt(QPoint(6, 4)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(0, 0)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(1, 0)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(5, 0)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(6, 0)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(0, 4)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(1, 4)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(5, 4)).type, int(Cell::SPACE));
+	EQUAL(sokoban.getCellAt(Chthon::Point(6, 4)).type, int(Cell::SPACE));
 	int spaceCount = 0;
 	for(int x = 0; x < sokoban.width(); ++x) {
 		for(int y = 0; y < sokoban.height(); ++y) {
-			if(sokoban.getCellAt(QPoint(x, y)).type == Cell::SPACE) {
+			if(sokoban.getCellAt(Chthon::Point(x, y)).type == Cell::SPACE) {
 				spaceCount++;
 			}
 		}

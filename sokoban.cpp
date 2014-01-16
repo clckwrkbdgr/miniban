@@ -1,69 +1,92 @@
-#include <QtDebug>
-#include <QtCore/QStringList>
 #include "sokoban.h"
+#include <chthon/util.h>
+#include <chthon/log.h>
+#include <algorithm>
+#include <sstream>
+#include <map>
+#include <set>
+using namespace Chthon;
 
 static const bool DIRECTIONAL_PLAYER_SPRITES = false;
 
 Sokoban::Sokoban()
-	: valid(false)
+	: valid(false), cells(1, 1)
 {
 }
 
-Sokoban::Sokoban(const QString & levelField, const QString & backgroundHistory, bool isFullHistoryTracked)
-	: valid(true), history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
+std::vector<std::string> & split(const std::string & s, std::vector<std::string> & tokens, char delimeter = '\n')
 {
-	QStringList rows = levelField.split('\n');
-	size.setHeight(rows.count());
-	foreach(const QString & row, rows) {
-		if(size.width() < row.length()) {
-			size.setWidth(row.length());
+	std::stringstream in(s);
+	std::string token;
+	while(std::getline(in, token, delimeter)) {
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+
+
+std::vector<std::string> split(const std::string & s, char delimeter = '\n') {
+	std::vector<std::string> tokens;
+	split(s, tokens, delimeter);
+	return tokens;
+}
+
+Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundHistory, bool isFullHistoryTracked)
+	: valid(true), cells(1, 1), history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
+{
+	std::vector<std::string> rows = split(levelField);
+	unsigned h = rows.size();
+	unsigned w = 0;
+	for(const std::string & row : rows) {
+		if(w < row.size()) {
+			w = row.size();
 		}
 	}
 
-	cells.fill(Cell(), size.width() * size.height());
+	cells = Chthon::Map<Cell>(w, h);
 	player = Object();
-	int playerCount = 0;
-	for(int y = 0; y < rows.count(); ++y) {
-		const QString & row = rows[y];
-		for(int x = 0; x < row.size(); ++x) {
-			QPoint pos(x, y);
-			switch(row[x].toAscii()) {
-				case ' ': cell(pos).type = Cell::SPACE; break;
-				case '#': cell(pos).type = Cell::WALL; break;
-				case '@': cell(pos).type = Cell::SPACE; player = Object(pos, true); ++playerCount; break;
-				case '.': cell(pos).type = Cell::SLOT; break;
-				case '+': cell(pos).type = Cell::SLOT; player = Object(pos, true); ++playerCount; break;
-				case '$': cell(pos).type = Cell::SPACE; boxes << Object(pos); break;
-				case '*': cell(pos).type = Cell::SLOT; boxes << Object(pos); break;
+	unsigned playerCount = 0;
+	for(unsigned y = 0; y < rows.size(); ++y) {
+		const std::string & row = rows[y];
+		for(unsigned x = 0; x < row.size(); ++x) {
+			Chthon::Point pos(x, y);
+			switch(row[x]) {
+				case ' ': cells.cell(pos).type = Cell::SPACE; break;
+				case '#': cells.cell(pos).type = Cell::WALL; break;
+				case '@': cells.cell(pos).type = Cell::SPACE; player = Object(pos, true); ++playerCount; break;
+				case '.': cells.cell(pos).type = Cell::SLOT; break;
+				case '+': cells.cell(pos).type = Cell::SLOT; player = Object(pos, true); ++playerCount; break;
+				case '$': cells.cell(pos).type = Cell::SPACE; boxes << Object(pos); break;
+				case '*': cells.cell(pos).type = Cell::SLOT; boxes << Object(pos); break;
 			}
-			int sprite_chance = qrand() % 100;
+			int sprite_chance = rand() % 100;
 			if(sprite_chance < 50) {
-				cell(pos).sprite = 0;
+				cells.cell(pos).sprite = 0;
 			} else if(sprite_chance < 80) {
-				cell(pos).sprite = 1;
+				cells.cell(pos).sprite = 1;
 			} else if(sprite_chance < 95) {
-				cell(pos).sprite = 2;
+				cells.cell(pos).sprite = 2;
 			} else {
-				cell(pos).sprite = 3;
+				cells.cell(pos).sprite = 3;
 			}
 		}
 	}
 	if(playerCount != 1) {
 		throw InvalidPlayerCountException(playerCount);
 	}
-	for(int i = 0; i < boxes.count(); ++i) {
-		boxes[i].sprite = qrand() % 4;
+	for(unsigned i = 0; i < boxes.size(); ++i) {
+		boxes[i].sprite = rand() % 4;
 	}
 
 	// 0 - passable, 1 - impassable, 2 - found to be floor.
-	QVector<int> reachable(cells.size(), 0);
-	for(int i = 0; i < cells.size(); ++i) {
-		reachable[i] = (cells[i].type == Cell::WALL) ? 1 : 0;
+	std::vector<int> reachable(cells.width * cells.height, 0);
+	for(unsigned i = 0; i < reachable.size(); ++i) {
+		reachable[i] = (cells.cell(i % width(), i / width()).type == Cell::WALL) ? 1 : 0;
 	}
 	fillFloor(reachable, getPlayerPos());
-	for(int i = 0; i < cells.size(); ++i) {
-		if(reachable[i] == 2 && cells[i].type == Cell::SPACE) {
-			cells[i].type = Cell::FLOOR;
+	for(unsigned i = 0; i < reachable.size(); ++i) {
+		if(reachable[i] == 2 && cells.cell(i % width(), i / width()).type == Cell::SPACE) {
+			cells.cell(i % width(), i / width()).type = Cell::FLOOR;
 		}
 	}
 }
@@ -74,7 +97,7 @@ void Sokoban::restart()
 	}
 }
 
-bool Sokoban::has_box(const QPoint & point) const
+bool Sokoban::has_box(const Chthon::Point & point) const
 {
 	foreach(const Object & box, boxes) {
 		if(box.pos == point) {
@@ -84,53 +107,55 @@ bool Sokoban::has_box(const QPoint & point) const
 	return false;
 }
 
-bool Sokoban::movePlayer(const QPoint & target)
+bool Sokoban::movePlayer(const Chthon::Point & target)
 {
 	if(!valid) {
 		return false;
 	}
-	QVector<int> passed(cells.size(), -1);
-	for(int i = 0; i < cells.size(); ++i) {
-		if(cells[i].type != Cell::WALL && !has_box(QPoint(i % width(), i / width()))) {
+	std::vector<int> passed(cells.width * cells.height, -1);
+	for(unsigned i = 0; i < passed.size(); ++i) {
+		Chthon::Point p(i % width(), i / width());
+		if(cells.cell(p).type != Cell::WALL && !has_box(p)) {
 			passed[i] = 0;
 		}
 	}
-	QPoint pos = getPlayerPos();
+	Chthon::Point pos = getPlayerPos();
 	if(pos == target) {
 		return true;
 	}
-	passed[pos.x() + pos.y() * width()] = 1;
-	QList<QPoint> current_points;
+	passed[pos.x + pos.y * width()] = 1;
+	std::vector<Chthon::Point> current_points;
 	current_points << pos;
-	for(int counter = 0; counter < cells.size(); ++counter) {
-		QList<QPoint> new_points;
-		foreach(const QPoint & current_pos, current_points) {
+	int counter = cells.width * cells.height;
+	while(counter --> 0) {
+		std::vector<Chthon::Point> new_points;
+		foreach(const Chthon::Point & current_pos, current_points) {
 			if(current_pos == target) {
 				if(player.pos != pos) {
 					return false;
 				}
-				if(cell(target).type != Cell::FLOOR && cell(target).type != Cell::SLOT) {
+				if(cells.cell(target).type != Cell::FLOOR && cells.cell(target).type != Cell::SLOT) {
 					return false;
 				}
-				QPoint current = current_pos;
-				QList<QPoint> path;
+				Chthon::Point current = current_pos;
+				std::vector<Chthon::Point> path;
 				path << current;
 				int count = 2000;
 				while(current != pos) {
 					if(--count < 0) {
 						break;
 					}
-					int current_cell = passed[current.x() + current.y() * width()];
-					QList<QPoint> neighs;
-					for(int i = 0; i < passed.size(); ++i) {
-						neighs << current + QPoint(1, 0) << current + QPoint(-1, 0) << current + QPoint(0, 1) << current + QPoint(0, -1);
-					}
-					QPoint step;
-					foreach(const QPoint & neigh, neighs) {
-						if(!isValid(neigh) || passed[neigh.x() + neigh.y() * width()] < 0) {
+					int current_cell = passed[current.x + current.y * width()];
+					std::vector<Chthon::Point> neighs;
+					//for(unsigned i = 0; i < passed.size(); ++i) { // Huh?
+						neighs << current + Chthon::Point(1, 0) << current + Chthon::Point(-1, 0) << current + Chthon::Point(0, 1) << current + Chthon::Point(0, -1);
+					//}
+					Chthon::Point step;
+					foreach(const Chthon::Point & neigh, neighs) {
+						if(!isValid(neigh) || passed[neigh.x + neigh.y * width()] < 0) {
 							continue;
 						}
-						int & neigh_cell = passed[neigh.x() + neigh.y() * width()];
+						int & neigh_cell = passed[neigh.x + neigh.y * width()];
 						if(neigh_cell == current_cell - 1) {
 							path << neigh;
 							current = neigh;
@@ -138,40 +163,38 @@ bool Sokoban::movePlayer(const QPoint & target)
 						}
 					}
 				}
-				for(int k = 0; k < (path.size() / 2); ++k) {
-					path.swap(k, path.size() - (1 + k));
-				}
-				for(int i = 1; i < path.size(); ++i) {
-					QPoint r = path[i] - path[i - 1];
-					if(r.x() > 0) {
+				std::reverse(path.begin(), path.end());
+				for(unsigned i = 1; i < path.size(); ++i) {
+					Chthon::Point r = path[i] - path[i - 1];
+					if(r.x > 0) {
 						movePlayer(Sokoban::RIGHT);
-					} else if(r.x() < 0) {
+					} else if(r.x < 0) {
 						movePlayer(Sokoban::LEFT);
-					} else if(r.y() > 0) {
+					} else if(r.y > 0) {
 						movePlayer(Sokoban::DOWN);
-					} else if(r.y() < 0) {
+					} else if(r.y < 0) {
 						movePlayer(Sokoban::UP);
 					}
 				}
 				return true;
 			}
-			int current_cell = passed[current_pos.x() + current_pos.y() * width()];
-			QList<QPoint> neighs;
-			for(int i = 0; i < passed.size(); ++i) {
-				neighs << current_pos + QPoint(1, 0) << current_pos + QPoint(-1, 0) << current_pos + QPoint(0, 1) << current_pos + QPoint(0, -1);
+			int current_cell = passed[current_pos.x + current_pos.y * width()];
+			std::vector<Chthon::Point> neighs;
+			for(unsigned i = 0; i < passed.size(); ++i) {
+				neighs << current_pos + Chthon::Point(1, 0) << current_pos + Chthon::Point(-1, 0) << current_pos + Chthon::Point(0, 1) << current_pos + Chthon::Point(0, -1);
 			}
-			foreach(const QPoint & neigh, neighs) {
-				if(!isValid(neigh) || passed[neigh.x() + neigh.y() * width()] < 0) {
+			foreach(const Chthon::Point & neigh, neighs) {
+				if(!isValid(neigh) || passed[neigh.x + neigh.y * width()] < 0) {
 					continue;
 				}
-				int & neigh_cell = passed[neigh.x() + neigh.y() * width()];
+				int & neigh_cell = passed[neigh.x + neigh.y * width()];
 				if(neigh_cell == 0) {
 					neigh_cell = current_cell + 1;
 					new_points << neigh;
 				}
 			}
 		}
-		if(new_points.isEmpty()) {
+		if(new_points.empty()) {
 			return false;
 		}
 		current_points = new_points;
@@ -179,63 +202,47 @@ bool Sokoban::movePlayer(const QPoint & target)
 	return false;
 }
 
-void Sokoban::fillFloor(QVector<int> & reachable, const QPoint & point)
+void Sokoban::fillFloor(std::vector<int> & reachable, const Chthon::Point & point)
 {
 	if(!isValid(point)) {
 		return;
 	}
-	if(reachable[point.x() + point.y() * width()] != 0) {
+	if(reachable[point.x + point.y * width()] != 0) {
 		return;
 	}
-	reachable[point.x() + point.y() * width()] = 2;
-	fillFloor(reachable, point + QPoint(0, 1));
-	fillFloor(reachable, point + QPoint(0, -1));
-	fillFloor(reachable, point + QPoint(1, 0));
-	fillFloor(reachable, point + QPoint(-1, 0));
+	reachable[point.x + point.y * width()] = 2;
+	fillFloor(reachable, point + Chthon::Point(0, 1));
+	fillFloor(reachable, point + Chthon::Point(0, -1));
+	fillFloor(reachable, point + Chthon::Point(1, 0));
+	fillFloor(reachable, point + Chthon::Point(-1, 0));
 }
 
-QPoint Sokoban::getPlayerPos() const
+Chthon::Point Sokoban::getPlayerPos() const
 {
 	return player.pos;
 }
 
-const Cell & Sokoban::cell(const QPoint & point) const
-{
-	return cells[point.x() + point.y() * width()];
-}
-
-Cell & Sokoban::cell(const QPoint & point)
-{
-	return cells[point.x() + point.y() * width()];
-}
-
 Cell Sokoban::getCellAt(int x, int y) const
 {
-	if(!isValid(QPoint(x, y))) {
-		return Cell();
-	}
-	return cell(QPoint(x, y));
+	return cells.cell(x, y);
 }
 
 Object Sokoban::getObjectAt(int x, int y) const
 {
-	if(player.pos == QPoint(x, y)) {
+	if(player.pos == Chthon::Point(x, y)) {
 		return player;
 	}
 	foreach(const Object & box, boxes) {
-		if(box.pos == QPoint(x, y)) {
+		if(box.pos == Chthon::Point(x, y)) {
 			return box;
 		}
 	}
 	return Object();
 }
 
-bool Sokoban::isValid(const QPoint & pos) const
+bool Sokoban::isValid(const Chthon::Point & pos) const
 {
-	if(!valid) {
-		return false;
-	}
-	return (pos.x() >= 0 && pos.x() < width() && pos.y() >= 0 && pos.y() < height());
+	return cells.valid(pos);
 }
 
 bool Sokoban::runPlayer(int control)
@@ -255,29 +262,29 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	if(!valid) {
 		return false;
 	}
-	QMap<int, QPair<int, int> > diagonal_controls;
-	diagonal_controls[UP_LEFT] = qMakePair<int, int>(UP, LEFT);
-	diagonal_controls[UP_RIGHT] = qMakePair<int, int>(UP, RIGHT);
-	diagonal_controls[DOWN_LEFT] = qMakePair<int, int>(DOWN, LEFT);
-	diagonal_controls[DOWN_RIGHT] = qMakePair<int, int>(DOWN, RIGHT);
-	QMap<int, QPoint> shiftForControl;
-	shiftForControl[UP] = QPoint(0, -1);
-	shiftForControl[DOWN] = QPoint(0, 1);
-	shiftForControl[RIGHT] = QPoint(1, 0);
-	shiftForControl[LEFT] = QPoint(-1, 0);
-	QMap<int, QChar> charForControl;
+	std::map<int, std::pair<int, int> > diagonal_controls;
+	diagonal_controls[UP_LEFT] = std::make_pair<int, int>(UP, LEFT);
+	diagonal_controls[UP_RIGHT] = std::make_pair<int, int>(UP, RIGHT);
+	diagonal_controls[DOWN_LEFT] = std::make_pair<int, int>(DOWN, LEFT);
+	diagonal_controls[DOWN_RIGHT] = std::make_pair<int, int>(DOWN, RIGHT);
+	std::map<int, Chthon::Point> shiftForControl;
+	shiftForControl[UP] = Chthon::Point(0, -1);
+	shiftForControl[DOWN] = Chthon::Point(0, 1);
+	shiftForControl[RIGHT] = Chthon::Point(1, 0);
+	shiftForControl[LEFT] = Chthon::Point(-1, 0);
+	std::map<int, char> charForControl;
 	charForControl[UP] = 'u';
 	charForControl[DOWN] = 'd';
 	charForControl[RIGHT] = 'r';
 	charForControl[LEFT] = 'l';
-	QMap<int, int> poseForControl;
+	std::map<int, int> poseForControl;
 	poseForControl[DOWN] = 0;
 	poseForControl[LEFT] = 1;
 	poseForControl[UP] = 2;
 	poseForControl[RIGHT] = 3;
 
-	if(diagonal_controls.contains(control)) {
-		QPair<int, int> controls = diagonal_controls[control];
+	if(diagonal_controls.count(control) > 0) {
+		std::pair<int, int> controls = diagonal_controls[control];
 		bool ok = false;
 		ok = movePlayer(controls.first, true);
 		if(ok) {
@@ -296,20 +303,25 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		}
 		return ok;
 	}
+	TRACE(control);
 
-	QPoint shift = shiftForControl[control];
-	if(shift.isNull()) {
+	Chthon::Point shift = shiftForControl[control];
+	if(shift.null()) {
 		return false;
 	}
-	QPoint playerPos = getPlayerPos();
-	QPoint newPlayerPos = playerPos + shift;
-	QPoint newSecondPos = newPlayerPos + shift;
+	Chthon::Point playerPos = getPlayerPos();
+	Chthon::Point newPlayerPos = playerPos + shift;
+	Chthon::Point newSecondPos = newPlayerPos + shift;
+	TRACE(playerPos);
+	TRACE(newPlayerPos);
+	TRACE(newSecondPos);
 	if(!isValid(newPlayerPos)) {
 		return false;
 	}
-	if(cell(newPlayerPos).type == Cell::WALL) {
+	if(cells.cell(newPlayerPos).type == Cell::WALL) {
 		return false;
 	}
+	TRACE(control);
 	if(has_box(newPlayerPos)) {
 		if(cautious) {
 			return false;
@@ -317,7 +329,7 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		if(!isValid(newSecondPos)) {
 			return false;
 		}
-		if(cell(newSecondPos).type == Cell::WALL) {
+		if(cells.cell(newSecondPos).type == Cell::WALL) {
 			return false;
 		}
 		if(has_box(newSecondPos)) {
@@ -325,51 +337,59 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		}
 	}
 
-	QChar controlChar = charForControl[control];
+	char controlChar = charForControl[control];
 	player.pos = newPlayerPos;
 	if(has_box(newPlayerPos)) {
-		for(int i = 0; i < boxes.size(); ++i) {
+		for(unsigned i = 0; i < boxes.size(); ++i) {
 			if(boxes[i].pos == newPlayerPos) {
 				boxes[i].pos = newSecondPos;
 				break;
 			}
 		}
-		controlChar = controlChar.toUpper();
+		controlChar = toupper(controlChar);
 	}
 	if(DIRECTIONAL_PLAYER_SPRITES) {
 		player.sprite = poseForControl[control];
 	}
-	history.append(controlChar);
+	history.append(std::string(1, controlChar));
 	return true;
 }
 
-QString Sokoban::toString() const
+std::string Sokoban::toString() const
 {
-	QString result;
-	for(int y = 0; y < size.height(); ++y) {
-		for(int x = 0; x < size.width(); ++x) {
-			QPoint pos(x, y);
+	std::string result;
+	for(int y = 0; y < height(); ++y) {
+		for(int x = 0; x < width(); ++x) {
+			Chthon::Point pos(x, y);
 			bool is_player = player.pos == pos;
 			bool is_box = has_box(pos);
-			QChar ch = ' ';
-			switch(cell(pos).type) {
+			char ch = ' ';
+			switch(cells.cell(pos).type) {
 				case Cell::SPACE: ch = ' '; break;
 				case Cell::FLOOR: ch = is_player ? '@' : (is_box ? '$' : ' '); break;
 				case Cell::WALL: ch = '#'; break;
 				case Cell::SLOT: ch = is_player ? '+' : (is_box ? '*' : '.'); break;
 			}
-			result.append(ch);
+			result += ch;
 		}
-		if(y != size.height() - 1) {
-			result.append('\n');
+		if(y != height() - 1) {
+			result += '\n';
 		}
 	}
 	return result;
 }
 
-QString Sokoban::historyAsString() const
+std::string Sokoban::historyAsString() const
 {
 	return history;
+}
+
+bool endsWith(const std::string & fullString, const std::string & ending)
+{
+	if(fullString.length() >= ending.length()) {
+		return fullString.compare(fullString.length() - ending.length(), ending.length(), ending) == 0;
+	}
+	return false;
 }
 
 bool Sokoban::undo()
@@ -377,54 +397,56 @@ bool Sokoban::undo()
 	if(!valid) {
 		return false;
 	}
-	QMap<QChar, QPoint> shiftForControl;
-	shiftForControl['u'] = QPoint(0, -1);
-	shiftForControl['d'] = QPoint(0, 1);
-	shiftForControl['r'] = QPoint(1, 0);
-	shiftForControl['l'] = QPoint(-1, 0);
-	QMap<QChar, int> poseForControl;
+	std::map<char, Chthon::Point> shiftForControl;
+	shiftForControl['u'] = Chthon::Point(0, -1);
+	shiftForControl['d'] = Chthon::Point(0, 1);
+	shiftForControl['r'] = Chthon::Point(1, 0);
+	shiftForControl['l'] = Chthon::Point(-1, 0);
+	std::map<char, int> poseForControl;
 	poseForControl['d'] = 0;
 	poseForControl['l'] = 1;
 	poseForControl['u'] = 2;
 	poseForControl['r'] = 3;
 
-	QString realHistory = history;
+	std::string realHistory = history;
 	if(fullHistoryTracking) {
-		while(!realHistory.isEmpty() && realHistory.endsWith('-')) {
+		while(!realHistory.empty() && endsWith(realHistory, "-")) {
 			int count = 0;
-			while(realHistory.endsWith('-')) {
+			while(endsWith(realHistory, "-")) {
 				++count;
-				realHistory.remove(realHistory.size() - 1, 1);
+				realHistory.erase(realHistory.size() - 1, 1);
 			}
 			while(count > 0) {
 				--count;
-				realHistory.remove(realHistory.size() - 1, 1);
+				realHistory.erase(realHistory.size() - 1, 1);
 			}
 		}
 	}
 
-	if(realHistory.isEmpty()) {
+	if(realHistory.empty()) {
 		return false;
 	}
 
-	QChar control = realHistory.at(realHistory.size() - 1);
-	if(!QString("ulrdURLD").contains(control)) {
+	char control = realHistory.at(realHistory.size() - 1);
+	static std::string possible_controls_str = "ulrdURLD";
+	static std::set<char> possible_controls(possible_controls_str.begin(), possible_controls_str.end());
+	if(possible_controls.count(control) > 0) {
 		throw InvalidUndoException(control);
 	}
-	QPoint shift = shiftForControl[control.toLower()];
-	QPoint playerPos = getPlayerPos();
-	QPoint oldPlayerPos = playerPos - shift;
-	QPoint boxPos = playerPos + shift;
+	Chthon::Point shift = shiftForControl[tolower(control)];
+	Chthon::Point playerPos = getPlayerPos();
+	Chthon::Point oldPlayerPos = playerPos - shift;
+	Chthon::Point boxPos = playerPos + shift;
 	if(!isValid(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
-	if(cell(oldPlayerPos).type == Cell::WALL) {
+	if(cells.cell(oldPlayerPos).type == Cell::WALL) {
 		throw InvalidUndoException(control);
 	}
 	if(has_box(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
-	if(control.isUpper()) {
+	if(toupper(control)) {
 		if(!isValid(boxPos)) {
 			throw InvalidUndoException(control);
 		}
@@ -434,8 +456,8 @@ bool Sokoban::undo()
 	}
 
 	player.pos = oldPlayerPos;
-	if(control.isUpper()) {
-		for(int i = 0; i < boxes.size(); ++i) {
+	if(toupper(control)) {
+		for(unsigned i = 0; i < boxes.size(); ++i) {
 			if(boxes[i].pos == boxPos) {
 				boxes[i].pos = playerPos;
 				break;
@@ -443,12 +465,12 @@ bool Sokoban::undo()
 		}
 	}
 	if(DIRECTIONAL_PLAYER_SPRITES) {
-		player.sprite = poseForControl[control.toLower()];
+		player.sprite = poseForControl[tolower(control)];
 	}
 	if(fullHistoryTracking) {
-		history.append('-');
+		history.append("-");
 	} else {
-		history.remove(history.size() - 1, 1);
+		history.erase(history.size() - 1, 1);
 	}
 	return true;
 }
@@ -459,15 +481,15 @@ bool Sokoban::isSolved()
 		return false;
 	}
 	int freeBoxCount = 0, freeSlotCount = 0;
-	for(int y = 0; y < size.height(); ++y) {
-		for(int x = 0; x < size.width(); ++x) {
-			if(cell(QPoint(x, y)).type == Cell::SLOT && !has_box(QPoint(x, y))) {
+	for(int y = 0; y < height(); ++y) {
+		for(int x = 0; x < width(); ++x) {
+			if(cells.cell(Chthon::Point(x, y)).type == Cell::SLOT && !has_box(Chthon::Point(x, y))) {
 				freeSlotCount++;
 			}
 		}
 	}
 	foreach(const Object & box, boxes) {
-		if(cell(box.pos).type != Cell::SLOT) {
+		if(cells.cell(box.pos).type != Cell::SLOT) {
 			freeBoxCount++;
 		}
 	}

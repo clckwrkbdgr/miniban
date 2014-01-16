@@ -6,6 +6,7 @@ MOC_DIR = tmp
 UI_DIR = tmp
 RCC_DIR = tmp
 LIBS += -lchthon
+QMAKE_CXXFLAGS += -std=c++0x
 
 SOKOBAN_TEST {
 	DEFINES += SOKOBAN_TEST
