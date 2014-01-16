@@ -5,6 +5,7 @@ OBJECTS_DIR = tmp
 MOC_DIR = tmp
 UI_DIR = tmp
 RCC_DIR = tmp
+LIBS += -lchthon
 
 SOKOBAN_TEST {
 	DEFINES += SOKOBAN_TEST
