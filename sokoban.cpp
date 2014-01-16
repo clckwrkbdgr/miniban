@@ -303,7 +303,6 @@ bool Sokoban::movePlayer(int control, bool cautious)
 		}
 		return ok;
 	}
-	TRACE(control);
 
 	Chthon::Point shift = shiftForControl[control];
 	if(shift.null()) {
@@ -312,16 +311,12 @@ bool Sokoban::movePlayer(int control, bool cautious)
 	Chthon::Point playerPos = getPlayerPos();
 	Chthon::Point newPlayerPos = playerPos + shift;
 	Chthon::Point newSecondPos = newPlayerPos + shift;
-	TRACE(playerPos);
-	TRACE(newPlayerPos);
-	TRACE(newSecondPos);
 	if(!isValid(newPlayerPos)) {
 		return false;
 	}
 	if(cells.cell(newPlayerPos).type == Cell::WALL) {
 		return false;
 	}
-	TRACE(control);
 	if(has_box(newPlayerPos)) {
 		if(cautious) {
 			return false;
@@ -430,7 +425,7 @@ bool Sokoban::undo()
 	char control = realHistory.at(realHistory.size() - 1);
 	static std::string possible_controls_str = "ulrdURLD";
 	static std::set<char> possible_controls(possible_controls_str.begin(), possible_controls_str.end());
-	if(possible_controls.count(control) > 0) {
+	if(possible_controls.count(control) == 0) {
 		throw InvalidUndoException(control);
 	}
 	Chthon::Point shift = shiftForControl[tolower(control)];
@@ -446,7 +441,7 @@ bool Sokoban::undo()
 	if(has_box(oldPlayerPos)) {
 		throw InvalidUndoException(control);
 	}
-	if(toupper(control)) {
+	if(isupper(control)) {
 		if(!isValid(boxPos)) {
 			throw InvalidUndoException(control);
 		}
@@ -456,7 +451,7 @@ bool Sokoban::undo()
 	}
 
 	player.pos = oldPlayerPos;
-	if(toupper(control)) {
+	if(isupper(control)) {
 		for(unsigned i = 0; i < boxes.size(); ++i) {
 			if(boxes[i].pos == boxPos) {
 				boxes[i].pos = playerPos;
@@ -468,7 +463,7 @@ bool Sokoban::undo()
 		player.sprite = poseForControl[tolower(control)];
 	}
 	if(fullHistoryTracking) {
-		history.append("-");
+		history += '-';
 	} else {
 		history.erase(history.size() - 1, 1);
 	}
