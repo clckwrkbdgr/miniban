@@ -1,5 +1,5 @@
 /* XPM */
-static char *sokoban[] = {
+static const char *sokoban[] = {
 /* columns rows colors chars-per-pixel */
 "64 144 39 1 ",
 "  c #000000",

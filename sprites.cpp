@@ -6,26 +6,22 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <chthon/pixmap.h>
+#include <chthon/util.h>
+
+namespace Sprite {
+#include "sokoban.xpm"
+}
 
 QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
 {
 	return tileset.copy(x * tile_size.width(), y * tile_size.height(), tile_size.width(), tile_size.height());
 }
 
-Sprites::Sprites(const QString & filename)
+Sprites::Sprites()
 {
-	QTextStream err(stderr);
-	QFile file(filename);
-	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		err << QObject::tr("Cannot open file <%1>.").arg(filename) << endl;
-		return;
-	}
-
-	QTextStream in(&file);
-	QString file_content = in.readAll();
-
 	try {
-		Chthon::Pixmap pixmap(file_content.toStdString());
+		std::vector<std::string> sokoban_lines(Sprite::sokoban, Sprite::sokoban + Chthon::size_of_array(Sprite::sokoban));
+		Chthon::Pixmap pixmap(sokoban_lines);
 		tileset = QImage(pixmap.width(), pixmap.height(), QImage::Format_ARGB32);
 		for(unsigned x = 0; x < pixmap.width(); ++x) {
 			for(unsigned y = 0; y < pixmap.height(); ++y) {
@@ -33,6 +29,7 @@ Sprites::Sprites(const QString & filename)
 			}
 		}
 	} catch(const Chthon::Pixmap::Exception & e) {
+		QTextStream err(stderr);
 		err << QString::fromStdString(e.what) << endl;
 	}
 
@@ -49,8 +46,8 @@ Sprites::Sprites(const QString & filename)
 	cachedSprites[Sprites::BOX_ON_SLOT]     << QPoint(0, 7) << QPoint(1, 7) << QPoint(2, 7) << QPoint(3, 7);
 	cachedSprites[Sprites::CURSOR]          << QPoint(0, 8);
 	int max_x = 0, max_y = 0;
-	foreach(int key, cachedSprites.keys()) {
-		foreach(const QPoint & point, cachedSprites[key]) {
+	for(int key : cachedSprites.keys()) {
+		for(const QPoint & point : cachedSprites[key]) {
 			max_x = qMax(point.x(), max_x);
 			max_y = qMax(point.y(), max_y);
 		}

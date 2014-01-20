@@ -5,7 +5,7 @@
 class Sprites {
 public:
 	enum { FLOOR, WALL, EMPTY_SLOT, SPACE, PLAYER_ON_FLOOR, PLAYER_ON_SLOT, BOX_ON_FLOOR, BOX_ON_SLOT, CURSOR };
-	Sprites(const QString & filename);
+	Sprites();
 	QRect getSpriteRect(int tileType, int tileIndex) const;
 	const QImage & getTileSet() const;
 	QSize getSpritesBounds() const;
