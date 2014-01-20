@@ -45,7 +45,7 @@ void PlayingMode::processControl(int control)
 			case CONTROL_DOWN_LEFT: new_target += QPoint(-1, 1); break;
 			case CONTROL_DOWN_RIGHT: new_target += QPoint(1, 1); break;
 			case CONTROL_GOTO:
-				sokoban.movePlayer(target.x(), target.y());
+				sokoban.movePlayer(Chthon::Point(target.x(), target.y()));
 				target_mode = false;
 				break;
 			case CONTROL_TARGET:  target_mode = false; break;
