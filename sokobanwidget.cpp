@@ -79,7 +79,7 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 }
 
 SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), gameMode(0), sprites("sokoban.png")
+	: QWidget(parent), gameMode(0), sprites("sokoban.xpm")
 {
 	QStringList args = QCoreApplication::arguments();
 	args.removeAt(0);

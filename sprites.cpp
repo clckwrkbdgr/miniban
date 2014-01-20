@@ -1,8 +1,11 @@
 #include <QtDebug>
-#include <QtCore/QMap>
-#include <QtGui/QImage>
-#include "sokoban.h"
 #include "sprites.h"
+#include "sokoban.h"
+#include <QtGui/QImage>
+#include <QtCore/QMap>
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
+#include <chthon/pixmap.h>
 
 QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
 {
@@ -10,8 +13,29 @@ QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
 }
 
 Sprites::Sprites(const QString & filename)
-	: tileset(filename)
 {
+	QTextStream err(stderr);
+	QFile file(filename);
+	if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		err << QObject::tr("Cannot open file <%1>.").arg(filename) << endl;
+		return;
+	}
+
+	QTextStream in(&file);
+	QString file_content = in.readAll();
+
+	try {
+		Chthon::Pixmap pixmap(file_content.toStdString());
+		tileset = QImage(pixmap.width(), pixmap.height(), QImage::Format_ARGB32);
+		for(unsigned x = 0; x < pixmap.width(); ++x) {
+			for(unsigned y = 0; y < pixmap.height(); ++y) {
+				tileset.setPixel(x, y, pixmap.color(pixmap.pixel(x, y)).argb());
+			}
+		}
+	} catch(const Chthon::Pixmap::Exception & e) {
+		err << QString::fromStdString(e.what) << endl;
+	}
+
 	if(tileset.isNull()) {
 		return;
 	}

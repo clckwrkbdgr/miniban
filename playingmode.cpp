@@ -45,13 +45,13 @@ void PlayingMode::processControl(int control)
 			case CONTROL_DOWN_LEFT: new_target += QPoint(-1, 1); break;
 			case CONTROL_DOWN_RIGHT: new_target += QPoint(1, 1); break;
 			case CONTROL_GOTO:
-				sokoban.movePlayer(target);
+				sokoban.movePlayer(target.x(), target.y());
 				target_mode = false;
 				break;
 			case CONTROL_TARGET:  target_mode = false; break;
 			default: break;
 		}
-		if(sokoban.isValid(new_target)) {
+		if(sokoban.isValid(Chthon::Point(new_target.x(), new_target.y()))) {
 			target = new_target;
 		}
 		return;
@@ -69,17 +69,19 @@ void PlayingMode::processControl(int control)
 		case CONTROL_RUN_DOWN:  sokoban.runPlayer(Sokoban::DOWN); break;
 		case CONTROL_RUN_UP:    sokoban.runPlayer(Sokoban::UP); break;
 		case CONTROL_RUN_RIGHT: sokoban.runPlayer(Sokoban::RIGHT); break;
-		case CONTROL_TARGET:
+		case CONTROL_TARGET: {
 			target_mode = true;
-			target = sokoban.getPlayerPos();
+			Chthon::Point player = sokoban.getPlayerPos();
+			target = QPoint(player.x, player.y);
 			break;
+		}
 		case CONTROL_HOME: sokoban.restart(); break;
 		case CONTROL_UNDO:
 			try {
 				sokoban.undo();
 			} catch(const Sokoban::InvalidUndoException & e) {
 				QTextStream err(stderr);
-				err << tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(sokoban.historyAsString()) << endl;
+				err << tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(QString::fromStdString(sokoban.historyAsString())) << endl;
 			}
 			break;
 		default: return;
