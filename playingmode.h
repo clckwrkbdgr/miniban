@@ -26,7 +26,6 @@ private:
 	Sokoban sokoban;
 	bool target_mode;
 	QPoint target;
-	QImage aim;
 
 	void resizeSpritesForLevel(const QRect & rect);
 };

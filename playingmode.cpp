@@ -23,12 +23,6 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
 	spriteSize = originalSize * scaleFactor;
-
-	aim = QImage(spriteSize, original_sprites.getTileSet().format());
-	QPainter painter(&aim);
-	painter.setCompositionMode(QPainter::CompositionMode_Source);
-	painter.fillRect(aim.rect(), Qt::blue);
-	painter.fillRect(scaleFactor, scaleFactor, spriteSize.width() - scaleFactor * 2, spriteSize.height() - scaleFactor * 2, Qt::transparent);
 }
 
 void PlayingMode::processControl(int control)
@@ -103,6 +97,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 		toInvalidate = false;
 	}
 
+	// TODO Fill viewport.
 	painter->fillRect(rect, Qt::black);
 
 	QPoint offset = QPoint(
@@ -122,6 +117,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 				case Cell::WALL: cellSprite = Sprites::WALL; break;
 			}
 			cellSprite = original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE;
+			// TODO Blit scaled.
 			painter->drawImage(pos,
 					original_sprites.getTileSet().copy(original_sprites.getSpriteRect(cellSprite, cell.sprite)).scaled(spriteSize)
 					);
@@ -146,6 +142,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 						break;
 				}
 				if(objectSprite != Sprites::SPACE && original_sprites.contains(objectSprite)) {
+					// TODO Blit scaling.
 					painter->drawImage(pos,
 							original_sprites.getTileSet().copy(original_sprites.getSpriteRect(objectSprite, object.sprite)).scaled(spriteSize)
 							);
@@ -155,6 +152,7 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 	}
 	if(target_mode) {
 		QPoint pos = offset + QPoint(target.x() * spriteSize.width(), target.y() * spriteSize.height());
+		// TODO Blit scaling.
 		painter->drawImage(pos,
 				original_sprites.getTileSet().copy(original_sprites.getSpriteRect(Sprites::CURSOR, 0)).scaled(spriteSize)
 				);

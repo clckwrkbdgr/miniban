@@ -22,6 +22,7 @@ Sprites::Sprites()
 	try {
 		std::vector<std::string> sokoban_lines(Sprite::sokoban, Sprite::sokoban + Chthon::size_of_array(Sprite::sokoban));
 		Chthon::Pixmap pixmap(sokoban_lines);
+		// TODO image -> surface.
 		tileset = QImage(pixmap.width(), pixmap.height(), QImage::Format_ARGB32);
 		for(unsigned x = 0; x < pixmap.width(); ++x) {
 			for(unsigned y = 0; y < pixmap.height(); ++y) {

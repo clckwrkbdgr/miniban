@@ -28,6 +28,7 @@ FadeMode::~FadeMode()
 
 void FadeMode::invalidateRect()
 {
+	// TODO Null surface.
 	snapshot = QImage();
 }
 
@@ -48,10 +49,13 @@ void FadeMode::paint(QPainter * painter, const QRect & rect)
 	if(snapshot.isNull()) {
 		snapshot = QImage(rect.size(), QImage::Format_RGB32);
 		QPainter painter(&snapshot);
+		// TODO Paint to surface.
 		PlayingMode(level, sprites).paint(&painter, snapshot.rect());
 	}
 
+	// TODO Fill viewport.
 	painter->fillRect(rect, Qt::black);
+	// TODO Blit with transparency.
 	painter->setOpacity(double(currentFade) / double(FADE_COUNT));
 	QPoint offset = QPoint(rect.width() - snapshot.width(), rect.height() - snapshot.height()) / 2;
 	painter->drawImage(offset, snapshot);

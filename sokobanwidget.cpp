@@ -16,6 +16,7 @@ namespace {
 QMap<int, QString> generateKeyToTextMap()
 {
 	QMap<int, QString> result;
+	// TODO Key codes.
 	result[Qt::Key_0]         = "0";
 	result[Qt::Key_1]         = "1";
 	result[Qt::Key_Backspace] = "Backspace";
@@ -123,6 +124,7 @@ void SokobanWidget::resizeEvent(QResizeEvent*)
 
 void SokobanWidget::keyPressEvent(QKeyEvent * event)
 {
+	// TODO Shift and control.
 	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
 	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
 	PlayingMode * playingMode = dynamic_cast<PlayingMode*>(gameMode);
@@ -200,6 +202,7 @@ void SokobanWidget::startGame()
 
 void SokobanWidget::paintEvent(QPaintEvent*)
 {
+	// TODO Painter to surface?
 	QPainter painter(this);
 	gameMode->paint(&painter, rect());
 }

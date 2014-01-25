@@ -47,7 +47,9 @@ void MessageMode::processControl(int control)
 
 void MessageMode::paint(QPainter * painter, const QRect & rect)
 {
+	// TODO Fill viewport.
 	painter->fillRect(rect, Qt::black);
+	// TODO draw text using font.
 	painter->setPen(Qt::white);
 	QFont f = painter->font();
 	f.setPixelSize(rect.width() / MAX_CHAR_COUNT_IN_MESSAGE);
