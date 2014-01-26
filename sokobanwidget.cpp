@@ -1,46 +1,43 @@
 #include <QtDebug>
 #include <QtCore/QSettings>
 #include <QtCore/QFileInfo>
-#include <QtGui/QFileDialog>
-#include <QtGui/QPainter>
-#include <QtGui/QMessageBox>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QApplication>
+#include <QtCore/QStringList>
+#include <QtCore/QCoreApplication>
 #include "playingmode.h"
 #include "messagemode.h"
 #include "fademode.h"
 #include "sokobanwidget.h"
+#include <SDL2/SDL.h>
 
 namespace {
 
 QMap<int, QString> generateKeyToTextMap()
 {
 	QMap<int, QString> result;
-	// TODO Key codes.
-	result[Qt::Key_0]         = "0";
-	result[Qt::Key_1]         = "1";
-	result[Qt::Key_Backspace] = "Backspace";
-	result[Qt::Key_Down]      = "Down";
-	result[Qt::Key_H]         = "H";
-	result[Qt::Key_Home]      = "Home";
-	result[Qt::Key_J]         = "J";
-	result[Qt::Key_K]         = "K";
-	result[Qt::Key_L]         = "L";
-	result[Qt::Key_Y]         = "Y";
-	result[Qt::Key_U]         = "U";
-	result[Qt::Key_B]         = "B";
-	result[Qt::Key_N]         = "N";
-	result[Qt::Key_Left]      = "Left";
-	result[Qt::Key_O]         = "O";
-	result[Qt::Key_Q]         = "Q";
-	result[Qt::Key_R]         = "R";
-	result[Qt::Key_Right]     = "Right";
-	result[Qt::Key_Space]     = "Space";
-	result[Qt::Key_U]         = "U";
-	result[Qt::Key_Up]        = "Up";
-	result[Qt::Key_Z]         = "Z";
-	result[Qt::Key_X]         = "X";
-	result[Qt::Key_Period]    = ".";
+	result[SDLK_0]         = "0";
+	result[SDLK_1]         = "1";
+	result[SDLK_BACKSPACE] = "Backspace";
+	result[SDLK_DOWN]      = "Down";
+	result[SDLK_h]         = "H";
+	result[SDLK_HOME]      = "Home";
+	result[SDLK_j]         = "J";
+	result[SDLK_k]         = "K";
+	result[SDLK_l]         = "L";
+	result[SDLK_y]         = "Y";
+	result[SDLK_u]         = "U";
+	result[SDLK_b]         = "B";
+	result[SDLK_n]         = "N";
+	result[SDLK_LEFT]      = "Left";
+	result[SDLK_o]         = "O";
+	result[SDLK_q]         = "Q";
+	result[SDLK_r]         = "R";
+	result[SDLK_RIGHT]     = "Right";
+	result[SDLK_SPACE]     = "Space";
+	result[SDLK_u]         = "U";
+	result[SDLK_UP]        = "Up";
+	result[SDLK_z]         = "Z";
+	result[SDLK_x]         = "X";
+	result[SDLK_PERIOD]    = ".";
 	return result;
 }
 
@@ -79,8 +76,8 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 
 }
 
-SokobanWidget::SokobanWidget(QWidget * parent)
-	: QWidget(parent), gameMode(0)
+SokobanWidget::SokobanWidget(QObject * parent)
+	: QObject(parent), gameMode(0), quit(false)
 {
 	QStringList args = QCoreApplication::arguments();
 	args.removeAt(0);
@@ -117,19 +114,13 @@ SokobanWidget::~SokobanWidget()
 	settings.setValue("levels/levelset", levelSet.getCurrentLevelSet());
 }
 
-void SokobanWidget::resizeEvent(QResizeEvent*)
+void SokobanWidget::keyPressEvent(SDL_KeyboardEvent * event)
 {
-	gameMode->invalidateRect();
-}
-
-void SokobanWidget::keyPressEvent(QKeyEvent * event)
-{
-	// TODO Shift and control.
-	bool isShiftDown = event->modifiers().testFlag(Qt::ShiftModifier);
-	bool isCtrlDown = event->modifiers().testFlag(Qt::ControlModifier);
+	bool isShiftDown = event->keysym.mod & (KMOD_RSHIFT | KMOD_LSHIFT);
+	bool isCtrlDown = event->keysym.mod & (KMOD_RCTRL | KMOD_LCTRL);
 	PlayingMode * playingMode = dynamic_cast<PlayingMode*>(gameMode);
 
-	QString pressedCombination = keyToText[event->key()];
+	QString pressedCombination = keyToText[event->keysym.sym];
 	if(isShiftDown) {
 		pressedCombination.prepend("Shift-");
 	}
@@ -146,8 +137,7 @@ void SokobanWidget::keyPressEvent(QKeyEvent * event)
 				loadNextLevel();
 			}
 			break;
-		case AbstractGameMode::CONTROL_QUIT: close(); break;
-		default: QWidget::keyPressEvent(event); break;
+		case AbstractGameMode::CONTROL_QUIT: quit = true; break;
 	}
 	update();
 }
@@ -200,9 +190,51 @@ void SokobanWidget::startGame()
 	update();
 }
 
-void SokobanWidget::paintEvent(QPaintEvent*)
+void SokobanWidget::update()
 {
-	// TODO Painter to surface?
-	QPainter painter(this);
-	gameMode->paint(&painter, rect());
+	SDL_RenderClear(renderer);
+
+	gameMode->paint(renderer, rect);
+
+	SDL_RenderPresent(renderer);
+}
+
+int SokobanWidget::exec()
+{
+	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_Window * window = SDL_CreateWindow(
+			"Sokoban",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			0, 0,
+			SDL_WINDOW_FULLSCREEN_DESKTOP
+			);
+	int w, h;
+	SDL_GetWindowSize(window, &w, &h);
+	rect = QRect(0, 0, w, h);
+
+	renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+	sprites.init(renderer);
+
+	SDL_Event event;
+	while(!quit) {
+		while(SDL_PollEvent(&event)) {
+			update();
+
+			switch(event.type) {
+				case SDL_KEYDOWN:
+					keyPressEvent(&event.key);
+					break;
+				case SDL_QUIT:
+					quit = true;
+					break;
+			}
+		}
+	}
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	return 0;
 }

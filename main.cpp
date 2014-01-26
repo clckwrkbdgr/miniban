@@ -1,16 +1,16 @@
-#include <QtGui/QApplication>
+#include <QtCore/QCoreApplication>
 #include "sokobanwidget.h"
 
 int main(int argc, char ** argv)
 {
-	QApplication app(argc, argv);
+	QCoreApplication app(argc, argv);
 	app.setOrganizationName("kp580bm1");
 	app.setApplicationName("miniban");
 	qsrand(time(NULL));
 
-	QApplication::setOverrideCursor(Qt::BlankCursor);
+	// TODO QCoreApplication::setOverrideCursor(Qt::BlankCursor);
 
 	SokobanWidget wnd;
-	wnd.showFullScreen();
-	return app.exec();
+	//wnd.showFullScreen();
+	return wnd.exec();
 }

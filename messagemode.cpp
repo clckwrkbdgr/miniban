@@ -1,5 +1,5 @@
-#include <QtGui/QPainter>
 #include "messagemode.h"
+#include <SDL2/SDL.h>
 
 namespace { // Aux.
 
@@ -45,15 +45,16 @@ void MessageMode::processControl(int control)
 	}
 }
 
-void MessageMode::paint(QPainter * painter, const QRect & rect)
+void MessageMode::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 {
-	// TODO Fill viewport.
-	painter->fillRect(rect, Qt::black);
+	SDL_RenderClear(painter);
+
 	// TODO draw text using font.
-	painter->setPen(Qt::white);
+	/* TODO painter->setPen(Qt::white);
 	QFont f = painter->font();
 	f.setPixelSize(rect.width() / MAX_CHAR_COUNT_IN_MESSAGE);
 	painter->setFont(f);
 	painter->drawText(rect, Qt::AlignCenter, messageToShow);
+	*/
 }
 

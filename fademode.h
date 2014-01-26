@@ -2,7 +2,6 @@
 #include "abstractgamemode.h"
 #include "sprites.h"
 #include "sokoban.h"
-#include <QtGui/QImage>
 
 class FadeMode : public AbstractGameMode {
 	Q_OBJECT
@@ -11,7 +10,7 @@ public:
 	virtual ~FadeMode();
 
 	virtual void invalidateRect();
-	virtual void paint(QPainter * painter, const QRect & rect);
+	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int) {}
 signals:
 	void fadeIsEnded();
@@ -20,7 +19,7 @@ protected:
 	void timerEvent(QTimerEvent*);
 private:
 	Sokoban level;
-	QImage snapshot;
+	SDL_Texture * snapshot;
 	Sprites sprites;
 	bool isFadeOut;
 	int timerId;

@@ -1,29 +1,32 @@
 #pragma once
-#include <QtGui/QWidget>
 #include "levelset.h"
 #include "sprites.h"
-
+class SDL_KeyboardEvent;
+class SDL_Renderer;
 class AbstractGameMode;
 
-class SokobanWidget : public QWidget {
+class SokobanWidget : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(SokobanWidget);
 public:
-	SokobanWidget(QWidget * parent = 0);
+	SokobanWidget(QObject * parent = 0);
 	virtual ~SokobanWidget();
+	int exec();
 protected:
-	virtual void paintEvent(QPaintEvent*);
-	virtual void keyPressEvent(QKeyEvent*);
-	virtual void resizeEvent(QResizeEvent*);
+	void update();
+	void keyPressEvent(SDL_KeyboardEvent * event);
 private slots:
 	void loadNextLevel();
 	void showInterlevelMessage();
 	void startFadeIn();
 	void startGame();
 private:
-	QImage snapshot;
+	SDL_Renderer * renderer;
+	SDL_Texture * snapshot;
 	LevelSet levelSet;
 	AbstractGameMode * gameMode;
 	Sprites sprites;
+	bool quit;
+	QRect rect;
 };
 

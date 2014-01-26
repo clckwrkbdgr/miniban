@@ -1,8 +1,8 @@
 #include <QtDebug>
-#include <QtGui/QPainter>
 #include "sokoban.h"
 #include "sprites.h"
 #include "playingmode.h"
+#include <SDL2/SDL.h>
 
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
@@ -90,15 +90,14 @@ void PlayingMode::invalidateRect()
 	toInvalidate = true;
 }
 
-void PlayingMode::paint(QPainter * painter, const QRect & rect)
+void PlayingMode::paint(SDL_Renderer * painter, const QRect & rect)
 {
 	if(toInvalidate) {
 		resizeSpritesForLevel(rect);
 		toInvalidate = false;
 	}
 
-	// TODO Fill viewport.
-	painter->fillRect(rect, Qt::black);
+	SDL_RenderClear(painter);
 
 	QPoint offset = QPoint(
 			rect.width() - sokoban.width() * spriteSize.width(),
@@ -117,10 +116,19 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 				case Cell::WALL: cellSprite = Sprites::WALL; break;
 			}
 			cellSprite = original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE;
-			// TODO Blit scaled.
-			painter->drawImage(pos,
-					original_sprites.getTileSet().copy(original_sprites.getSpriteRect(cellSprite, cell.sprite)).scaled(spriteSize)
-					);
+
+			QRect src_qrect = original_sprites.getSpriteRect(cellSprite, cell.sprite);
+			SDL_Rect src_rect;
+			src_rect.x = src_qrect.x();
+			src_rect.y = src_qrect.y();
+			src_rect.w = src_qrect.width();
+			src_rect.h = src_qrect.height();
+			SDL_Rect dest_rect;
+			dest_rect.x = pos.x();
+			dest_rect.y = pos.y();
+			dest_rect.w = spriteSize.width();
+			dest_rect.h = spriteSize.height();
+			SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 
 			Object object = sokoban.getObjectAt(x, y);
 			if(!object.isNull()) {
@@ -142,20 +150,31 @@ void PlayingMode::paint(QPainter * painter, const QRect & rect)
 						break;
 				}
 				if(objectSprite != Sprites::SPACE && original_sprites.contains(objectSprite)) {
-					// TODO Blit scaling.
-					painter->drawImage(pos,
-							original_sprites.getTileSet().copy(original_sprites.getSpriteRect(objectSprite, object.sprite)).scaled(spriteSize)
-							);
+					QRect src_qrect = original_sprites.getSpriteRect(objectSprite, object.sprite);
+					SDL_Rect src_rect;
+					src_rect.x = src_qrect.x();
+					src_rect.y = src_qrect.y();
+					src_rect.w = src_qrect.width();
+					src_rect.h = src_qrect.height();
+					SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 				}
 			}
 		}
 	}
 	if(target_mode) {
 		QPoint pos = offset + QPoint(target.x() * spriteSize.width(), target.y() * spriteSize.height());
-		// TODO Blit scaling.
-		painter->drawImage(pos,
-				original_sprites.getTileSet().copy(original_sprites.getSpriteRect(Sprites::CURSOR, 0)).scaled(spriteSize)
-				);
+		QRect src_qrect = original_sprites.getSpriteRect(Sprites::CURSOR, 0);
+		SDL_Rect src_rect;
+		src_rect.x = src_qrect.x();
+		src_rect.y = src_qrect.y();
+		src_rect.w = src_qrect.width();
+		src_rect.h = src_qrect.height();
+		SDL_Rect dest_rect;
+		dest_rect.x = pos.x();
+		dest_rect.y = pos.y();
+		dest_rect.w = spriteSize.width();
+		dest_rect.h = spriteSize.height();
+		SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 	}
 }
 

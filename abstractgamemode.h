@@ -1,7 +1,7 @@
 #pragma once
 #include <QtCore/QObject>
 
-class QPainter;
+class SDL_Renderer;
 class QRect;
 
 class AbstractGameMode : public QObject {
@@ -21,7 +21,7 @@ public:
 	virtual ~AbstractGameMode() {}
 
 	virtual void invalidateRect() = 0;
-	virtual void paint(QPainter * painter, const QRect & rect) = 0;
+	virtual void paint(SDL_Renderer * painter, const QRect & rect) = 0;
 	virtual void processControl(int control) = 0;
 };
 

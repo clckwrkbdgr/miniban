@@ -1,4 +1,5 @@
 TARGET = miniban
+QT = core
 QT += xml
 
 OBJECTS_DIR = tmp

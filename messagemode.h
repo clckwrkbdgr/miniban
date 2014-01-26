@@ -8,7 +8,7 @@ public:
 	virtual ~MessageMode();
 
 	virtual void invalidateRect();
-	virtual void paint(QPainter * painter, const QRect & rect);
+	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int control);
 signals:
 	void messageIsEnded();

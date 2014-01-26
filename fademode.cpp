@@ -1,8 +1,7 @@
 #include <QtDebug>
-#include <QtGui/QImage>
-#include <QtGui/QPainter>
 #include "playingmode.h"
 #include "fademode.h"
+#include <SDL2/SDL.h>
 
 namespace { // Aux.
 
@@ -28,8 +27,10 @@ FadeMode::~FadeMode()
 
 void FadeMode::invalidateRect()
 {
-	// TODO Null surface.
-	snapshot = QImage();
+	if(snapshot) {
+		SDL_DestroyTexture(snapshot);
+	}
+	snapshot = 0;
 }
 
 void FadeMode::timerEvent(QTimerEvent*)
@@ -44,19 +45,26 @@ void FadeMode::timerEvent(QTimerEvent*)
 	emit update();
 }
 
-void FadeMode::paint(QPainter * painter, const QRect & rect)
+void FadeMode::paint(SDL_Renderer * painter, const QRect & rect)
 {
-	if(snapshot.isNull()) {
-		snapshot = QImage(rect.size(), QImage::Format_RGB32);
-		QPainter painter(&snapshot);
-		// TODO Paint to surface.
-		PlayingMode(level, sprites).paint(&painter, snapshot.rect());
+	if(snapshot == 0) {
+		SDL_Surface * surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+				rect.width(), rect.height(), 32,
+				0x00ff0000,
+				0x0000ff00,
+				0x000000ff,
+				0xff000000
+				);
+		SDL_Renderer * renderer = SDL_CreateSoftwareRenderer(surface);
+
+		PlayingMode(level, sprites).paint(renderer, rect);
+		snapshot = SDL_CreateTexture(painter, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, rect.width(), rect.height());
+		SDL_UpdateTexture(snapshot, 0, surface->pixels, surface->pitch);
+		SDL_SetTextureBlendMode(snapshot, SDL_BLENDMODE_BLEND);
 	}
 
-	// TODO Fill viewport.
-	painter->fillRect(rect, Qt::black);
-	// TODO Blit with transparency.
-	painter->setOpacity(double(currentFade) / double(FADE_COUNT));
-	QPoint offset = QPoint(rect.width() - snapshot.width(), rect.height() - snapshot.height()) / 2;
-	painter->drawImage(offset, snapshot);
+	SDL_RenderClear(painter);
+
+	SDL_SetTextureAlphaMod(snapshot, currentFade * 255 / FADE_COUNT);
+	SDL_RenderCopy(painter, snapshot, 0, 0);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "sokoban.h"
+#include <QtCore/QPair>
 #include <QtCore/QString>
 
 class LevelSet {

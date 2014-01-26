@@ -1,40 +1,52 @@
 #include <QtDebug>
 #include "sprites.h"
 #include "sokoban.h"
-#include <QtGui/QImage>
 #include <QtCore/QMap>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <chthon/pixmap.h>
 #include <chthon/util.h>
+#include <SDL2/SDL.h>
 
 namespace Sprite {
 #include "sokoban.xpm"
 }
 
-QImage get_tile(const QImage & tileset, int x, int y, const QSize & tile_size)
-{
-	return tileset.copy(x * tile_size.width(), y * tile_size.height(), tile_size.width(), tile_size.height());
-}
-
-Sprites::Sprites()
+void Sprites::init(SDL_Renderer * renderer)
 {
 	try {
 		std::vector<std::string> sokoban_lines(Sprite::sokoban, Sprite::sokoban + Chthon::size_of_array(Sprite::sokoban));
 		Chthon::Pixmap pixmap(sokoban_lines);
-		// TODO image -> surface.
-		tileset = QImage(pixmap.width(), pixmap.height(), QImage::Format_ARGB32);
+		SDL_Surface * sokoban_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+				pixmap.width(), pixmap.height(), 32,
+				0x00ff0000,
+				0x0000ff00,
+				0x000000ff,
+				0xff000000
+				);
+		if(SDL_MUSTLOCK(sokoban_surface)) {
+			SDL_LockSurface(sokoban_surface);
+		}
 		for(unsigned x = 0; x < pixmap.width(); ++x) {
 			for(unsigned y = 0; y < pixmap.height(); ++y) {
-				tileset.setPixel(x, y, pixmap.color(pixmap.pixel(x, y)).argb());
+				Uint8 * pixel = (Uint8*)sokoban_surface->pixels;
+				pixel += (y * sokoban_surface->pitch) + (x * sizeof(Uint32));
+				Uint32 c = pixmap.color(pixmap.pixel(x, y)).argb();
+				*((Uint32*)pixel) = c;
 			}
 		}
+		if(SDL_MUSTLOCK(sokoban_surface)) {
+			SDL_UnlockSurface(sokoban_surface);
+		}
+		tileset = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, pixmap.width(), pixmap.height());
+		SDL_UpdateTexture(tileset, 0, sokoban_surface->pixels, sokoban_surface->pitch);
+		SDL_SetTextureBlendMode(tileset, SDL_BLENDMODE_BLEND);
 	} catch(const Chthon::Pixmap::Exception & e) {
 		QTextStream err(stderr);
 		err << QString::fromStdString(e.what) << endl;
 	}
 
-	if(tileset.isNull()) {
+	if(tileset == 0) {
 		return;
 	}
 	cachedSprites[Sprites::FLOOR]           << QPoint(0, 0) << QPoint(1, 0) << QPoint(2, 0) << QPoint(3, 0);
@@ -53,12 +65,14 @@ Sprites::Sprites()
 			max_y = qMax(point.y(), max_y);
 		}
 	}
-	sprite_size = QSize(tileset.width() / (max_x + 1), tileset.height() / (max_y + 1));
+	int w, h;
+	SDL_QueryTexture(tileset, 0, 0, &w, &h);
+	sprite_size = QSize(w / (max_x + 1), h / (max_y + 1));
 }
 
 QSize Sprites::getSpritesBounds() const
 {
-	if(tileset.isNull()) {
+	if(tileset == 0) {
 		return QSize();
 	}
 	return sprite_size;
@@ -73,14 +87,14 @@ QRect Sprites::getSpriteRect(int tileType, int spriteIndex) const
 	return QRect();
 }
 
-const QImage & Sprites::getTileSet() const
+SDL_Texture * Sprites::getTileSet() const
 {
 	return tileset;
 }
 
 bool Sprites::contains(int tileType) const
 {
-	if(tileset.isNull()) {
+	if(tileset == 0) {
 		return false;
 	}
 	return cachedSprites.contains(tileType);

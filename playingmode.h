@@ -1,7 +1,6 @@
 #pragma once
 #include <QtCore/QMap>
 #include <QtCore/QSize>
-#include <QtGui/QImage>
 #include "abstractgamemode.h"
 #include "sokoban.h"
 #include "sprites.h"
@@ -15,7 +14,7 @@ public:
 	const Sokoban & getCurrentSokoban() const { return sokoban; }
 	
 	virtual void invalidateRect();
-	virtual void paint(QPainter * painter, const QRect & rect);
+	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int control);
 signals:
 	void levelIsSolved();
