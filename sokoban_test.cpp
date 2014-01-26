@@ -1,7 +1,5 @@
-//! Use `qmake "CONFIG += SOKOBAN_TEST"` to build unit tests.
 #include "sokoban.h"
 #include <chthon/test.h>
-#include <chthon/log.h>
 #include <chthon/format.h>
 using namespace Chthon::UnitTest;
 using namespace Chthon;

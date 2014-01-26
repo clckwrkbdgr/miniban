@@ -5,12 +5,10 @@ OBJECTS_DIR = tmp
 MOC_DIR = tmp
 UI_DIR = tmp
 RCC_DIR = tmp
-LIBS += -lchthon
+LIBS += -lchthon -lSDL2
 QMAKE_CXXFLAGS += -std=c++0x
 
 SOKOBAN_TEST {
-	DEFINES += SOKOBAN_TEST
-	QT += testlib
 	modules = sokoban
 	SOURCES += sokoban_test.cpp
 } else {
