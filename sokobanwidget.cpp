@@ -104,7 +104,7 @@ SokobanWidget::SokobanWidget(QObject * parent)
 		}
 	}
 
-	showInterlevelMessage();
+	//showInterlevelMessage();
 }
 
 SokobanWidget::~SokobanWidget()
@@ -186,7 +186,7 @@ void SokobanWidget::startGame()
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
 	gameMode = new PlayingMode(levelSet.getCurrentSokoban(), sprites, this);
-	connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
+	//connect(gameMode, SIGNAL(levelIsSolved()), this, SLOT(loadNextLevel()));
 	update();
 }
 
@@ -216,6 +216,8 @@ int SokobanWidget::exec()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
 	sprites.init(renderer);
+
+	startGame();
 
 	SDL_Event event;
 	while(!quit) {
