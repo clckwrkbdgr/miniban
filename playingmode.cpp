@@ -4,14 +4,46 @@
 #include "playingmode.h"
 #include <SDL2/SDL.h>
 
+Counter::Counter(int counter_stop_value)
+	: active(false), current_value(0), stop_value(counter_stop_value)
+{
+}
+
+bool Counter::is_active() const
+{
+	return active;
+}
+
+void Counter::start()
+{
+	active = true;
+	current_value = 0;
+}
+
+int Counter::multiplied_value(int factor)
+{
+	return factor * current_value / stop_value;
+}
+
+void Counter::tick(int increase)
+{
+	if(active) {
+		current_value += increase;
+		if(current_value >= stop_value) {
+			active = false;
+		}
+	}
+}
+
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
 
 Game::Game(const Sokoban & prepared_sokoban, const Sprites & _sprites)
 	: original_sprites(_sprites), toInvalidate(true),
 	sokoban(prepared_sokoban), target_mode(false),
-	fading(true), current_fade(0), max_fade(1000)
+	fader_in(1000)
 {
+	fader_in.start();
 }
 
 void Game::load(const Sokoban & prepared_sokoban)
@@ -195,26 +227,20 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 		SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 	}
 
-	if(fading) {
+	if(fader_in.is_active()) {
 		SDL_Rect screen_rect;
 		screen_rect.x = rect.x();
 		screen_rect.y = rect.y();
 		screen_rect.w = rect.width();
 		screen_rect.h = rect.height();
 
-		//SDL_SetRenderDrawColor(painter, 0, 0, 0, 127);
-		SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 * (max_fade - current_fade) / max_fade);
+		SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 - fader_in.multiplied_value(255));
 		SDL_RenderFillRect(painter, &screen_rect);
 	}
 }
 
 void Game::processTime(int msec_passed)
 {
-	if(fading) {
-		current_fade += msec_passed;
-		if(current_fade >= max_fade) {
-			fading = false;
-		}
-	}
+	fader_in.tick(msec_passed);
 }
 
