@@ -147,9 +147,7 @@ bool Sokoban::movePlayer(const Chthon::Point & target)
 					}
 					int current_cell = passed[current.x + current.y * width()];
 					std::vector<Chthon::Point> neighs;
-					//for(unsigned i = 0; i < passed.size(); ++i) { // Huh?
-						neighs << current + Chthon::Point(1, 0) << current + Chthon::Point(-1, 0) << current + Chthon::Point(0, 1) << current + Chthon::Point(0, -1);
-					//}
+					neighs << current + Chthon::Point(1, 0) << current + Chthon::Point(-1, 0) << current + Chthon::Point(0, 1) << current + Chthon::Point(0, -1);
 					Chthon::Point step;
 					foreach(const Chthon::Point & neigh, neighs) {
 						if(!isValid(neigh) || passed[neigh.x + neigh.y * width()] < 0) {

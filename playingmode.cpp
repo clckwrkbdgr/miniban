@@ -98,19 +98,11 @@ void Game::processControl(int control)
 	}
 }
 
-/*
-void PlayingMode::invalidateRect()
-{
-	toInvalidate = true;
-}
-*/
-
 bool Game::is_done() const
 {
 	return sokoban.isSolved() && !fader_out.is_active();
 }
 
-//void PlayingMode::paint(SDL_Renderer * painter, const QRect & rect)
 void Game::paint(SDL_Renderer * painter, const QRect & rect)
 {
 	if(toInvalidate) {

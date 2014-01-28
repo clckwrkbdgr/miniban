@@ -13,11 +13,10 @@ SOKOBAN_TEST {
 	modules = sokoban
 	SOURCES += sokoban_test.cpp
 } else {
-	HEADERS += abstractgamemode.h
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget
 	modules += sprites levelset counter
-	modules += playingmode messagemode fademode
+	modules += playingmode message
 }
 
 for(module, modules) {
