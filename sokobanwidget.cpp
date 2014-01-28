@@ -9,6 +9,7 @@
 #include "sokobanwidget.h"
 #include <chthon/format.h>
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <iostream>
 using namespace Chthon;
 
@@ -198,20 +199,32 @@ public:
 	void paint(SDL_Renderer * painter, const QRect & rect);
 private:
 	const Sprites & sprites;
-	std::string text;
 	bool done;
+	std::vector<std::string> lines;
+	unsigned max_width;
 };
 
 
 Message::Message(const Sprites & _sprites, const std::string & message_text)
-	: sprites(_sprites), text(message_text), done(false)
+	: sprites(_sprites), done(false)
 {
+	set_text(message_text);
 }
 
 void Message::set_text(const std::string & message_text)
 {
-	text = message_text;
 	done = false;
+	lines.clear();
+	lines.push_back(std::string());
+	max_width = 0;
+	for(char ch : message_text) {
+		if(ch != '\n') {
+			lines.back() += ch;
+		} else {
+			max_width = std::max(max_width, lines.back().size());
+			lines.push_back(std::string());
+		}
+	}
 }
 
 bool Message::is_done() const
@@ -234,21 +247,20 @@ void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 	dest_rect.y = 0;
 	dest_rect.w = sprites.getCharRect(0).width();
 	dest_rect.h = sprites.getCharRect(0).height();
-	for(char ch : text) {
-		QRect char_qrect = sprites.getCharRect(ch);
-		SDL_Rect char_rect;
-		char_rect.x = char_qrect.x();
-		char_rect.y = char_qrect.y();
-		char_rect.w = char_qrect.width();
-		char_rect.h = char_qrect.height();
+	for(const std::string & line : lines) {
+		dest_rect.x = 0;
+		for(char ch : line) {
+			QRect char_qrect = sprites.getCharRect(ch);
+			SDL_Rect char_rect;
+			char_rect.x = char_qrect.x();
+			char_rect.y = char_qrect.y();
+			char_rect.w = char_qrect.width();
+			char_rect.h = char_qrect.height();
 
-		if(ch == '\n') {
-			dest_rect.x = 0;
-			dest_rect.y += dest_rect.h;
-		} else {
 			SDL_RenderCopy(painter, sprites.getFont(), &char_rect, &dest_rect);
 			dest_rect.x += dest_rect.w;
 		}
+		dest_rect.y += dest_rect.h;
 	}
 }
 
