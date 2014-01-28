@@ -298,6 +298,7 @@ int SokobanWidget::exec()
 
 	renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	sprites.init(renderer);
 
@@ -352,6 +353,8 @@ int SokobanWidget::exec()
 			last_time = current_time;
 			if(show_message) {
 				message.processTime(time_passed);
+			} else {
+				game.processTime(time_passed);
 			}
 		}
 

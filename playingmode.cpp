@@ -9,7 +9,8 @@ const int MAX_SCALE_FACTOR = 8;
 
 Game::Game(const Sokoban & prepared_sokoban, const Sprites & _sprites)
 	: original_sprites(_sprites), toInvalidate(true),
-	sokoban(prepared_sokoban), target_mode(false)
+	sokoban(prepared_sokoban), target_mode(false),
+	fading(true), current_fade(0), max_fade(1000)
 {
 }
 
@@ -193,6 +194,27 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 		dest_rect.h = spriteSize.height();
 		SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 	}
+
+	if(fading) {
+		SDL_Rect screen_rect;
+		screen_rect.x = rect.x();
+		screen_rect.y = rect.y();
+		screen_rect.w = rect.width();
+		screen_rect.h = rect.height();
+
+		//SDL_SetRenderDrawColor(painter, 0, 0, 0, 127);
+		SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 * (max_fade - current_fade) / max_fade);
+		SDL_RenderFillRect(painter, &screen_rect);
+	}
 }
 
+void Game::processTime(int msec_passed)
+{
+	if(fading) {
+		current_fade += msec_passed;
+		if(current_fade >= max_fade) {
+			fading = false;
+		}
+	}
+}
 

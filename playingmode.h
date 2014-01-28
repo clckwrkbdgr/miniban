@@ -23,6 +23,7 @@ public:
 	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int control);
 	virtual bool is_done() const;
+	void processTime(int msec_passed);
 private:
 	const Sprites & original_sprites;
 	QSize spriteSize;
@@ -30,6 +31,9 @@ private:
 	Sokoban sokoban;
 	bool target_mode;
 	QPoint target;
+
+	bool fading;
+	int current_fade, max_fade;
 
 	void resizeSpritesForLevel(const QRect & rect);
 };
