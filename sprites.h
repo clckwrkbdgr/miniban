@@ -16,6 +16,7 @@ public:
 	bool contains(int tileType) const;
 private:
 	SDL_Texture * tileset;
+	SDL_Texture * font;
 	QSize sprite_size;
 	QMap<int, QList<QPoint> > cachedSprites;
 };

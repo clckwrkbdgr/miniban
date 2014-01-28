@@ -10,45 +10,52 @@
 
 namespace Sprite {
 #include "sokoban.xpm"
+#include "font.xpm"
+SDL_Texture * load(SDL_Renderer * renderer, const char ** xpm, int size);
 }
 
-void Sprites::init(SDL_Renderer * renderer)
+SDL_Texture * Sprite::load(SDL_Renderer * renderer, const char ** xpm, int size)
 {
+	SDL_Texture * result = 0;
 	try {
-		std::vector<std::string> sokoban_lines(Sprite::sokoban, Sprite::sokoban + Chthon::size_of_array(Sprite::sokoban));
-		Chthon::Pixmap pixmap(sokoban_lines);
-		SDL_Surface * sokoban_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+		std::vector<std::string> xpm_lines(xpm, xpm + size);
+		Chthon::Pixmap pixmap(xpm_lines);
+		SDL_Surface * surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
 				pixmap.width(), pixmap.height(), 32,
 				0x00ff0000,
 				0x0000ff00,
 				0x000000ff,
 				0xff000000
 				);
-		if(SDL_MUSTLOCK(sokoban_surface)) {
-			SDL_LockSurface(sokoban_surface);
+		if(SDL_MUSTLOCK(surface)) {
+			SDL_LockSurface(surface);
 		}
 		for(unsigned x = 0; x < pixmap.width(); ++x) {
 			for(unsigned y = 0; y < pixmap.height(); ++y) {
-				Uint8 * pixel = (Uint8*)sokoban_surface->pixels;
-				pixel += (y * sokoban_surface->pitch) + (x * sizeof(Uint32));
+				Uint8 * pixel = (Uint8*)surface->pixels;
+				pixel += (y * surface->pitch) + (x * sizeof(Uint32));
 				Uint32 c = pixmap.color(pixmap.pixel(x, y)).argb();
 				*((Uint32*)pixel) = c;
 			}
 		}
-		if(SDL_MUSTLOCK(sokoban_surface)) {
-			SDL_UnlockSurface(sokoban_surface);
+		if(SDL_MUSTLOCK(surface)) {
+			SDL_UnlockSurface(surface);
 		}
-		tileset = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, pixmap.width(), pixmap.height());
-		SDL_UpdateTexture(tileset, 0, sokoban_surface->pixels, sokoban_surface->pitch);
-		SDL_SetTextureBlendMode(tileset, SDL_BLENDMODE_BLEND);
+		result = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, pixmap.width(), pixmap.height());
+		SDL_UpdateTexture(result, 0, surface->pixels, surface->pitch);
+		SDL_SetTextureBlendMode(result, SDL_BLENDMODE_BLEND);
 	} catch(const Chthon::Pixmap::Exception & e) {
 		QTextStream err(stderr);
 		err << QString::fromStdString(e.what) << endl;
 	}
+	return result;
+}
 
-	if(tileset == 0) {
-		return;
-	}
+void Sprites::init(SDL_Renderer * renderer)
+{
+	tileset = Sprite::load(renderer, Sprite::sokoban, Chthon::size_of_array(Sprite::sokoban));
+	font = Sprite::load(renderer, Sprite::font, Chthon::size_of_array(Sprite::font));
+	
 	cachedSprites[Sprites::FLOOR]           << QPoint(0, 0) << QPoint(1, 0) << QPoint(2, 0) << QPoint(3, 0);
 	cachedSprites[Sprites::WALL]            << QPoint(0, 1) << QPoint(1, 1) << QPoint(2, 1) << QPoint(3, 1);
 	cachedSprites[Sprites::EMPTY_SLOT]      << QPoint(0, 2) << QPoint(1, 2) << QPoint(2, 2) << QPoint(3, 2);

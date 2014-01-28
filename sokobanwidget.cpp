@@ -233,7 +233,6 @@ void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 	SDL_RenderCopy(painter, texture, 0, 0);
 }
 
-
 int SokobanWidget::exec()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
