@@ -7,7 +7,9 @@
 #include "messagemode.h"
 #include "fademode.h"
 #include "sokobanwidget.h"
+#include <chthon/format.h>
 #include <SDL2/SDL.h>
+using namespace Chthon;
 
 namespace {
 
@@ -186,6 +188,41 @@ void SokobanWidget::update()
 }
 */
 
+class Message {
+public:
+	Message(const std::string & message_text);
+	bool is_done() const;
+	void processControl(int control);
+	void paint(SDL_Renderer * painter, const QRect & rect);
+private:
+	std::string text;
+	bool done;
+};
+
+
+Message::Message(const std::string & message_text)
+	: text(message_text), done(false)
+{
+}
+
+bool Message::is_done() const
+{
+	return done;
+}
+
+void Message::processControl(int control)
+{
+	if(control == Game::CONTROL_SKIP) {
+		done = true;
+	}
+}
+
+void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
+{
+	SDL_RenderClear(painter);
+}
+
+
 int SokobanWidget::exec()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -206,12 +243,30 @@ int SokobanWidget::exec()
 
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+
 	Game game = Game(levelSet.getCurrentSokoban(), sprites);
+	Message message = Message(
+			levelSet.isOver()
+			? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
+			: format(
+				"{0}: {3}\n{1}/{2}",
+				levelSet.getLevelSetTitle().toStdString(),
+				levelSet.getCurrentLevelIndex() + 1,
+				levelSet.getLevelCount(),
+				levelSet.getCurrentLevelName().toStdString(),
+				"DUMMY"
+				)
+			);
+	bool show_message = true;
 
 	SDL_Event event;
 	while(!quit) {
 		while(SDL_PollEvent(&event)) {
-			game.paint(renderer, rect);
+			if(show_message) {
+				message.paint(renderer, rect);
+			} else {
+				game.paint(renderer, rect);
+			}
 
 			SDL_RenderPresent(renderer);
 
@@ -220,24 +275,40 @@ int SokobanWidget::exec()
 				if(control == Game::CONTROL_QUIT) {
 					quit = true;
 				}
-				game.processControl(control);
+				if(show_message) {
+					message.processControl(control);
+				} else {
+					game.processControl(control);
+				}
 			} else if(event.type == SDL_QUIT) {
 				quit = true;
 			}
-			if(game.is_done()) {
-				qDebug() << levelSet.isOver() << levelSet.getCurrentLevelIndex();
-				// TODO show interlevel message.
-				if(levelSet.isOver()) {
-					quit = true; // TODO show message (levels is over).
-				} else {
-					levelSet.moveToNextLevel();
-					if(levelSet.isOver()) {
-						quit = true; // TODO show message (levels is over).
-					} else {
+
+			if(show_message) {
+				if(message.is_done() && !levelSet.isOver()) {
+					if(!levelSet.isOver()) {
 						QSettings settings;
 						settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
 						game.load(levelSet.getCurrentSokoban());
+						levelSet.moveToNextLevel();
+						show_message = false;
 					}
+				}
+			} else {
+				if(game.is_done()) {
+					show_message = true;
+					message = Message(
+							levelSet.isOver()
+							? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
+							: format(
+								"{0}: {3}\n{1}/{2}",
+								levelSet.getLevelSetTitle().toStdString(),
+								levelSet.getCurrentLevelIndex() + 1,
+								levelSet.getLevelCount(),
+								levelSet.getCurrentLevelName().toStdString(),
+								"DUMMY"
+								)
+							);
 				}
 			}
 		}
