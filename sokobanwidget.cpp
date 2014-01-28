@@ -240,7 +240,7 @@ void Message::processControl(int control)
 	}
 }
 
-void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
+void Message::paint(SDL_Renderer * painter, const QRect & rect)
 {
 	SDL_RenderClear(painter);
 	SDL_Rect dest_rect;
@@ -248,8 +248,12 @@ void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 	dest_rect.y = 0;
 	dest_rect.w = sprites.getCharRect(0).width();
 	dest_rect.h = sprites.getCharRect(0).height();
+
+	QRect text_rect = QRect(0, 0, dest_rect.w * max_width, dest_rect.h * lines.size());
+	text_rect.moveCenter(rect.center());
+	dest_rect.y = text_rect.y();
 	for(const std::string & line : lines) {
-		dest_rect.x = (dest_rect.w * (max_width - line.size())) / 2 ;
+		dest_rect.x = text_rect.x() + (dest_rect.w * (max_width - line.size())) / 2 ;
 		for(char ch : line) {
 			QRect char_qrect = sprites.getCharRect(ch);
 			SDL_Rect char_rect;
