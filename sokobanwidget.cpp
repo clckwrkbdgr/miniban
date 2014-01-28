@@ -204,28 +204,28 @@ private:
 	bool done;
 	std::vector<std::string> lines;
 	unsigned max_width;
-	int msecs_to_done;
+	Counter countdown;
 };
 
 void Message::processTime(int msec_passed)
 {
-	if(!done && msecs_to_done > 0) {
-		msecs_to_done -= msec_passed;
-		if(msecs_to_done <= 0) {
+	if(!done) {
+		countdown.tick(msec_passed);
+		if(!countdown.is_active()) {
 			done = true;
 		}
 	}
 }
 
 Message::Message(const Sprites & _sprites, const std::string & message_text)
-	: sprites(_sprites), done(false)
+	: sprites(_sprites), done(false), countdown(1000)
 {
 	set_text(message_text);
 }
 
 void Message::set_text(const std::string & message_text)
 {
-	msecs_to_done = 1000;
+	countdown.start();
 	done = false;
 	lines.clear();
 	lines.push_back(std::string());
