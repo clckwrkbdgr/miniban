@@ -225,6 +225,7 @@ void Message::set_text(const std::string & message_text)
 			lines.push_back(std::string());
 		}
 	}
+	max_width = std::max(max_width, lines.back().size());
 }
 
 bool Message::is_done() const
@@ -248,7 +249,7 @@ void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 	dest_rect.w = sprites.getCharRect(0).width();
 	dest_rect.h = sprites.getCharRect(0).height();
 	for(const std::string & line : lines) {
-		dest_rect.x = 0;
+		dest_rect.x = (dest_rect.w * (max_width - line.size())) / 2 ;
 		for(char ch : line) {
 			QRect char_qrect = sprites.getCharRect(ch);
 			SDL_Rect char_rect;
