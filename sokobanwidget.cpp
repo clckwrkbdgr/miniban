@@ -8,7 +8,6 @@
 #include "fademode.h"
 #include "sokobanwidget.h"
 #include <chthon/format.h>
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 #include <iostream>
 using namespace Chthon;
@@ -192,27 +191,27 @@ void SokobanWidget::update()
 
 class Message {
 public:
-	Message(SDL_Renderer * renderer, TTF_Font * font, const std::string & message_text);
+	Message(const Sprites & _sprites, const std::string & message_text);
+	void set_text(const std::string & message_text);
 	bool is_done() const;
 	void processControl(int control);
 	void paint(SDL_Renderer * painter, const QRect & rect);
 private:
-	SDL_Texture * texture;
+	const Sprites & sprites;
 	std::string text;
 	bool done;
 };
 
 
-Message::Message(SDL_Renderer * renderer, TTF_Font * font, const std::string & message_text)
-	: text(message_text), done(false)
+Message::Message(const Sprites & _sprites, const std::string & message_text)
+	: sprites(_sprites), text(message_text), done(false)
 {
-	SDL_Color text_color = {255, 0, 0, 255};
-	SDL_Surface * text_surface = TTF_RenderText_Solid(font,
-			message_text.c_str(),
-			text_color);
-	texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-	SDL_FreeSurface(text_surface);
-	SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+}
+
+void Message::set_text(const std::string & message_text)
+{
+	text = message_text;
+	done = false;
 }
 
 bool Message::is_done() const
@@ -230,7 +229,22 @@ void Message::processControl(int control)
 void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 {
 	SDL_RenderClear(painter);
-	SDL_RenderCopy(painter, texture, 0, 0);
+	SDL_Rect dest_rect;
+	dest_rect.x = 0;
+	dest_rect.y = 0;
+	dest_rect.w = sprites.getCharRect(0).width();
+	dest_rect.h = sprites.getCharRect(0).height();
+	for(char ch : text) {
+		QRect char_qrect = sprites.getCharRect(ch);
+		SDL_Rect char_rect;
+		char_rect.x = char_qrect.x();
+		char_rect.y = char_qrect.y();
+		char_rect.w = char_qrect.width();
+		char_rect.h = char_qrect.height();
+
+		SDL_RenderCopy(painter, sprites.getFont(), &char_rect, &dest_rect);
+		dest_rect.x += dest_rect.w;
+	}
 }
 
 int SokobanWidget::exec()
@@ -251,21 +265,11 @@ int SokobanWidget::exec()
 
 	sprites.init(renderer);
 
-	TTF_Init();
-	TTF_Font * font = TTF_OpenFont("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf", 24);
-	if(font == NULL)
-	{
-		std::cerr << "TTF_OpenFont() Failed: " << TTF_GetError() << std::endl;
-		TTF_Quit();
-		SDL_Quit();
-		return 1;
-	}
-
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
 
 	Game game = Game(levelSet.getCurrentSokoban(), sprites);
-	Message message = Message(renderer, font,
+	Message message = Message(sprites,
 			levelSet.isOver()
 			? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
 			: format(
@@ -317,7 +321,7 @@ int SokobanWidget::exec()
 			} else {
 				if(game.is_done()) {
 					show_message = true;
-					message = Message(renderer, font,
+					message.set_text(
 							levelSet.isOver()
 							? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
 							: format(

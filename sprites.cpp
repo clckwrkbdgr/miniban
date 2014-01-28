@@ -85,6 +85,18 @@ QSize Sprites::getSpritesBounds() const
 	return sprite_size;
 }
 
+QRect Sprites::getCharRect(char ch) const
+{
+	int x = ch % 16;
+	int y = ch / 16;
+	return QRect(x * 20, y * 20, 20, 20);
+}
+
+SDL_Texture * Sprites::getFont() const
+{
+	return font;
+}
+
 QRect Sprites::getSpriteRect(int tileType, int spriteIndex) const
 {
 	if(cachedSprites.contains(tileType)) {

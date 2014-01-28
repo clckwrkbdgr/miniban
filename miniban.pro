@@ -6,7 +6,7 @@ OBJECTS_DIR = tmp
 MOC_DIR = tmp
 UI_DIR = tmp
 RCC_DIR = tmp
-LIBS += -lchthon -lSDL2 -lSDL2_ttf
+LIBS += -lchthon -lSDL2
 QMAKE_CXXFLAGS += -std=c++0x
 
 SOKOBAN_TEST {
