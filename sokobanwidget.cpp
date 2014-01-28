@@ -7,6 +7,7 @@
 #include "messagemode.h"
 #include "fademode.h"
 #include "sokobanwidget.h"
+#include <chthon/log.h>
 #include <chthon/format.h>
 #include <SDL2/SDL.h>
 #include <algorithm>
@@ -197,13 +198,24 @@ public:
 	bool is_done() const;
 	void processControl(int control);
 	void paint(SDL_Renderer * painter, const QRect & rect);
+	void processTime(int msec_passed);
 private:
 	const Sprites & sprites;
 	bool done;
 	std::vector<std::string> lines;
 	unsigned max_width;
+	int msecs_to_done;
 };
 
+void Message::processTime(int msec_passed)
+{
+	if(!done && msecs_to_done > 0) {
+		msecs_to_done -= msec_passed;
+		if(msecs_to_done <= 0) {
+			done = true;
+		}
+	}
+}
 
 Message::Message(const Sprites & _sprites, const std::string & message_text)
 	: sprites(_sprites), done(false)
@@ -213,6 +225,7 @@ Message::Message(const Sprites & _sprites, const std::string & message_text)
 
 void Message::set_text(const std::string & message_text)
 {
+	msecs_to_done = 1000;
 	done = false;
 	lines.clear();
 	lines.push_back(std::string());
@@ -307,16 +320,17 @@ int SokobanWidget::exec()
 	bool show_message = true;
 
 	SDL_Event event;
+	Uint32 last_time = SDL_GetTicks();
 	while(!quit) {
+		if(show_message) {
+			message.paint(renderer, rect);
+		} else {
+			game.paint(renderer, rect);
+		}
+
+		SDL_RenderPresent(renderer);
+
 		while(SDL_PollEvent(&event)) {
-			if(show_message) {
-				message.paint(renderer, rect);
-			} else {
-				game.paint(renderer, rect);
-			}
-
-			SDL_RenderPresent(renderer);
-
 			if(event.type == SDL_KEYDOWN) {
 				int control = keyToControl(&event.key);
 				if(control == Game::CONTROL_QUIT) {
@@ -330,36 +344,45 @@ int SokobanWidget::exec()
 			} else if(event.type == SDL_QUIT) {
 				quit = true;
 			}
+		}
 
+		Uint32 current_time = SDL_GetTicks();
+		int time_passed = current_time - last_time;
+		if(time_passed > 0) {
+			last_time = current_time;
 			if(show_message) {
-				if(message.is_done() && !levelSet.isOver()) {
-					if(!levelSet.isOver()) {
-						show_message = false;
-					}
-				}
-			} else {
-				if(game.is_done()) {
-					QSettings settings;
-					settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-					levelSet.moveToNextLevel();
-					if(!levelSet.isOver()) {
-						game.load(levelSet.getCurrentSokoban());
-					}
+				message.processTime(time_passed);
+			}
+		}
 
-					message.set_text(
-							levelSet.isOver()
-							? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
-							: format(
-								"{0}: {3}\n{1}/{2}",
-								levelSet.getLevelSetTitle().toStdString(),
-								levelSet.getCurrentLevelIndex() + 1,
-								levelSet.getLevelCount(),
-								levelSet.getCurrentLevelName().toStdString(),
-								"DUMMY"
-								)
-							);
-					show_message = true;
+		if(show_message) {
+			if(message.is_done() && !levelSet.isOver()) {
+				if(!levelSet.isOver()) {
+					show_message = false;
 				}
+			}
+		} else {
+			if(game.is_done()) {
+				QSettings settings;
+				settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+				levelSet.moveToNextLevel();
+				if(!levelSet.isOver()) {
+					game.load(levelSet.getCurrentSokoban());
+				}
+
+				message.set_text(
+						levelSet.isOver()
+						? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
+						: format(
+							"{0}: {3}\n{1}/{2}",
+							levelSet.getLevelSetTitle().toStdString(),
+							levelSet.getCurrentLevelIndex() + 1,
+							levelSet.getLevelCount(),
+							levelSet.getCurrentLevelName().toStdString(),
+							"DUMMY"
+							)
+						);
+				show_message = true;
 			}
 		}
 	}
