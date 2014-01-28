@@ -13,6 +13,13 @@ Game::Game(const Sokoban & prepared_sokoban, const Sprites & _sprites)
 {
 }
 
+void Game::load(const Sokoban & prepared_sokoban)
+{
+	sokoban = prepared_sokoban;
+	target_mode = false;
+	toInvalidate = true;
+}
+
 void Game::resizeSpritesForLevel(const QRect & rect)
 {
 	QSize originalSize = original_sprites.getSpritesBounds();

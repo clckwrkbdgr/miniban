@@ -217,19 +217,28 @@ int SokobanWidget::exec()
 
 			if(event.type == SDL_KEYDOWN) {
 				int control = keyToControl(&event.key);
+				if(control == Game::CONTROL_QUIT) {
+					quit = true;
+				}
 				game.processControl(control);
 			} else if(event.type == SDL_QUIT) {
 				quit = true;
 			}
 			if(game.is_done()) {
+				qDebug() << levelSet.isOver() << levelSet.getCurrentLevelIndex();
+				// TODO show interlevel message.
 				if(levelSet.isOver()) {
 					quit = true; // TODO show message (levels is over).
+				} else {
+					levelSet.moveToNextLevel();
+					if(levelSet.isOver()) {
+						quit = true; // TODO show message (levels is over).
+					} else {
+						QSettings settings;
+						settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+						game.load(levelSet.getCurrentSokoban());
+					}
 				}
-				// TODO show interlevel message.
-				levelSet.moveToNextLevel();
-				QSettings settings;
-				settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-				Game game = Game(levelSet.getCurrentSokoban(), sprites);
 			}
 		}
 	}

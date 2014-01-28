@@ -19,6 +19,7 @@ public:
 	Game(const Sokoban & prepared_sokoban, const Sprites & sprites);
 	virtual ~Game() {}
 
+	void load(const Sokoban & prepared_sokoban);
 	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int control);
 	virtual bool is_done() const;
