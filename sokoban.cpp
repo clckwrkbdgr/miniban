@@ -470,7 +470,7 @@ bool Sokoban::undo()
 	return true;
 }
 
-bool Sokoban::isSolved()
+bool Sokoban::isSolved() const
 {
 	if(!valid) {
 		return false;

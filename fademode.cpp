@@ -45,22 +45,22 @@ void FadeMode::timerEvent(QTimerEvent*)
 	emit update();
 }
 
-void FadeMode::paint(SDL_Renderer * painter, const QRect & rect)
+void FadeMode::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 {
 	if(snapshot == 0) {
-		SDL_Surface * surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
-				rect.width(), rect.height(), 32,
-				0x00ff0000,
-				0x0000ff00,
-				0x000000ff,
-				0xff000000
-				);
-		SDL_Renderer * renderer = SDL_CreateSoftwareRenderer(surface);
+		//SDL_Surface * surface = SDL_CreateRGBSurface(SDL_SWSURFACE,
+				//rect.width(), rect.height(), 32,
+				//0x00ff0000,
+				//0x0000ff00,
+				//0x000000ff,
+				//0xff000000
+				//);
+		//SDL_Renderer * renderer = SDL_CreateSoftwareRenderer(surface);
 
-		PlayingMode(level, sprites).paint(renderer, rect);
-		snapshot = SDL_CreateTexture(painter, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, rect.width(), rect.height());
-		SDL_UpdateTexture(snapshot, 0, surface->pixels, surface->pitch);
-		SDL_SetTextureBlendMode(snapshot, SDL_BLENDMODE_BLEND);
+		//PlayingMode(level, sprites).paint(renderer, rect);
+		//snapshot = SDL_CreateTexture(painter, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, rect.width(), rect.height());
+		//SDL_UpdateTexture(snapshot, 0, surface->pixels, surface->pitch);
+		//SDL_SetTextureBlendMode(snapshot, SDL_BLENDMODE_BLEND);
 	}
 
 	SDL_RenderClear(painter);

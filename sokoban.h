@@ -52,7 +52,7 @@ public:
 	Chthon::Point getPlayerPos() const;
 
 	bool undo();
-	bool isSolved();
+	bool isSolved() const;
 	bool movePlayer(int control, bool cautious = false);
 	bool movePlayer(const Chthon::Point & target);
 	bool runPlayer(int control);

@@ -76,8 +76,8 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 
 }
 
-SokobanWidget::SokobanWidget(QObject * parent)
-	: QObject(parent), gameMode(0), quit(false)
+SokobanWidget::SokobanWidget()
+	: quit(false)
 {
 	QStringList args = QCoreApplication::arguments();
 	args.removeAt(0);
@@ -114,11 +114,10 @@ SokobanWidget::~SokobanWidget()
 	settings.setValue("levels/levelset", levelSet.getCurrentLevelSet());
 }
 
-void SokobanWidget::keyPressEvent(SDL_KeyboardEvent * event)
+int SokobanWidget::keyToControl(SDL_KeyboardEvent * event)
 {
 	bool isShiftDown = event->keysym.mod & (KMOD_RSHIFT | KMOD_LSHIFT);
 	bool isCtrlDown = event->keysym.mod & (KMOD_RCTRL | KMOD_LCTRL);
-	PlayingMode * playingMode = dynamic_cast<PlayingMode*>(gameMode);
 
 	QString pressedCombination = keyToText[event->keysym.sym];
 	if(isShiftDown) {
@@ -128,20 +127,10 @@ void SokobanWidget::keyPressEvent(SDL_KeyboardEvent * event)
 		pressedCombination.prepend("Ctrl-");
 	}
 
-	int control = textToControl.value(pressedCombination);
-	gameMode->processControl(control);
-
-	switch(control) {
-		case AbstractGameMode::CONTROL_CHEAT_SKIP_LEVEL:
-			if(playingMode) {
-				loadNextLevel();
-			}
-			break;
-		case AbstractGameMode::CONTROL_QUIT: quit = true; break;
-	}
-	update();
+	return textToControl.value(pressedCombination);
 }
 
+/*
 void SokobanWidget::loadNextLevel()
 {
 	if(levelSet.isOver())
@@ -194,10 +183,8 @@ void SokobanWidget::update()
 {
 	SDL_RenderClear(renderer);
 
-	gameMode->paint(renderer, rect);
-
-	SDL_RenderPresent(renderer);
 }
+*/
 
 int SokobanWidget::exec()
 {
@@ -217,20 +204,32 @@ int SokobanWidget::exec()
 
 	sprites.init(renderer);
 
-	startGame();
+	QSettings settings;
+	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+	Game game = Game(levelSet.getCurrentSokoban(), sprites);
 
 	SDL_Event event;
 	while(!quit) {
 		while(SDL_PollEvent(&event)) {
-			update();
+			game.paint(renderer, rect);
 
-			switch(event.type) {
-				case SDL_KEYDOWN:
-					keyPressEvent(&event.key);
-					break;
-				case SDL_QUIT:
-					quit = true;
-					break;
+			SDL_RenderPresent(renderer);
+
+			if(event.type == SDL_KEYDOWN) {
+				int control = keyToControl(&event.key);
+				game.processControl(control);
+			} else if(event.type == SDL_QUIT) {
+				quit = true;
+			}
+			if(game.is_done()) {
+				if(levelSet.isOver()) {
+					quit = true; // TODO show message (levels is over).
+				}
+				// TODO show interlevel message.
+				levelSet.moveToNextLevel();
+				QSettings settings;
+				settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+				Game game = Game(levelSet.getCurrentSokoban(), sprites);
 			}
 		}
 	}

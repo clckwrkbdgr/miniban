@@ -1,25 +1,29 @@
 #pragma once
 #include <QtCore/QMap>
 #include <QtCore/QSize>
-#include "abstractgamemode.h"
 #include "sokoban.h"
 #include "sprites.h"
 
-class PlayingMode : public AbstractGameMode {
-	Q_OBJECT
+class Game {
 public:
-	PlayingMode(const Sokoban & prepared_sokoban, const Sprites & sprites, QObject * parent = 0);
-	virtual ~PlayingMode() {}
+	enum {
+		CONTROL_NONE, CONTROL_SKIP,
+		CONTROL_LEFT, CONTROL_RIGHT, CONTROL_UP, CONTROL_DOWN,
+		CONTROL_UP_LEFT, CONTROL_UP_RIGHT, CONTROL_DOWN_LEFT, CONTROL_DOWN_RIGHT,
+		CONTROL_RUN_LEFT, CONTROL_RUN_RIGHT, CONTROL_RUN_UP, CONTROL_RUN_DOWN,
+		CONTROL_TARGET, CONTROL_GOTO,
+		CONTROL_UNDO, CONTROL_HOME, CONTROL_QUIT,
+		CONTROL_CHEAT_RESTART, CONTROL_CHEAT_SKIP_LEVEL
+	} Control;
 
-	const Sokoban & getCurrentSokoban() const { return sokoban; }
-	
-	virtual void invalidateRect();
+	Game(const Sokoban & prepared_sokoban, const Sprites & sprites);
+	virtual ~Game() {}
+
 	virtual void paint(SDL_Renderer * painter, const QRect & rect);
 	virtual void processControl(int control);
-signals:
-	void levelIsSolved();
+	virtual bool is_done() const;
 private:
-	Sprites original_sprites;
+	const Sprites & original_sprites;
 	QSize spriteSize;
 	bool toInvalidate;
 	Sokoban sokoban;

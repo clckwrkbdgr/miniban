@@ -7,13 +7,13 @@
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
 
-PlayingMode::PlayingMode(const Sokoban & prepared_sokoban, const Sprites & _sprites, QObject * parent)
-	: AbstractGameMode(parent), original_sprites(_sprites), toInvalidate(true),
+Game::Game(const Sokoban & prepared_sokoban, const Sprites & _sprites)
+	: original_sprites(_sprites), toInvalidate(true),
 	sokoban(prepared_sokoban), target_mode(false)
 {
 }
 
-void PlayingMode::resizeSpritesForLevel(const QRect & rect)
+void Game::resizeSpritesForLevel(const QRect & rect)
 {
 	QSize originalSize = original_sprites.getSpritesBounds();
 	int scaleFactor = qMin(
@@ -25,7 +25,7 @@ void PlayingMode::resizeSpritesForLevel(const QRect & rect)
 	spriteSize = originalSize * scaleFactor;
 }
 
-void PlayingMode::processControl(int control)
+void Game::processControl(int control)
 {
 	if(target_mode) {
 		QPoint new_target = target;
@@ -75,22 +75,32 @@ void PlayingMode::processControl(int control)
 				sokoban.undo();
 			} catch(const Sokoban::InvalidUndoException & e) {
 				QTextStream err(stderr);
-				err << tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(QString::fromStdString(sokoban.historyAsString())) << endl;
+				err << QObject::tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(QString::fromStdString(sokoban.historyAsString())) << endl;
 			}
 			break;
 		default: return;
 	}
+	/*
 	if(sokoban.isSolved()) {
 		emit levelIsSolved();
 	}
+	*/
 }
 
+/*
 void PlayingMode::invalidateRect()
 {
 	toInvalidate = true;
 }
+*/
 
-void PlayingMode::paint(SDL_Renderer * painter, const QRect & rect)
+bool Game::is_done() const
+{
+	return sokoban.isSolved();
+}
+
+//void PlayingMode::paint(SDL_Renderer * painter, const QRect & rect)
+void Game::paint(SDL_Renderer * painter, const QRect & rect)
 {
 	if(toInvalidate) {
 		resizeSpritesForLevel(rect);
