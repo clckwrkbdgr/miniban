@@ -242,8 +242,13 @@ void Message::paint(SDL_Renderer * painter, const QRect & /*rect*/)
 		char_rect.w = char_qrect.width();
 		char_rect.h = char_qrect.height();
 
-		SDL_RenderCopy(painter, sprites.getFont(), &char_rect, &dest_rect);
-		dest_rect.x += dest_rect.w;
+		if(ch == '\n') {
+			dest_rect.x = 0;
+			dest_rect.y += dest_rect.h;
+		} else {
+			SDL_RenderCopy(painter, sprites.getFont(), &char_rect, &dest_rect);
+			dest_rect.x += dest_rect.w;
+		}
 	}
 }
 
