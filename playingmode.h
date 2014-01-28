@@ -34,6 +34,7 @@ private:
 	QPoint target;
 
 	Counter fader_in;
+	Counter fader_out;
 
 	void resizeSpritesForLevel(const QRect & rect);
 };

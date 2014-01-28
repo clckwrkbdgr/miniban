@@ -10,13 +10,14 @@ const int MAX_SCALE_FACTOR = 8;
 Game::Game(const Sokoban & prepared_sokoban, const Sprites & _sprites)
 	: original_sprites(_sprites), toInvalidate(true),
 	sokoban(prepared_sokoban), target_mode(false),
-	fader_in(1000)
+	fader_in(640), fader_out(640)
 {
 	fader_in.start();
 }
 
 void Game::load(const Sokoban & prepared_sokoban)
 {
+	fader_in.start();
 	sokoban = prepared_sokoban;
 	target_mode = false;
 	toInvalidate = true;
@@ -36,6 +37,9 @@ void Game::resizeSpritesForLevel(const QRect & rect)
 
 void Game::processControl(int control)
 {
+	if(sokoban.isSolved()) {
+		return;
+	}
 	if(target_mode) {
 		QPoint new_target = target;
 		switch(control) {
@@ -89,11 +93,9 @@ void Game::processControl(int control)
 			break;
 		default: return;
 	}
-	/*
 	if(sokoban.isSolved()) {
-		emit levelIsSolved();
+		fader_out.start();
 	}
-	*/
 }
 
 /*
@@ -105,7 +107,7 @@ void PlayingMode::invalidateRect()
 
 bool Game::is_done() const
 {
-	return sokoban.isSolved();
+	return sokoban.isSolved() && !fader_out.is_active();
 }
 
 //void PlayingMode::paint(SDL_Renderer * painter, const QRect & rect)
@@ -196,14 +198,18 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 		SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 	}
 
-	if(fader_in.is_active()) {
+	if(fader_in.is_active() || fader_out.is_active()) {
 		SDL_Rect screen_rect;
 		screen_rect.x = rect.x();
 		screen_rect.y = rect.y();
 		screen_rect.w = rect.width();
 		screen_rect.h = rect.height();
 
-		SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 - fader_in.multiplied_value(255));
+		if(fader_in.is_active()) {
+			SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 - fader_in.multiplied_value(255));
+		} else {
+			SDL_SetRenderDrawColor(painter, 0, 0, 0, fader_out.multiplied_value(255));
+		}
 		SDL_RenderFillRect(painter, &screen_rect);
 	}
 }
@@ -211,5 +217,6 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 void Game::processTime(int msec_passed)
 {
 	fader_in.tick(msec_passed);
+	fader_out.tick(msec_passed);
 }
 
