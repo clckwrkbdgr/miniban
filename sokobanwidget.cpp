@@ -311,16 +311,18 @@ int SokobanWidget::exec()
 			if(show_message) {
 				if(message.is_done() && !levelSet.isOver()) {
 					if(!levelSet.isOver()) {
-						QSettings settings;
-						settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-						game.load(levelSet.getCurrentSokoban());
-						levelSet.moveToNextLevel();
 						show_message = false;
 					}
 				}
 			} else {
 				if(game.is_done()) {
-					show_message = true;
+					QSettings settings;
+					settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+					levelSet.moveToNextLevel();
+					if(!levelSet.isOver()) {
+						game.load(levelSet.getCurrentSokoban());
+					}
+
 					message.set_text(
 							levelSet.isOver()
 							? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
@@ -333,6 +335,7 @@ int SokobanWidget::exec()
 								"DUMMY"
 								)
 							);
+					show_message = true;
 				}
 			}
 		}
