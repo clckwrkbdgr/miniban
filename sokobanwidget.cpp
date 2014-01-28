@@ -261,6 +261,7 @@ int SokobanWidget::exec()
 			0, 0,
 			SDL_WINDOW_FULLSCREEN_DESKTOP
 			);
+	SDL_ShowCursor(0);
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
 	rect = QRect(0, 0, w, h);
