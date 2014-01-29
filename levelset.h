@@ -2,7 +2,6 @@
 #include "sokoban.h"
 #include <QtCore/QPair>
 #include <QtCore/QString>
-class QDomDocument;
 
 class LevelSet {
 public:
