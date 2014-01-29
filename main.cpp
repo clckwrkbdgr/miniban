@@ -6,8 +6,8 @@ int main(int argc, char ** argv)
 	QCoreApplication app(argc, argv);
 	app.setOrganizationName("kp580bm1");
 	app.setApplicationName("miniban");
-	qsrand(time(NULL));
+	srand(time(NULL));
 
-	SokobanWidget wnd;
+	SokobanWidget wnd(argc, argv);
 	return wnd.exec();
 }

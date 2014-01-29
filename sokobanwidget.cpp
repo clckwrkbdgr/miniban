@@ -80,30 +80,30 @@ const QMap<QString, int> textToControl = generateTextToControlMap();
 
 }
 
-SokobanWidget::SokobanWidget()
+SokobanWidget::SokobanWidget(int argc, char ** argv)
 	: quit(false)
 {
-	QStringList args = QCoreApplication::arguments();
-	args.removeAt(0);
-	QString commandLineFilename = args.isEmpty() ? QString() : QFileInfo(args[0]).absoluteFilePath();
+	char absolute_file_path[256] = {0};
+	realpath(argv[1], absolute_file_path);
+	std::string commandLineFilename = (argc <= 1 && absolute_file_path) ? "" : absolute_file_path;
 
 	QSettings settings;
 	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
 	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
 	if(lastLevelSet.isEmpty()) {
-		if(commandLineFilename.isEmpty()) {
+		if(commandLineFilename.empty()) {
 			levelSet = LevelSet();
 		} else {
-			levelSet.loadFromFile(commandLineFilename.toStdString(), 0);
+			levelSet.loadFromFile(commandLineFilename, 0);
 		}
 	} else {
-		if(commandLineFilename.isEmpty()) {
+		if(commandLineFilename.empty()) {
 			levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
 		} else {
-			if(commandLineFilename == lastLevelSet) {
+			if(QString::fromStdString(commandLineFilename) == lastLevelSet) {
 				levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
 			} else {
-				levelSet.loadFromFile(commandLineFilename.toStdString(), 0);
+				levelSet.loadFromFile(commandLineFilename, 0);
 			}
 		}
 	}

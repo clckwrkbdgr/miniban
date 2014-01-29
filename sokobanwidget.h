@@ -7,7 +7,7 @@ class AbstractGameMode;
 
 class SokobanWidget {
 public:
-	SokobanWidget();
+	SokobanWidget(int argc, char ** argv);
 	virtual ~SokobanWidget();
 	int exec();
 protected:
