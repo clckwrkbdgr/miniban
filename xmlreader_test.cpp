@@ -23,6 +23,32 @@ TEST(should_find_next_tag)
 	EQUAL(next_tag, "world");
 }
 
+TEST(should_return_empty_tag_when_no_tag)
+{
+	std::istringstream stream("<Hello>");
+	XMLReader reader(stream);
+	std::string first_tag = reader.to_next_tag();
+	EQUAL(first_tag, "Hello");
+	std::string next_tag = reader.to_next_tag();
+	ASSERT(next_tag.empty());
+}
+
+TEST(should_skip_until_tag_is_found)
+{
+	std::istringstream stream("<Hello>content<world>");
+	XMLReader reader(stream);
+	std::string tag = reader.skip_to_tag("world");
+	EQUAL(tag, "world");
+}
+
+TEST(should_skip_to_the_end_if_tag_is_not_found)
+{
+	std::istringstream stream("<Hello>content<world>");
+	XMLReader reader(stream);
+	std::string tag = reader.skip_to_tag("sometag");
+	ASSERT(tag.empty());
+}
+
 TEST(should_store_intertag_content)
 {
 	std::istringstream stream("<Hello>content<world>");

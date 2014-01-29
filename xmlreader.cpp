@@ -13,6 +13,15 @@ XMLReader::XMLReader(std::istream & stream)
 	s.unsetf(std::ios::skipws);
 }
 
+const std::string & XMLReader::skip_to_tag(const std::string & tag_name)
+{
+	to_next_tag();
+	while(!current_tag.empty() && current_tag != tag_name) {
+		to_next_tag();
+	}
+	return current_tag;
+}
+
 const std::string & XMLReader::to_next_tag()
 {
 	current_tag.clear();
@@ -21,7 +30,7 @@ const std::string & XMLReader::to_next_tag()
 
 	char ch;
 	s >> ch;
-	while(ch != '<') {
+	while(s && ch != '<') {
 		current_content += ch;
 		s >> ch;
 	}
@@ -30,7 +39,7 @@ const std::string & XMLReader::to_next_tag()
 	std::string attribute;
 	int mode = TAG_NAME;
 	s >> ch;
-	while(ch != '>') {
+	while(s && ch != '>') {
 		switch(mode) {
 			case TAG_NAME:
 				if(isspace(ch)) {
