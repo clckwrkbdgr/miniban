@@ -1,8 +1,3 @@
-#include <QtDebug>
-#include <QtCore/QSettings>
-#include <QtCore/QFileInfo>
-#include <QtCore/QStringList>
-#include <QtCore/QCoreApplication>
 #include "playingmode.h"
 #include "sokobanwidget.h"
 #include "message.h"
@@ -15,9 +10,9 @@ using namespace Chthon;
 
 namespace {
 
-QMap<int, QString> generateKeyToTextMap()
+std::map<int, std::string> generateKeyToTextMap()
 {
-	QMap<int, QString> result;
+	std::map<int, std::string> result;
 	result[SDLK_0]         = "0";
 	result[SDLK_1]         = "1";
 	result[SDLK_BACKSPACE] = "Backspace";
@@ -45,9 +40,9 @@ QMap<int, QString> generateKeyToTextMap()
 	return result;
 }
 
-QMap<QString, int> generateTextToControlMap()
+std::map<std::string, int> generateTextToControlMap()
 {
-	QMap<QString, int> result;
+	std::map<std::string, int> result;
 	result["Left"]  = result["H"] = Game::CONTROL_LEFT;
 	result["Down"]  = result["J"] = Game::CONTROL_DOWN;
 	result["Up"]    = result["K"] = Game::CONTROL_UP;
@@ -75,22 +70,21 @@ QMap<QString, int> generateTextToControlMap()
 	return result;
 }
 
-const QMap<int, QString> keyToText = generateKeyToTextMap();
-const QMap<QString, int> textToControl = generateTextToControlMap();
+std::map<int, std::string> keyToText = generateKeyToTextMap();
+std::map<std::string, int> textToControl = generateTextToControlMap();
 
 }
+
 
 SokobanWidget::SokobanWidget(int argc, char ** argv)
 	: quit(false)
 {
 	char absolute_file_path[256] = {0};
-	realpath(argv[1], absolute_file_path);
-	std::string commandLineFilename = (argc <= 1 && absolute_file_path) ? "" : absolute_file_path;
+	const char * ok = realpath(argv[1], absolute_file_path);
+	std::string commandLineFilename = (argc <= 1 && ok) ? "" : absolute_file_path;
 
-	QSettings settings;
-	int lastLevelIndex = settings.value("levels/lastindex", 0).toInt();
-	QString lastLevelSet = settings.value("levels/levelset", QString()).toString();
-	if(lastLevelSet.isEmpty()) {
+	settings.load();
+	if(settings.levelset.empty()) {
 		if(commandLineFilename.empty()) {
 			levelSet = LevelSet();
 		} else {
@@ -98,10 +92,10 @@ SokobanWidget::SokobanWidget(int argc, char ** argv)
 		}
 	} else {
 		if(commandLineFilename.empty()) {
-			levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
+			levelSet.loadFromFile(settings.levelset, settings.level_index);
 		} else {
-			if(QString::fromStdString(commandLineFilename) == lastLevelSet) {
-				levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
+			if(commandLineFilename == settings.levelset) {
+				levelSet.loadFromFile(settings.levelset, settings.level_index);
 			} else {
 				levelSet.loadFromFile(commandLineFilename, 0);
 			}
@@ -111,9 +105,9 @@ SokobanWidget::SokobanWidget(int argc, char ** argv)
 
 SokobanWidget::~SokobanWidget()
 {
-	QSettings settings;
-	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-	settings.setValue("levels/levelset", QString::fromStdString(levelSet.getCurrentLevelSet()));
+	settings.level_index = levelSet.getCurrentLevelIndex();
+	settings.levelset = levelSet.getCurrentLevelSet();
+	settings.save();
 }
 
 int SokobanWidget::keyToControl(SDL_KeyboardEvent * event)
@@ -121,15 +115,15 @@ int SokobanWidget::keyToControl(SDL_KeyboardEvent * event)
 	bool isShiftDown = event->keysym.mod & (KMOD_RSHIFT | KMOD_LSHIFT);
 	bool isCtrlDown = event->keysym.mod & (KMOD_RCTRL | KMOD_LCTRL);
 
-	QString pressedCombination = keyToText[event->keysym.sym];
+	std::string pressedCombination = keyToText[event->keysym.sym];
 	if(isShiftDown) {
-		pressedCombination.prepend("Shift-");
+		pressedCombination = "Shift-" + pressedCombination;
 	}
 	if(isCtrlDown) {
-		pressedCombination.prepend("Ctrl-");
+		pressedCombination = "Ctrl-" + pressedCombination;
 	}
 
-	return textToControl.value(pressedCombination);
+	return textToControl[pressedCombination];
 }
 
 int SokobanWidget::exec()
@@ -152,8 +146,9 @@ int SokobanWidget::exec()
 
 	sprites.init(renderer);
 
-	QSettings settings;
-	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+	settings.level_index = levelSet.getCurrentLevelIndex();
+	settings.levelset = levelSet.getCurrentLevelSet();
+	settings.save();
 
 	Game game = Game(levelSet.getCurrentSokoban(), sprites);
 	Message message = Message(sprites,
@@ -216,8 +211,10 @@ int SokobanWidget::exec()
 			}
 		} else {
 			if(game.is_done()) {
-				QSettings settings;
-				settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
+				settings.level_index = levelSet.getCurrentLevelIndex();
+				settings.levelset = levelSet.getCurrentLevelSet();
+				settings.save();
+
 				levelSet.moveToNextLevel();
 				if(!levelSet.isOver()) {
 					game.load(levelSet.getCurrentSokoban());

@@ -14,7 +14,7 @@ SOKOBAN_TEST {
 } else {
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget
-	modules += sprites levelset counter xmlreader
+	modules += sprites levelset counter xmlreader settings
 	modules += playingmode message
 }
 
