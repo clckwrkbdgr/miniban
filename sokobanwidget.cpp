@@ -94,16 +94,16 @@ SokobanWidget::SokobanWidget()
 		if(commandLineFilename.isEmpty()) {
 			levelSet = LevelSet();
 		} else {
-			levelSet.loadFromFile(commandLineFilename, 0);
+			levelSet.loadFromFile(commandLineFilename.toStdString(), 0);
 		}
 	} else {
 		if(commandLineFilename.isEmpty()) {
-			levelSet.loadFromFile(lastLevelSet, lastLevelIndex);
+			levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
 		} else {
 			if(commandLineFilename == lastLevelSet) {
-				levelSet.loadFromFile(lastLevelSet, lastLevelIndex);
+				levelSet.loadFromFile(lastLevelSet.toStdString(), lastLevelIndex);
 			} else {
-				levelSet.loadFromFile(commandLineFilename, 0);
+				levelSet.loadFromFile(commandLineFilename.toStdString(), 0);
 			}
 		}
 	}
@@ -113,7 +113,7 @@ SokobanWidget::~SokobanWidget()
 {
 	QSettings settings;
 	settings.setValue("levels/lastindex", levelSet.getCurrentLevelIndex());
-	settings.setValue("levels/levelset", levelSet.getCurrentLevelSet());
+	settings.setValue("levels/levelset", QString::fromStdString(levelSet.getCurrentLevelSet()));
 }
 
 int SokobanWidget::keyToControl(SDL_KeyboardEvent * event)
@@ -158,13 +158,13 @@ int SokobanWidget::exec()
 	Game game = Game(levelSet.getCurrentSokoban(), sprites);
 	Message message = Message(sprites,
 			levelSet.isOver()
-			? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
+			? format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
 			: format(
 				"{0}: {3}\n{1}/{2}",
-				levelSet.getLevelSetTitle().toStdString(),
+				levelSet.getLevelSetTitle(),
 				levelSet.getCurrentLevelIndex() + 1,
 				levelSet.getLevelCount(),
-				levelSet.getCurrentLevelName().toStdString(),
+				levelSet.getCurrentLevelName(),
 				"DUMMY"
 				)
 			);
@@ -225,13 +225,13 @@ int SokobanWidget::exec()
 
 				message.set_text(
 						levelSet.isOver()
-						? format("{0}\nLevels are over.", levelSet.getLevelSetTitle().toStdString())
+						? format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
 						: format(
 							"{0}: {3}\n{1}/{2}",
-							levelSet.getLevelSetTitle().toStdString(),
+							levelSet.getLevelSetTitle(),
 							levelSet.getCurrentLevelIndex() + 1,
 							levelSet.getLevelCount(),
-							levelSet.getCurrentLevelName().toStdString(),
+							levelSet.getCurrentLevelName(),
 							"DUMMY"
 							)
 						);
