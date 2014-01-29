@@ -4,12 +4,14 @@
 XMLReader::XMLReader(std::istream & stream)
 	: s(stream)
 {
+	s.unsetf(std::ios::skipws);
 }
 
 const std::string & XMLReader::to_next_tag()
 {
 	current_tag.clear();
 	current_content.clear();
+	attributes.clear();
 
 	char ch;
 	s >> ch;
