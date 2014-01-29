@@ -7,8 +7,8 @@
 using namespace Chthon;
 
 namespace Sprite {
-#include "sokoban.xpm"
-#include "font.xpm"
+#include "../res/sokoban.xpm"
+#include "../res/font.xpm"
 SDL_Texture * load(SDL_Renderer * renderer, const char ** xpm, int size);
 }
 

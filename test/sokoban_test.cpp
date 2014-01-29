@@ -1,8 +1,10 @@
-#include "sokoban.h"
+#include "../src/sokoban.h"
 #include <chthon/test.h>
 #include <chthon/format.h>
 using namespace Chthon::UnitTest;
 using namespace Chthon;
+
+SUITE(sokoban) {
 
 TEST(levelsAreStrings)
 {
@@ -464,6 +466,8 @@ TEST(unreachableCellsAreMarkedAsSpace)
 		}
 	}
 	EQUAL(spaceCount, 8);
+}
+
 }
 
 int main(int argc, char ** argv)

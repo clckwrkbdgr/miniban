@@ -13,6 +13,6 @@
 
 # Vim
 *.swp
-Makefile
 tmp/
 miniban
+miniban_test

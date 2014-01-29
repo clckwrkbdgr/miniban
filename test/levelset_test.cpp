@@ -1,4 +1,4 @@
-#include "levelset.h"
+#include "../src/levelset.h"
 #include <chthon/test.h>
 using namespace Chthon::UnitTest;
 

@@ -1,4 +1,4 @@
-#include "xmlreader.h"
+#include "../src/xmlreader.h"
 #include <chthon/test.h>
 #include <sstream>
 using namespace Chthon::UnitTest;

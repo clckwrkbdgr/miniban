@@ -1,4 +1,4 @@
-#include "sokobanwidget.h"
+#include "src/sokobanwidget.h"
 
 int main(int argc, char ** argv)
 {
