@@ -94,16 +94,16 @@ SokobanWidget::SokobanWidget()
 		if(commandLineFilename.isEmpty()) {
 			levelSet = LevelSet();
 		} else {
-			levelSet = LevelSet(commandLineFilename, 0);
+			levelSet.loadFromFile(commandLineFilename, 0);
 		}
 	} else {
 		if(commandLineFilename.isEmpty()) {
-			levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+			levelSet.loadFromFile(lastLevelSet, lastLevelIndex);
 		} else {
 			if(commandLineFilename == lastLevelSet) {
-				levelSet = LevelSet(lastLevelSet, lastLevelIndex);
+				levelSet.loadFromFile(lastLevelSet, lastLevelIndex);
 			} else {
-				levelSet = LevelSet(commandLineFilename, 0);
+				levelSet.loadFromFile(commandLineFilename, 0);
 			}
 		}
 	}

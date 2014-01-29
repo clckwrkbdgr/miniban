@@ -10,8 +10,8 @@ LIBS += -lchthon -lSDL2
 QMAKE_CXXFLAGS += -std=c++0x
 
 SOKOBAN_TEST {
-	modules = sokoban
-	SOURCES += sokoban_test.cpp
+	modules = sokoban levelset
+	SOURCES += sokoban_test.cpp levelset_test.cpp
 } else {
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget

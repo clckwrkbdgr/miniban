@@ -4,19 +4,27 @@
 #include <QtXml/QDomElement>
 #include "levelset.h"
 
-bool LevelSet::loadFromFile(const QString & fileName)
+bool LevelSet::loadFromFile(const QString & fileName, int startLevelIndex)
 {
 	if(fileName.isEmpty()) {
 		return false;
 	}
-	QDomDocument doc;
 	QFile file(fileName);
 	if(!file.open(QFile::ReadOnly))
 		return false;
-	if(!doc.setContent(&file))
-		return false;
+	QTextStream in(&file);
+	this->fileName = fileName;
+	bool ok = loadFromString(in.readAll(), startLevelIndex);
 	file.close();
+	return ok;
+}
 
+bool LevelSet::loadFromString(const QString & content, int startLevelIndex)
+{
+	QDomDocument doc;
+	if(!doc.setContent(content)) {
+		return false;
+	}
 	QDomElement root = doc.documentElement();
 	QDomElement title = root.firstChildElement("Title");
 	QDomElement levelCollection = root.firstChildElement("LevelCollection");
@@ -35,18 +43,16 @@ bool LevelSet::loadFromFile(const QString & fileName)
 		level = level.nextSiblingElement();
 	}
 	levelSetTitle = title.text();
-	this->fileName = fileName;
-	return true;
-}
 
-LevelSet::LevelSet(const QString & levelSetFileName, int startLevelIndex)
-	: over(true), currentLevelIndex(-1), currentSetPos(0)
-{
-	if(!loadFromFile(levelSetFileName))
-		return;
 	over = false;
 	rewindToLevel(startLevelIndex);
 	moveToNextLevel();
+	return true;
+}
+
+LevelSet::LevelSet()
+	: over(true), currentLevelIndex(-1)
+{
 }
 
 void LevelSet::rewindToLevel(int levelIndex)

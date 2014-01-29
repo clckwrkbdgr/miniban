@@ -2,11 +2,15 @@
 #include "sokoban.h"
 #include <QtCore/QPair>
 #include <QtCore/QString>
+class QDomDocument;
 
 class LevelSet {
 public:
-	LevelSet(const QString & levelSetFileName = QString(), int startLevelIndex = 0);
+	LevelSet();
 	virtual ~LevelSet() {}
+
+	bool loadFromFile(const QString & fileName, int startLevelIndex);
+	bool loadFromString(const QString & content, int startLevelIndex);
 
 	bool moveToNextLevel();
 	void rewindToLevel(int levelIndex);
@@ -23,12 +27,9 @@ private:
 	int currentLevelIndex;
 	QString currentLevel;
 	Sokoban currentSokoban;
-	int currentSetPos;
 	QString levelSetTitle;
 
 	QString fileName;
 	QList<QPair<QString, QString> > xmlLevels;
-
-	bool loadFromFile(const QString & fileName);
 };
 
