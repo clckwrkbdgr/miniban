@@ -1,5 +1,5 @@
 TARGET = miniban
-QT = core
+QT = 
 
 OBJECTS_DIR = tmp
 MOC_DIR = tmp

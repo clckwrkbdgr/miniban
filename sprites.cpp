@@ -1,12 +1,10 @@
-#include <QtDebug>
 #include "sprites.h"
 #include "sokoban.h"
-#include <QtCore/QMap>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
 #include <chthon/pixmap.h>
 #include <chthon/util.h>
 #include <SDL2/SDL.h>
+#include <iostream>
+using namespace Chthon;
 
 namespace Sprite {
 #include "sokoban.xpm"
@@ -45,8 +43,7 @@ SDL_Texture * Sprite::load(SDL_Renderer * renderer, const char ** xpm, int size)
 		SDL_UpdateTexture(result, 0, surface->pixels, surface->pitch);
 		SDL_SetTextureBlendMode(result, SDL_BLENDMODE_BLEND);
 	} catch(const Chthon::Pixmap::Exception & e) {
-		QTextStream err(stderr);
-		err << QString::fromStdString(e.what) << endl;
+		std::cerr << e.what << std::endl;
 	}
 	return result;
 }
@@ -56,40 +53,47 @@ void Sprites::init(SDL_Renderer * renderer)
 	tileset = Sprite::load(renderer, Sprite::sokoban, Chthon::size_of_array(Sprite::sokoban));
 	font = Sprite::load(renderer, Sprite::font, Chthon::size_of_array(Sprite::font));
 	
-	cachedSprites[Sprites::FLOOR]           << QPoint(0, 0) << QPoint(1, 0) << QPoint(2, 0) << QPoint(3, 0);
-	cachedSprites[Sprites::WALL]            << QPoint(0, 1) << QPoint(1, 1) << QPoint(2, 1) << QPoint(3, 1);
-	cachedSprites[Sprites::EMPTY_SLOT]      << QPoint(0, 2) << QPoint(1, 2) << QPoint(2, 2) << QPoint(3, 2);
-	cachedSprites[Sprites::SPACE]           << QPoint(0, 3) << QPoint(1, 3) << QPoint(2, 3) << QPoint(3, 3);
-	cachedSprites[Sprites::PLAYER_ON_FLOOR] << QPoint(0, 4) << QPoint(1, 4) << QPoint(2, 4) << QPoint(3, 4);
-	cachedSprites[Sprites::PLAYER_ON_SLOT]  << QPoint(0, 5) << QPoint(1, 5) << QPoint(2, 5) << QPoint(3, 5);
-	cachedSprites[Sprites::BOX_ON_FLOOR]    << QPoint(0, 6) << QPoint(1, 6) << QPoint(2, 6) << QPoint(3, 6);
-	cachedSprites[Sprites::BOX_ON_SLOT]     << QPoint(0, 7) << QPoint(1, 7) << QPoint(2, 7) << QPoint(3, 7);
-	cachedSprites[Sprites::CURSOR]          << QPoint(0, 8);
+	cachedSprites[Sprites::FLOOR]           << Chthon::Point(0, 0) << Chthon::Point(1, 0) << Chthon::Point(2, 0) << Chthon::Point(3, 0);
+	cachedSprites[Sprites::WALL]            << Chthon::Point(0, 1) << Chthon::Point(1, 1) << Chthon::Point(2, 1) << Chthon::Point(3, 1);
+	cachedSprites[Sprites::EMPTY_SLOT]      << Chthon::Point(0, 2) << Chthon::Point(1, 2) << Chthon::Point(2, 2) << Chthon::Point(3, 2);
+	cachedSprites[Sprites::SPACE]           << Chthon::Point(0, 3) << Chthon::Point(1, 3) << Chthon::Point(2, 3) << Chthon::Point(3, 3);
+	cachedSprites[Sprites::PLAYER_ON_FLOOR] << Chthon::Point(0, 4) << Chthon::Point(1, 4) << Chthon::Point(2, 4) << Chthon::Point(3, 4);
+	cachedSprites[Sprites::PLAYER_ON_SLOT]  << Chthon::Point(0, 5) << Chthon::Point(1, 5) << Chthon::Point(2, 5) << Chthon::Point(3, 5);
+	cachedSprites[Sprites::BOX_ON_FLOOR]    << Chthon::Point(0, 6) << Chthon::Point(1, 6) << Chthon::Point(2, 6) << Chthon::Point(3, 6);
+	cachedSprites[Sprites::BOX_ON_SLOT]     << Chthon::Point(0, 7) << Chthon::Point(1, 7) << Chthon::Point(2, 7) << Chthon::Point(3, 7);
+	cachedSprites[Sprites::CURSOR]          << Chthon::Point(0, 8);
 	int max_x = 0, max_y = 0;
-	for(int key : cachedSprites.keys()) {
-		for(const QPoint & point : cachedSprites[key]) {
-			max_x = qMax(point.x(), max_x);
-			max_y = qMax(point.y(), max_y);
+	for(auto & key_value : cachedSprites) {
+		for(const Point & point : key_value.second) {
+			max_x = std::max(point.x, max_x);
+			max_y = std::max(point.y, max_y);
 		}
 	}
 	int w, h;
 	SDL_QueryTexture(tileset, 0, 0, &w, &h);
-	sprite_size = QSize(w / (max_x + 1), h / (max_y + 1));
+	sprite_width = w / (max_x + 1);
+	sprite_height = h / (max_y + 1);
 }
 
-QSize Sprites::getSpritesBounds() const
+SDL_Rect Sprites::getSpritesBounds() const
 {
+	SDL_Rect result = {0, 0, 0, 0};
 	if(tileset == 0) {
-		return QSize();
+		return result;
 	}
-	return sprite_size;
+	result.w = sprite_width;
+	result.h = sprite_height;
+	return result;;
 }
 
-QRect Sprites::getCharRect(char ch) const
+SDL_Rect Sprites::getCharRect(char ch) const
 {
-	int x = ch % 16;
-	int y = ch / 16;
-	return QRect(x * 20, y * 20, 20, 20);
+	SDL_Rect result;
+	result.x = ch % 16 * 20;
+	result.y = ch / 16 * 20;
+	result.w = 20;
+	result.h = 20;
+	return result;
 }
 
 SDL_Texture * Sprites::getFont() const
@@ -97,13 +101,18 @@ SDL_Texture * Sprites::getFont() const
 	return font;
 }
 
-QRect Sprites::getSpriteRect(int tileType, int spriteIndex) const
+SDL_Rect Sprites::getSpriteRect(int tileType, int spriteIndex) const
 {
-	if(cachedSprites.contains(tileType)) {
-		QPoint tile_pos = cachedSprites[tileType].value(spriteIndex);
-		return QRect(QPoint(tile_pos.x() * sprite_size.width(), tile_pos.y() * sprite_size.height()), sprite_size);
+	SDL_Rect result = {0, 0, 0, 0};
+	if(cachedSprites.count(tileType) > 0) {
+		Point tile_pos = cachedSprites.find(tileType)->second[spriteIndex];
+		result.x = tile_pos.x * sprite_width;
+		result.y = tile_pos.y * sprite_height;
+		result.w = sprite_width;
+		result.h = sprite_height;
+		return result;
 	}
-	return QRect();
+	return result;
 }
 
 SDL_Texture * Sprites::getTileSet() const
@@ -116,5 +125,5 @@ bool Sprites::contains(int tileType) const
 	if(tileset == 0) {
 		return false;
 	}
-	return cachedSprites.contains(tileType);
+	return cachedSprites.count(tileType) > 0;
 }

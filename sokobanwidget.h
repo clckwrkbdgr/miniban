@@ -2,6 +2,7 @@
 #include "levelset.h"
 #include "sprites.h"
 #include "settings.h"
+#include "SDL2/SDL.h"
 class SDL_KeyboardEvent;
 class SDL_Renderer;
 
@@ -19,6 +20,6 @@ private:
 	LevelSet levelSet;
 	Sprites sprites;
 	bool quit;
-	QRect rect;
+	SDL_Rect rect;
 };
 

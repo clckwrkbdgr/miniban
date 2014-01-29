@@ -4,7 +4,7 @@
 #include <vector>
 class Sprites;
 class SDL_Renderer;
-class QRect;
+class SDL_Rect;
 
 class Message {
 public:
@@ -12,7 +12,7 @@ public:
 	void set_text(const std::string & message_text);
 	bool is_done() const;
 	void processControl(int control);
-	void paint(SDL_Renderer * painter, const QRect & rect);
+	void paint(SDL_Renderer * painter, const SDL_Rect & rect);
 	void processTime(int msec_passed);
 private:
 	const Sprites & sprites;

@@ -1,8 +1,9 @@
-#include <QtDebug>
 #include "sokoban.h"
 #include "sprites.h"
 #include "playingmode.h"
+#include <chthon/format.h>
 #include <SDL2/SDL.h>
+#include <iostream>
 
 const int MIN_SCALE_FACTOR = 1;
 const int MAX_SCALE_FACTOR = 8;
@@ -23,16 +24,17 @@ void Game::load(const Sokoban & prepared_sokoban)
 	toInvalidate = true;
 }
 
-void Game::resizeSpritesForLevel(const QRect & rect)
+void Game::resizeSpritesForLevel(const SDL_Rect & rect)
 {
-	QSize originalSize = original_sprites.getSpritesBounds();
-	int scaleFactor = qMin(
-			rect.width() / (sokoban.width() * originalSize.width()),
-			rect.height() / (sokoban.height() * originalSize.height())
+	SDL_Rect originalSize = original_sprites.getSpritesBounds();
+	int scaleFactor = std::min(
+			rect.w / (sokoban.width() * originalSize.w),
+			rect.h / (sokoban.height() * originalSize.h)
 			);
-	scaleFactor = qBound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
+	scaleFactor = std::max(MIN_SCALE_FACTOR, std::min(scaleFactor, MAX_SCALE_FACTOR));
 
-	spriteSize = originalSize * scaleFactor;
+	sprite_width = originalSize.w * scaleFactor;
+	sprite_height = originalSize.h * scaleFactor;
 }
 
 void Game::processControl(int control)
@@ -41,24 +43,24 @@ void Game::processControl(int control)
 		return;
 	}
 	if(target_mode) {
-		QPoint new_target = target;
+		Chthon::Point new_target = target;
 		switch(control) {
-			case CONTROL_LEFT:  new_target.rx()--; break;
-			case CONTROL_DOWN:  new_target.ry()++; break;
-			case CONTROL_UP:    new_target.ry()--; break;
-			case CONTROL_RIGHT: new_target.rx()++; break;
-			case CONTROL_UP_LEFT: new_target += QPoint(-1, -1); break;
-			case CONTROL_UP_RIGHT: new_target += QPoint(1, -1); break;
-			case CONTROL_DOWN_LEFT: new_target += QPoint(-1, 1); break;
-			case CONTROL_DOWN_RIGHT: new_target += QPoint(1, 1); break;
+			case CONTROL_LEFT:  new_target.x--; break;
+			case CONTROL_DOWN:  new_target.y++; break;
+			case CONTROL_UP:    new_target.y--; break;
+			case CONTROL_RIGHT: new_target.x++; break;
+			case CONTROL_UP_LEFT: new_target += Chthon::Point(-1, -1); break;
+			case CONTROL_UP_RIGHT: new_target += Chthon::Point(1, -1); break;
+			case CONTROL_DOWN_LEFT: new_target += Chthon::Point(-1, 1); break;
+			case CONTROL_DOWN_RIGHT: new_target += Chthon::Point(1, 1); break;
 			case CONTROL_GOTO:
-				sokoban.movePlayer(Chthon::Point(target.x(), target.y()));
+				sokoban.movePlayer(Chthon::Point(target.x, target.y));
 				target_mode = false;
 				break;
 			case CONTROL_TARGET:  target_mode = false; break;
 			default: break;
 		}
-		if(sokoban.isValid(Chthon::Point(new_target.x(), new_target.y()))) {
+		if(sokoban.isValid(Chthon::Point(new_target.x, new_target.y))) {
 			target = new_target;
 		}
 		return;
@@ -79,7 +81,7 @@ void Game::processControl(int control)
 		case CONTROL_TARGET: {
 			target_mode = true;
 			Chthon::Point player = sokoban.getPlayerPos();
-			target = QPoint(player.x, player.y);
+			target = Chthon::Point(player.x, player.y);
 			break;
 		}
 		case CONTROL_HOME: sokoban.restart(); break;
@@ -87,8 +89,7 @@ void Game::processControl(int control)
 			try {
 				sokoban.undo();
 			} catch(const Sokoban::InvalidUndoException & e) {
-				QTextStream err(stderr);
-				err << QObject::tr("Invalid undo: %1. History string: '%2'").arg(e.invalidUndoControl).arg(QString::fromStdString(sokoban.historyAsString())) << endl;
+				std::cerr << Chthon::format("Invalid undo: {0}. History string: '{1}'", e.invalidUndoControl, sokoban.historyAsString()) << std::endl;
 			}
 			break;
 		default: return;
@@ -103,7 +104,7 @@ bool Game::is_done() const
 	return sokoban.isSolved() && !fader_out.is_active();
 }
 
-void Game::paint(SDL_Renderer * painter, const QRect & rect)
+void Game::paint(SDL_Renderer * painter, const SDL_Rect & rect)
 {
 	if(toInvalidate) {
 		resizeSpritesForLevel(rect);
@@ -112,13 +113,13 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 
 	SDL_RenderClear(painter);
 
-	QPoint offset = QPoint(
-			rect.width() - sokoban.width() * spriteSize.width(),
-			rect.height() - sokoban.height() * spriteSize.height()
+	Chthon::Point offset = Chthon::Point(
+			rect.w - sokoban.width() * sprite_width,
+			rect.h - sokoban.height() * sprite_height
 			) / 2;
 	for(int y = 0; y < sokoban.height(); ++y) {
 		for(int x = 0; x < sokoban.width(); ++x) {
-			QPoint pos = offset + QPoint(x * spriteSize.width(), y * spriteSize.height());
+			Chthon::Point pos = offset + Chthon::Point(x * sprite_width, y * sprite_height);
 
 			Cell cell = sokoban.getCellAt(x, y);
 			int cellSprite = Sprites::SPACE;
@@ -130,17 +131,12 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 			}
 			cellSprite = original_sprites.contains(cellSprite) ? cellSprite : Sprites::SPACE;
 
-			QRect src_qrect = original_sprites.getSpriteRect(cellSprite, cell.sprite);
-			SDL_Rect src_rect;
-			src_rect.x = src_qrect.x();
-			src_rect.y = src_qrect.y();
-			src_rect.w = src_qrect.width();
-			src_rect.h = src_qrect.height();
+			SDL_Rect src_rect = original_sprites.getSpriteRect(cellSprite, cell.sprite);
 			SDL_Rect dest_rect;
-			dest_rect.x = pos.x();
-			dest_rect.y = pos.y();
-			dest_rect.w = spriteSize.width();
-			dest_rect.h = spriteSize.height();
+			dest_rect.x = pos.x;
+			dest_rect.y = pos.y;
+			dest_rect.w = sprite_width;
+			dest_rect.h = sprite_height;
 			SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 
 			Object object = sokoban.getObjectAt(x, y);
@@ -163,46 +159,30 @@ void Game::paint(SDL_Renderer * painter, const QRect & rect)
 						break;
 				}
 				if(objectSprite != Sprites::SPACE && original_sprites.contains(objectSprite)) {
-					QRect src_qrect = original_sprites.getSpriteRect(objectSprite, object.sprite);
-					SDL_Rect src_rect;
-					src_rect.x = src_qrect.x();
-					src_rect.y = src_qrect.y();
-					src_rect.w = src_qrect.width();
-					src_rect.h = src_qrect.height();
+					SDL_Rect src_rect = original_sprites.getSpriteRect(objectSprite, object.sprite);
 					SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 				}
 			}
 		}
 	}
 	if(target_mode) {
-		QPoint pos = offset + QPoint(target.x() * spriteSize.width(), target.y() * spriteSize.height());
-		QRect src_qrect = original_sprites.getSpriteRect(Sprites::CURSOR, 0);
-		SDL_Rect src_rect;
-		src_rect.x = src_qrect.x();
-		src_rect.y = src_qrect.y();
-		src_rect.w = src_qrect.width();
-		src_rect.h = src_qrect.height();
+		Chthon::Point pos = offset + Chthon::Point(target.x * sprite_width, target.y * sprite_height);
+		SDL_Rect src_rect = original_sprites.getSpriteRect(Sprites::CURSOR, 0);
 		SDL_Rect dest_rect;
-		dest_rect.x = pos.x();
-		dest_rect.y = pos.y();
-		dest_rect.w = spriteSize.width();
-		dest_rect.h = spriteSize.height();
+		dest_rect.x = pos.x;
+		dest_rect.y = pos.y;
+		dest_rect.w = sprite_width;
+		dest_rect.h = sprite_height;
 		SDL_RenderCopy(painter, original_sprites.getTileSet(), &src_rect, &dest_rect);
 	}
 
 	if(fader_in.is_active() || fader_out.is_active()) {
-		SDL_Rect screen_rect;
-		screen_rect.x = rect.x();
-		screen_rect.y = rect.y();
-		screen_rect.w = rect.width();
-		screen_rect.h = rect.height();
-
 		if(fader_in.is_active()) {
 			SDL_SetRenderDrawColor(painter, 0, 0, 0, 255 - fader_in.multiplied_value(255));
 		} else {
 			SDL_SetRenderDrawColor(painter, 0, 0, 0, fader_out.multiplied_value(255));
 		}
-		SDL_RenderFillRect(painter, &screen_rect);
+		SDL_RenderFillRect(painter, &rect);
 	}
 }
 

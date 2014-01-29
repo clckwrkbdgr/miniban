@@ -1,9 +1,8 @@
 #pragma once
-#include <QtCore/QMap>
-#include <QtCore/QSize>
 #include "sokoban.h"
 #include "sprites.h"
 #include "counter.h"
+class SDL_Rect;
 
 class Game {
 public:
@@ -21,21 +20,22 @@ public:
 	virtual ~Game() {}
 
 	void load(const Sokoban & prepared_sokoban);
-	virtual void paint(SDL_Renderer * painter, const QRect & rect);
+	virtual void paint(SDL_Renderer * painter, const SDL_Rect & rect);
 	virtual void processControl(int control);
 	virtual bool is_done() const;
 	void processTime(int msec_passed);
 private:
 	const Sprites & original_sprites;
-	QSize spriteSize;
+	int sprite_width;
+	int sprite_height;
 	bool toInvalidate;
 	Sokoban sokoban;
 	bool target_mode;
-	QPoint target;
+	Chthon::Point target;
 
 	Counter fader_in;
 	Counter fader_out;
 
-	void resizeSpritesForLevel(const QRect & rect);
+	void resizeSpritesForLevel(const SDL_Rect & rect);
 };
 
