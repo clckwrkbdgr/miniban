@@ -1,48 +1,38 @@
-#include <QtDebug>
-#include <QtCore/QFile>
-#include <QtXml/QDomDocument>
-#include <QtXml/QDomElement>
 #include "levelset.h"
+#include "xmlreader.h"
+#include <chthon/log.h>
+#include <sstream>
+#include <fstream>
+using Chthon::log;
+using Chthon::format;
 
-bool LevelSet::loadFromFile(const QString & fileName, int startLevelIndex)
+bool LevelSet::loadFromFile(const std::string & file_name, int startLevelIndex)
 {
-	if(fileName.isEmpty()) {
+	if(file_name.empty()) {
 		return false;
 	}
-	QFile file(fileName);
-	if(!file.open(QFile::ReadOnly))
-		return false;
-	QTextStream in(&file);
-	this->fileName = fileName;
-	bool ok = loadFromString(in.readAll(), startLevelIndex);
-	file.close();
-	return ok;
+	std::ifstream file(file_name.c_str(), std::ifstream::in);
+	std::string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	this->file_name = file_name;
+	return loadFromString(file_content, startLevelIndex);
 }
 
-bool LevelSet::loadFromString(const QString & content, int startLevelIndex)
+bool LevelSet::loadFromString(const std::string & content, int startLevelIndex)
 {
-	QDomDocument doc;
-	if(!doc.setContent(content)) {
-		return false;
-	}
-	QDomElement root = doc.documentElement();
-	QDomElement title = root.firstChildElement("Title");
-	QDomElement levelCollection = root.firstChildElement("LevelCollection");
-	QDomElement level = levelCollection.firstChildElement("Level");
-	while(!level.isNull()) {
-		QDomElement l = level.firstChildElement("L");
-		QString levelData;
-		while(!l.isNull()) {
-			levelData += l.text();
-			l = l.nextSiblingElement();
-			if(!l.isNull()) {
-				levelData += '\n';
-			}
+	std::istringstream in(content);
+	XMLReader reader(in);
+	reader.skip_to_tag("Title");
+	reader.to_next_tag();
+	levelSetTitle = reader.get_current_content();
+	while(!reader.skip_to_tag("Level").empty()) {
+		std::string level_name = reader.get_attributes()["Id"];
+		std::string level_data;
+		while(reader.to_next_tag() == "L") {
+			reader.to_next_tag();
+			level_data += reader.get_current_content() + '\n';
 		}
-		xmlLevels << qMakePair(level.attribute("Id"), levelData);
-		level = level.nextSiblingElement();
+		xml_levels.push_back(make_pair(level_name, level_data));
 	}
-	levelSetTitle = title.text();
 
 	over = false;
 	rewindToLevel(startLevelIndex);
@@ -55,32 +45,32 @@ LevelSet::LevelSet()
 {
 }
 
-void LevelSet::rewindToLevel(int levelIndex)
+void LevelSet::rewindToLevel(int level_index)
 {
-	currentLevelIndex = qBound(0, levelIndex, xmlLevels.count()) - 1;
+	currentLevelIndex = std::max(0, std::min(level_index, int(xml_levels.size()))) - 1;
 }
 
 int LevelSet::getLevelCount() const
 {
-	return xmlLevels.count();
+	return xml_levels.size();
 }
 
-const QString & LevelSet::getLevelSetTitle() const
+const std::string & LevelSet::getLevelSetTitle() const
 {
 	return levelSetTitle;
 }
 
-QString LevelSet::getCurrentLevelName() const
+std::string LevelSet::getCurrentLevelName() const
 {
-	if(currentLevelIndex < 0 || xmlLevels.count() <= currentLevelIndex) {
-		return QString();
+	if(currentLevelIndex < 0 || int(xml_levels.size()) <= currentLevelIndex) {
+		return std::string();
 	}
-	return xmlLevels[currentLevelIndex].first;
+	return xml_levels[currentLevelIndex].first;
 }
 
-QString LevelSet::getCurrentLevelSet() const
+std::string LevelSet::getCurrentLevelSet() const
 {
-	return fileName;
+	return file_name;
 }
 
 bool LevelSet::moveToNextLevel()
@@ -89,12 +79,12 @@ bool LevelSet::moveToNextLevel()
 		return false;
 	}
 	++currentLevelIndex;
-	if(currentLevelIndex >= xmlLevels.count()) {
+	if(currentLevelIndex >= int(xml_levels.size())) {
 		over = true;
 		return false;
 	}
-	currentLevel = xmlLevels[currentLevelIndex].second;
-	currentSokoban = Sokoban(currentLevel.toStdString());
+	currentLevel = xml_levels[currentLevelIndex].second;
+	currentSokoban = Sokoban(currentLevel);
 	return true;
 }
 

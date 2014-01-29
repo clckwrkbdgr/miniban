@@ -1,34 +1,34 @@
 #pragma once
 #include "sokoban.h"
-#include <QtCore/QPair>
-#include <QtCore/QString>
+#include <vector>
+#include <string>
 
 class LevelSet {
 public:
 	LevelSet();
 	virtual ~LevelSet() {}
 
-	bool loadFromFile(const QString & fileName, int startLevelIndex);
-	bool loadFromString(const QString & content, int startLevelIndex);
+	bool loadFromFile(const std::string & file_name, int startLevelIndex);
+	bool loadFromString(const std::string & content, int startLevelIndex);
 
 	bool moveToNextLevel();
 	void rewindToLevel(int levelIndex);
 
 	int getCurrentLevelIndex() const { return currentLevelIndex; }
-	QString getCurrentLevelName() const;
+	std::string getCurrentLevelName() const;
 	int getLevelCount() const;
-	const QString & getLevelSetTitle() const;
-	QString getCurrentLevelSet() const;
+	const std::string & getLevelSetTitle() const;
+	std::string getCurrentLevelSet() const;
 	const Sokoban & getCurrentSokoban() const { return currentSokoban; }
 	bool isOver() const { return over; }
 private:
 	bool over;
 	int currentLevelIndex;
-	QString currentLevel;
+	std::string currentLevel;
 	Sokoban currentSokoban;
-	QString levelSetTitle;
+	std::string levelSetTitle;
 
-	QString fileName;
-	QList<QPair<QString, QString> > xmlLevels;
+	std::string file_name;
+	std::vector<std::pair<std::string, std::string> > xml_levels;
 };
 

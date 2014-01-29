@@ -2,8 +2,6 @@
 #include <chthon/test.h>
 using namespace Chthon::UnitTest;
 
-std::string to_string(const QString & value) { return value.toStdString(); }
-
 static const char * xml =  
 "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 "<SokobanLevels xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"SokobanLev.xsd\">\n"
