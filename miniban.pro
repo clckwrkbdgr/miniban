@@ -10,12 +10,12 @@ LIBS += -lchthon -lSDL2
 QMAKE_CXXFLAGS += -std=c++0x
 
 SOKOBAN_TEST {
-	modules = sokoban levelset
-	SOURCES += sokoban_test.cpp levelset_test.cpp
+	modules = sokoban levelset xmlreader
+	SOURCES += sokoban_test.cpp levelset_test.cpp xmlreader_test.cpp
 } else {
 	SOURCES += main.cpp
 	modules = sokoban sokobanwidget
-	modules += sprites levelset counter
+	modules += sprites levelset counter xmlreader
 	modules += playingmode message
 }
 

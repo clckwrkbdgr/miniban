@@ -75,14 +75,7 @@ TEST(should_load_level_names)
 	EQUAL(levelset.getCurrentLevelName(), "One");
 }
 
-TEST(should_point_at_first_level_after_loading)
-{
-	LevelSet levelset;
-	levelset.loadFromString(xml, 0);
-	EQUAL(levelset.getCurrentLevelIndex(), 0);
-}
-
-TEST(should_move_to_the_next_level_when_level_is_specified)
+TEST(should_point_at_specified_level_after_loading)
 {
 	LevelSet levelset;
 	levelset.loadFromString(xml, 1);
@@ -92,15 +85,17 @@ TEST(should_move_to_the_next_level_when_level_is_specified)
 TEST(should_move_to_the_next_level)
 {
 	LevelSet levelset;
-	levelset.loadFromString(xml, 0);
+	levelset.loadFromString(xml, 1);
 	levelset.moveToNextLevel();
-	EQUAL(levelset.getCurrentLevelIndex(), 1);
+	EQUAL(levelset.getCurrentLevelIndex(), 2);
 }
 
 TEST(should_be_over_when_there_is_no_next_level)
 {
 	LevelSet levelset;
-	levelset.loadFromString(xml, 2);
+	levelset.loadFromString(xml, 1);
+	bool ok = levelset.moveToNextLevel();
+	ASSERT(ok);
 	levelset.moveToNextLevel();
 	ASSERT(levelset.isOver());
 }

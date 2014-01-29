@@ -85,6 +85,9 @@ QString LevelSet::getCurrentLevelSet() const
 
 bool LevelSet::moveToNextLevel()
 {
+	if(over) {
+		return false;
+	}
 	++currentLevelIndex;
 	if(currentLevelIndex >= xmlLevels.count()) {
 		over = true;
