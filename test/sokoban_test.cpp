@@ -1,8 +1,6 @@
 #include "../src/sokoban.h"
 #include <chthon/test.h>
 #include <chthon/format.h>
-using namespace Chthon::UnitTest;
-using namespace Chthon;
 
 SUITE(sokoban) {
 
@@ -472,6 +470,6 @@ TEST(unreachableCellsAreMarkedAsSpace)
 
 int main(int argc, char ** argv)
 {
-	run_all_tests(argc, argv);
+	Chthon::run_all_tests(argc, argv);
 }
 

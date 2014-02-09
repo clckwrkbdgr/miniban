@@ -35,7 +35,7 @@ const std::string & XMLReader::to_next_tag()
 		s >> ch;
 	}
 
-	enum { ERROR, TAG_NAME, ATTRIBUTE, EQUALS, VALUE };
+	enum { ERROR, TAG_NAME, ATTRIBUTE, EQUALS };
 	std::string attribute;
 	int mode = TAG_NAME;
 	s >> ch;
@@ -58,7 +58,9 @@ const std::string & XMLReader::to_next_tag()
 					}
 				} else {
 					if(ch == '=') {
-						mode = VALUE;
+						attributes[attribute] = Chthon::read_string(s, '"', '>');
+						mode = ATTRIBUTE;
+						attribute.clear();
 					} else {
 						attribute += ch;
 					}
@@ -67,26 +69,11 @@ const std::string & XMLReader::to_next_tag()
 			case EQUALS:
 				if(!isspace(ch)) {
 					if(ch == '=') {
-						mode = VALUE;
+						attributes[attribute] = Chthon::read_string(s, '"', '>');
+						mode = ATTRIBUTE;
+						attribute.clear();
 					} else {
 						mode = ERROR;
-					}
-				}
-				break;
-			case VALUE:
-				if(isspace(ch)) {
-					if(attributes.count(attribute) > 0) {
-						mode = ATTRIBUTE;
-						attribute.clear();
-					}
-				} else {
-					if(attributes.count(attribute) == 0 && ch == '"') {
-						s.seekg(-1, s.cur); // TODO replace with aware of that read_string routine.
-						attributes[attribute] = Chthon::read_string(s);
-						mode = ATTRIBUTE;
-						attribute.clear();
-					} else {
-						attributes[attribute] += ch;
 					}
 				}
 				break;
