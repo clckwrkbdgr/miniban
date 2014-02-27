@@ -1,6 +1,6 @@
 #include "levelset.h"
 #include "xmlreader.h"
-#include <chthon/log.h>
+#include <chthon2/log.h>
 #include <sstream>
 #include <fstream>
 using Chthon::log;

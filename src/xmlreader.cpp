@@ -1,7 +1,7 @@
 #include "xmlreader.h"
-#include <chthon/files.h>
-#include <chthon/log.h>
-#include <chthon/format.h>
+#include <chthon2/files.h>
+#include <chthon2/log.h>
+#include <chthon2/format.h>
 #include <sstream>
 #include <cctype>
 using Chthon::format;

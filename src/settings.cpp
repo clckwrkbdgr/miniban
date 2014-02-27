@@ -1,5 +1,5 @@
 #include "settings.h"
-#include <chthon/files.h>
+#include <chthon2/files.h>
 #include <cstdlib>
 
 Settings::Settings()

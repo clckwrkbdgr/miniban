@@ -1,7 +1,7 @@
 #include "sokoban.h"
 #include "sprites.h"
 #include "playingmode.h"
-#include <chthon/format.h>
+#include <chthon2/format.h>
 #include <SDL2/SDL.h>
 #include <iostream>
 

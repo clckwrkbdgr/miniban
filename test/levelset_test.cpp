@@ -1,5 +1,5 @@
 #include "../src/levelset.h"
-#include <chthon/test.h>
+#include <chthon2/test.h>
 
 static const char * xml =  
 "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"

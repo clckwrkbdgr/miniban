@@ -1,6 +1,6 @@
 #pragma once
-#include <chthon/map.h>
-#include <chthon/point.h>
+#include <chthon2/map.h>
+#include <chthon2/point.h>
 
 struct Cell {
 	enum { SPACE, FLOOR, WALL, SLOT };
@@ -39,8 +39,8 @@ public:
 	virtual ~Sokoban() {}
 
 	bool isValid() const { return valid; }
-	int width() const { return cells.width; }
-	int height() const { return cells.height; }
+	int width() const { return cells.width(); }
+	int height() const { return cells.height(); }
 	bool isValid(const Chthon::Point & pos) const;
 	Cell getCellAt(int x, int y) const;
 	Cell getCellAt(const Chthon::Point & point) const { return getCellAt(point.x, point.y); }

@@ -1,12 +1,11 @@
 #include "playingmode.h"
 #include "sokobanwidget.h"
 #include "message.h"
-#include <chthon/log.h>
-#include <chthon/format.h>
+#include <chthon2/log.h>
+#include <chthon2/format.h>
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <iostream>
-using namespace Chthon;
 
 namespace {
 
@@ -153,8 +152,8 @@ int SokobanWidget::exec()
 	Game game = Game(levelSet.getCurrentSokoban(), sprites);
 	Message message = Message(sprites,
 			levelSet.isOver()
-			? format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
-			: format(
+			? Chthon::format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
+			: Chthon::format(
 				"{0}: {3}\n{1}/{2}",
 				levelSet.getLevelSetTitle(),
 				levelSet.getCurrentLevelIndex() + 1,
@@ -222,8 +221,8 @@ int SokobanWidget::exec()
 
 				message.set_text(
 						levelSet.isOver()
-						? format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
-						: format(
+						? Chthon::format("{0}\nLevels are over.", levelSet.getLevelSetTitle())
+						: Chthon::format(
 							"{0}: {3}\n{1}/{2}",
 							levelSet.getLevelSetTitle(),
 							levelSet.getCurrentLevelIndex() + 1,

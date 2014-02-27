@@ -1,6 +1,6 @@
 #include "../src/sokoban.h"
-#include <chthon/test.h>
-#include <chthon/format.h>
+#include <chthon2/test.h>
+#include <chthon2/format.h>
 
 SUITE(sokoban) {
 

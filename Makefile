@@ -1,6 +1,6 @@
 BIN = miniban
 TEST_BIN = $(BIN)_test
-LIBS = -lSDL2 -lchthon
+LIBS = -lSDL2 -lchthon2
 
 SOURCES = $(wildcard src/*.cpp)
 APP_SOURCES = $(wildcard *.cpp)

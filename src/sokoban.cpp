@@ -1,11 +1,10 @@
 #include "sokoban.h"
-#include <chthon/util.h>
-#include <chthon/log.h>
+#include <chthon2/util.h>
+#include <chthon2/log.h>
 #include <algorithm>
 #include <sstream>
 #include <map>
 #include <set>
-using namespace Chthon;
 
 static const bool DIRECTIONAL_PLAYER_SPRITES = false;
 
@@ -14,27 +13,10 @@ Sokoban::Sokoban()
 {
 }
 
-std::vector<std::string> & split(const std::string & s, std::vector<std::string> & tokens, char delimeter = '\n')
-{
-	std::stringstream in(s);
-	std::string token;
-	while(std::getline(in, token, delimeter)) {
-		tokens.push_back(token);
-	}
-	return tokens;
-}
-
-
-std::vector<std::string> split(const std::string & s, char delimeter = '\n') {
-	std::vector<std::string> tokens;
-	split(s, tokens, delimeter);
-	return tokens;
-}
-
 Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundHistory, bool isFullHistoryTracked)
 	: valid(true), cells(1, 1), history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
 {
-	std::vector<std::string> rows = split(levelField);
+	std::vector<std::string> rows = Chthon::split(levelField);
 	unsigned h = rows.size();
 	unsigned w = 0;
 	for(const std::string & row : rows) {
@@ -79,7 +61,7 @@ Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundH
 	}
 
 	// 0 - passable, 1 - impassable, 2 - found to be floor.
-	std::vector<int> reachable(cells.width * cells.height, 0);
+	std::vector<int> reachable(cells.width() * cells.height(), 0);
 	for(unsigned i = 0; i < reachable.size(); ++i) {
 		reachable[i] = (cells.cell(i % width(), i / width()).type == Cell::WALL) ? 1 : 0;
 	}
@@ -112,7 +94,7 @@ bool Sokoban::movePlayer(const Chthon::Point & target)
 	if(!valid) {
 		return false;
 	}
-	std::vector<int> passed(cells.width * cells.height, -1);
+	std::vector<int> passed(cells.width() * cells.height(), -1);
 	for(unsigned i = 0; i < passed.size(); ++i) {
 		Chthon::Point p(i % width(), i / width());
 		if(cells.cell(p).type != Cell::WALL && !has_box(p)) {
@@ -126,7 +108,7 @@ bool Sokoban::movePlayer(const Chthon::Point & target)
 	passed[pos.x + pos.y * width()] = 1;
 	std::vector<Chthon::Point> current_points;
 	current_points << pos;
-	int counter = cells.width * cells.height;
+	int counter = cells.width() * cells.height();
 	while(counter --> 0) {
 		std::vector<Chthon::Point> new_points;
 		foreach(const Chthon::Point & current_pos, current_points) {

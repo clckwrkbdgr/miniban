@@ -1,5 +1,5 @@
 #include "../src/xmlreader.h"
-#include <chthon/test.h>
+#include <chthon2/test.h>
 #include <sstream>
 
 SUITE(xml) {
