@@ -30,7 +30,7 @@ tmp/%.o: %.cpp
 	@echo Compiling $<...
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-.PHONY: clean Makefile
+.PHONY: clean Makefile test
 
 clean:
 	$(RM) -rf tmp/* $(BIN) $(TEST_BIN)

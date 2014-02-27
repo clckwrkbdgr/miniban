@@ -68,6 +68,5 @@ private:
 	std::string history;
 	bool has_box(const Chthon::Point & point) const;
 	bool fullHistoryTracking;
-	void fillFloor(std::vector<int> & reachable, const Chthon::Point & point);
 	bool shiftPlayer(const Chthon::Point & shift);
 };

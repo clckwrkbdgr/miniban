@@ -19,6 +19,15 @@ Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundH
 	load(levelField, backgroundHistory, isFullHistoryTracked);
 }
 
+bool operator==(const Cell & a, const Cell & b)
+{
+	return a.type == b.type;
+}
+bool operator!=(const Cell & a, const Cell & b)
+{
+	return !(a == b);
+}
+
 void Sokoban::load(const std::string & levelField, const std::string & backgroundHistory, bool isFullHistoryTracked)
 {
 	valid = false;
@@ -47,16 +56,6 @@ void Sokoban::load(const std::string & levelField, const std::string & backgroun
 				case '$': cells.cell(pos).type = Cell::SPACE; boxes << Object(pos); break;
 				case '*': cells.cell(pos).type = Cell::SLOT; boxes << Object(pos); break;
 			}
-			int sprite_chance = rand() % 100;
-			if(sprite_chance < 50) {
-				cells.cell(pos).sprite = 0;
-			} else if(sprite_chance < 80) {
-				cells.cell(pos).sprite = 1;
-			} else if(sprite_chance < 95) {
-				cells.cell(pos).sprite = 2;
-			} else {
-				cells.cell(pos).sprite = 3;
-			}
 		}
 	}
 	if(playerCount != 1) {
@@ -67,14 +66,31 @@ void Sokoban::load(const std::string & levelField, const std::string & backgroun
 	}
 
 	// 0 - passable, 1 - impassable, 2 - found to be floor.
-	std::vector<int> reachable(cells.width() * cells.height(), 0);
-	for(unsigned i = 0; i < reachable.size(); ++i) {
-		reachable[i] = (cells.cell(i % width(), i / width()).type == Cell::WALL) ? 1 : 0;
+	enum { PASSABLE, IMPASSABLE, FLOOR };
+	Chthon::Map<int> reachable(cells.width(), cells.height(), PASSABLE);
+	std::transform(cells.begin(), cells.end(), reachable.begin(),
+			[](const Cell & cell) {
+				return (cell.type == Cell::WALL) ? IMPASSABLE : PASSABLE;
+			});
+	reachable.floodfill(getPlayerPos(), FLOOR);
+	for(unsigned x = 0; x < reachable.width(); ++x) {
+		for(unsigned y = 0; y < reachable.height(); ++y) {
+			if(reachable.cell(x, y) == FLOOR && cells.cell(x, y).type == Cell::SPACE) {
+				cells.cell(x, y).type = Cell::FLOOR;
+			}
+		}
 	}
-	fillFloor(reachable, getPlayerPos());
-	for(unsigned i = 0; i < reachable.size(); ++i) {
-		if(reachable[i] == 2 && cells.cell(i % width(), i / width()).type == Cell::SPACE) {
-			cells.cell(i % width(), i / width()).type = Cell::FLOOR;
+
+	for(Cell & cell : cells) {
+		int sprite_chance = rand() % 100;
+		if(sprite_chance < 50) {
+			cell.sprite = 0;
+		} else if(sprite_chance < 80) {
+			cell.sprite = 1;
+		} else if(sprite_chance < 95) {
+			cell.sprite = 2;
+		} else {
+			cell.sprite = 3;
 		}
 	}
 	valid = true;
@@ -189,21 +205,6 @@ bool Sokoban::movePlayer(const Chthon::Point & target)
 		current_points = new_points;
 	}
 	return false;
-}
-
-void Sokoban::fillFloor(std::vector<int> & reachable, const Chthon::Point & point)
-{
-	if(!isValid(point)) {
-		return;
-	}
-	if(reachable[point.x + point.y * width()] != 0) {
-		return;
-	}
-	reachable[point.x + point.y * width()] = 2;
-	fillFloor(reachable, point + Chthon::Point(0, 1));
-	fillFloor(reachable, point + Chthon::Point(0, -1));
-	fillFloor(reachable, point + Chthon::Point(1, 0));
-	fillFloor(reachable, point + Chthon::Point(-1, 0));
 }
 
 Chthon::Point Sokoban::getPlayerPos() const
