@@ -390,7 +390,7 @@ TEST(undoMovement)
 
 TEST(should_consider_2_players_invalid)
 {
-	CATCH(Sokoban("@@ "), Sokoban::InvalidPlayerCountException, e) {
+	CATCH(Sokoban("@@ "), const Sokoban::InvalidPlayerCountException & e) {
 		EQUAL(e.playerCount, 2);
 	}
 }
@@ -402,7 +402,7 @@ TEST(should_consider_1_players_valid)
 
 TEST(should_consider_0_players_invalid)
 {
-	CATCH(Sokoban("#  "), Sokoban::InvalidPlayerCountException, e) {
+	CATCH(Sokoban("#  "), const Sokoban::InvalidPlayerCountException & e) {
 		EQUAL(e.playerCount, 0);
 	}
 }
@@ -422,7 +422,7 @@ TEST(should_consider_valid_undo_string_valid)
 TEST(should_consider_invalid_characters_undo_string_invalid)
 {
 	Sokoban sokoban("@ ", " ");
-	CATCH(sokoban.undo(), Sokoban::InvalidUndoException, e) {
+	CATCH(sokoban.undo(), const Sokoban::InvalidUndoException & e) {
 		EQUAL(sokoban.historyAsString().size(), 1);
 		EQUAL(e.invalidUndoControl, ' ');
 	}
@@ -431,7 +431,7 @@ TEST(should_consider_invalid_characters_undo_string_invalid)
 TEST(should_consider_invalid_movement_undo_string_invalid)
 {
 	Sokoban sokoban("@#", "l");
-	CATCH(sokoban.undo(), Sokoban::InvalidUndoException, e) {
+	CATCH(sokoban.undo(), const Sokoban::InvalidUndoException & e) {
 		EQUAL(sokoban.historyAsString().size(), 1);
 		EQUAL(e.invalidUndoControl, 'l');
 	}

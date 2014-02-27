@@ -2,6 +2,7 @@
 #include "sprites.h"
 #include "playingmode.h"
 #include <chthon2/format.h>
+#include <chthon2/util.h>
 #include <SDL2/SDL.h>
 #include <iostream>
 
@@ -31,7 +32,7 @@ void Game::resizeSpritesForLevel(const SDL_Rect & rect)
 			rect.w / (sokoban.width() * originalSize.w),
 			rect.h / (sokoban.height() * originalSize.h)
 			);
-	scaleFactor = std::max(MIN_SCALE_FACTOR, std::min(scaleFactor, MAX_SCALE_FACTOR));
+	scaleFactor = Chthon::bound(MIN_SCALE_FACTOR, scaleFactor, MAX_SCALE_FACTOR);
 
 	sprite_width = originalSize.w * scaleFactor;
 	sprite_height = originalSize.h * scaleFactor;

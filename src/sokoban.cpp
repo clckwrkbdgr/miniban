@@ -359,14 +359,6 @@ std::string Sokoban::historyAsString() const
 	return history;
 }
 
-bool endsWith(const std::string & fullString, const std::string & ending)
-{
-	if(fullString.length() >= ending.length()) {
-		return fullString.compare(fullString.length() - ending.length(), ending.length(), ending) == 0;
-	}
-	return false;
-}
-
 bool Sokoban::undo()
 {
 	if(!valid) {
@@ -385,9 +377,9 @@ bool Sokoban::undo()
 
 	std::string realHistory = history;
 	if(fullHistoryTracking) {
-		while(!realHistory.empty() && endsWith(realHistory, "-")) {
+		while(!realHistory.empty() && Chthon::ends_with(realHistory, "-")) {
 			int count = 0;
-			while(endsWith(realHistory, "-")) {
+			while(Chthon::ends_with(realHistory, "-")) {
 				++count;
 				realHistory.erase(realHistory.size() - 1, 1);
 			}

@@ -1,5 +1,6 @@
 #include "levelset.h"
 #include "xmlreader.h"
+#include <chthon2/util.h>
 #include <chthon2/log.h>
 #include <sstream>
 #include <fstream>
@@ -47,7 +48,7 @@ LevelSet::LevelSet()
 
 void LevelSet::rewindToLevel(int level_index)
 {
-	currentLevelIndex = std::max(0, std::min(level_index, int(xml_levels.size()))) - 1;
+	currentLevelIndex = Chthon::bound(0, level_index, int(xml_levels.size())) - 1;
 }
 
 int LevelSet::getLevelCount() const
