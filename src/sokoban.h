@@ -38,6 +38,8 @@ public:
 	Sokoban(const std::string & levelField, const std::string & backgroundHistory = std::string(), bool isFullHistoryTracked = false);
 	virtual ~Sokoban() {}
 
+	void load(const std::string & levelField, const std::string & backgroundHistory = std::string(), bool isFullHistoryTracked = false);
+
 	bool isValid() const { return valid; }
 	int width() const { return cells.width(); }
 	int height() const { return cells.height(); }

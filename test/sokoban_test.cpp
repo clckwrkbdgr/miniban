@@ -409,14 +409,14 @@ TEST(should_consider_0_players_invalid)
 
 TEST(should_consider_empty_undo_string_valid)
 {
-	Sokoban sokoban("@ ", "");
-	// Should not throw;
+	Sokoban sokoban;
+	NOTHROW(sokoban.load("@ ", ""));
 }
 
 TEST(should_consider_valid_undo_string_valid)
 {
-	Sokoban sokoban("@ ", "l");
-	// Should not throw;
+	Sokoban sokoban;
+	NOTHROW(sokoban.load("@ ", "l"));
 }
 
 TEST(should_consider_invalid_characters_undo_string_invalid)

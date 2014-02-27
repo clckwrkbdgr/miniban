@@ -14,8 +14,14 @@ Sokoban::Sokoban()
 }
 
 Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundHistory, bool isFullHistoryTracked)
-	: valid(true), cells(1, 1), history(backgroundHistory), fullHistoryTracking(isFullHistoryTracked)
+	: Sokoban()
 {
+	load(levelField, backgroundHistory, isFullHistoryTracked);
+}
+
+void Sokoban::load(const std::string & levelField, const std::string & backgroundHistory, bool isFullHistoryTracked)
+{
+	valid = false;
 	std::vector<std::string> rows = Chthon::split(levelField);
 	unsigned h = rows.size();
 	unsigned w = 0;
@@ -71,6 +77,9 @@ Sokoban::Sokoban(const std::string & levelField, const std::string & backgroundH
 			cells.cell(i % width(), i / width()).type = Cell::FLOOR;
 		}
 	}
+	valid = true;
+	history = backgroundHistory;
+	fullHistoryTracking = isFullHistoryTracked;
 }
 
 void Sokoban::restart()
