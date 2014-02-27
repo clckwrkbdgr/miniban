@@ -1,4 +1,5 @@
 #include "sokoban.h"
+#include <chthon2/pathfinding.h>
 #include <chthon2/util.h>
 #include <chthon2/log.h>
 #include <algorithm>
@@ -119,92 +120,26 @@ bool Sokoban::movePlayer(const Chthon::Point & target)
 	if(!valid) {
 		return false;
 	}
-	std::vector<int> passed(cells.width() * cells.height(), -1);
-	for(unsigned i = 0; i < passed.size(); ++i) {
-		Chthon::Point p(i % width(), i / width());
-		if(cells.cell(p).type != Cell::WALL && !has_box(p)) {
-			passed[i] = 0;
+	Chthon::Pathfinder finder(false);
+	bool found = finder.lee(getPlayerPos(), target,
+			[this](const Chthon::Point & p) {
+				return this->cells.cell(p).type != Cell::WALL && !has_box(p);
+			});
+	if(!found) {
+		return false;
+	}
+	for(const Chthon::Point & r : finder.directions) {
+		if(r.x > 0) {
+			movePlayer(Sokoban::RIGHT);
+		} else if(r.x < 0) {
+			movePlayer(Sokoban::LEFT);
+		} else if(r.y > 0) {
+			movePlayer(Sokoban::DOWN);
+		} else if(r.y < 0) {
+			movePlayer(Sokoban::UP);
 		}
 	}
-	Chthon::Point pos = getPlayerPos();
-	if(pos == target) {
-		return true;
-	}
-	passed[pos.x + pos.y * width()] = 1;
-	std::vector<Chthon::Point> current_points;
-	current_points << pos;
-	int counter = cells.width() * cells.height();
-	while(counter --> 0) {
-		std::vector<Chthon::Point> new_points;
-		foreach(const Chthon::Point & current_pos, current_points) {
-			if(current_pos == target) {
-				if(player.pos != pos) {
-					return false;
-				}
-				if(cells.cell(target).type != Cell::FLOOR && cells.cell(target).type != Cell::SLOT) {
-					return false;
-				}
-				Chthon::Point current = current_pos;
-				std::vector<Chthon::Point> path;
-				path << current;
-				int count = 2000;
-				while(current != pos) {
-					if(--count < 0) {
-						break;
-					}
-					int current_cell = passed[current.x + current.y * width()];
-					std::vector<Chthon::Point> neighs;
-					neighs << current + Chthon::Point(1, 0) << current + Chthon::Point(-1, 0) << current + Chthon::Point(0, 1) << current + Chthon::Point(0, -1);
-					Chthon::Point step;
-					foreach(const Chthon::Point & neigh, neighs) {
-						if(!isValid(neigh) || passed[neigh.x + neigh.y * width()] < 0) {
-							continue;
-						}
-						int & neigh_cell = passed[neigh.x + neigh.y * width()];
-						if(neigh_cell == current_cell - 1) {
-							path << neigh;
-							current = neigh;
-							break;
-						}
-					}
-				}
-				std::reverse(path.begin(), path.end());
-				for(unsigned i = 1; i < path.size(); ++i) {
-					Chthon::Point r = path[i] - path[i - 1];
-					if(r.x > 0) {
-						movePlayer(Sokoban::RIGHT);
-					} else if(r.x < 0) {
-						movePlayer(Sokoban::LEFT);
-					} else if(r.y > 0) {
-						movePlayer(Sokoban::DOWN);
-					} else if(r.y < 0) {
-						movePlayer(Sokoban::UP);
-					}
-				}
-				return true;
-			}
-			int current_cell = passed[current_pos.x + current_pos.y * width()];
-			std::vector<Chthon::Point> neighs;
-			for(unsigned i = 0; i < passed.size(); ++i) {
-				neighs << current_pos + Chthon::Point(1, 0) << current_pos + Chthon::Point(-1, 0) << current_pos + Chthon::Point(0, 1) << current_pos + Chthon::Point(0, -1);
-			}
-			foreach(const Chthon::Point & neigh, neighs) {
-				if(!isValid(neigh) || passed[neigh.x + neigh.y * width()] < 0) {
-					continue;
-				}
-				int & neigh_cell = passed[neigh.x + neigh.y * width()];
-				if(neigh_cell == 0) {
-					neigh_cell = current_cell + 1;
-					new_points << neigh;
-				}
-			}
-		}
-		if(new_points.empty()) {
-			return false;
-		}
-		current_points = new_points;
-	}
-	return false;
+	return true;
 }
 
 Chthon::Point Sokoban::getPlayerPos() const
