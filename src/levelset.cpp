@@ -1,5 +1,5 @@
 #include "levelset.h"
-#include "xmlreader.h"
+#include <chthon2/xmlreader.h>
 #include <chthon2/util.h>
 #include <chthon2/log.h>
 #include <sstream>
@@ -21,7 +21,7 @@ bool LevelSet::loadFromFile(const std::string & file_name, int startLevelIndex)
 bool LevelSet::loadFromString(const std::string & content, int startLevelIndex)
 {
 	std::istringstream in(content);
-	XMLReader reader(in);
+	Chthon::XMLReader reader(in);
 	reader.skip_to_tag("Title");
 	reader.to_next_tag();
 	levelSetTitle = reader.get_current_content();
