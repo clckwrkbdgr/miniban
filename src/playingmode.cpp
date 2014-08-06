@@ -59,6 +59,7 @@ void Game::processControl(int control)
 				target_mode = false;
 				break;
 			case CONTROL_TARGET:  target_mode = false; break;
+			case CONTROL_ESCAPE:  target_mode = false; break;
 			default: break;
 		}
 		if(sokoban.isValid(Chthon::Point(new_target.x, new_target.y))) {

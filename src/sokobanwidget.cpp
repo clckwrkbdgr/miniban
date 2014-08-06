@@ -36,6 +36,7 @@ std::map<int, std::string> generateKeyToTextMap()
 	result[SDLK_z]         = "Z";
 	result[SDLK_x]         = "X";
 	result[SDLK_PERIOD]    = ".";
+	result[SDLK_ESCAPE]    = "Esc";
 	return result;
 }
 
@@ -63,6 +64,7 @@ std::map<std::string, int> generateTextToControlMap()
 	result["Home"]      = Game::CONTROL_HOME;
 	result["Ctrl-Q"]    = Game::CONTROL_QUIT;
 	result["Q"]         = Game::CONTROL_QUIT;
+	result["Esc"]       = Game::CONTROL_ESCAPE;
 
 	result["Ctrl-0"]    = Game::CONTROL_CHEAT_RESTART;
 	result["Ctrl-1"]    = Game::CONTROL_CHEAT_SKIP_LEVEL;
