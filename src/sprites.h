@@ -1,10 +1,10 @@
 #pragma once
 #include <map>
 #include <vector>
+#include <chthon2/point.h>
 class SDL_Texture;
 class SDL_Renderer;
 class SDL_Rect;
-namespace Chthon { class Point; }
 
 class Sprites {
 public:
