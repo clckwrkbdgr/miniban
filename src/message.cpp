@@ -29,11 +29,11 @@ void Message::set_text(const std::string & message_text)
 		if(ch != '\n') {
 			lines.back() += ch;
 		} else {
-			max_width = std::max(max_width, lines.back().size());
+			max_width = std::max(max_width, (unsigned)lines.back().size());
 			lines.push_back(std::string());
 		}
 	}
-	max_width = std::max(max_width, lines.back().size());
+	max_width = std::max(max_width, (unsigned)lines.back().size());
 }
 
 bool Message::is_done() const
