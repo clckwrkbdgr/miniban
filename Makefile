@@ -1,3 +1,5 @@
+VERSION=$(shell git tag | sed 's/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\)/\1/' | sort -nt . | tail -1)
+
 BIN = miniban
 TEST_BIN = $(BIN)_test
 LIBS = -lSDL2 -lchthon2
@@ -19,6 +21,16 @@ run: $(BIN)
 
 test: $(TEST_BIN)
 	./$(TEST_BIN) $(TESTS)
+
+deb: $(BIN)
+	@debpackage.py \
+		$(BIN) \
+		-v $(VERSION) \
+		--maintainer 'umi041 <umi0451@gmail.com>' \
+		--bin $(BIN) \
+		--build-dir tmp \
+		--dest-dir . \
+		--description 'Sokoban clone with pixel graphics.'
 
 $(BIN): $(OBJ) $(APP_OBJ)
 	$(CXX) $(LIBS) -o $@ $^

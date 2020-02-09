@@ -13,6 +13,9 @@
 
 # Vim
 *.swp
+
+# Build
 tmp/
 miniban
 miniban_test
+*.deb
